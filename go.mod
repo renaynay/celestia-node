@@ -7,5 +7,6 @@ require (
 	github.com/libp2p/go-libp2p v0.15.0-rc.1
 	github.com/libp2p/go-libp2p-core v0.9.0
 	github.com/stretchr/testify v1.7.0
+	github.com/tendermint/tendermint v0.34.12
 	go.uber.org/fx v1.14.2
 )

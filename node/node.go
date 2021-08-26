@@ -3,10 +3,10 @@ package node
 import (
 	"context"
 
+	"github.com/celestiaorg/celestia-node/node/config"
+	"github.com/celestiaorg/celestia-node/rpc"
 	logging "github.com/ipfs/go-log/v2"
 	"go.uber.org/fx"
-
-	"github.com/celestiaorg/celestia-node/node/config"
 )
 
 var log = logging.Logger("node")
@@ -17,9 +17,10 @@ var log = logging.Logger("node")
 // * Full
 // * Light
 type Node struct {
+	RPCClient *rpc.Client
+
 	tp  Type
 	cfg *config.Config
-
 	// we keep reference to App to control Node's lifecycle
 	app *fx.App
 }
