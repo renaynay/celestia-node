@@ -9,7 +9,8 @@ import (
 	"github.com/tendermint/tendermint/types"
 )
 
-const subscriber = "NewBlockEvents" // TODO @renaynay: do we want to enable other types of ws subscriptions for the client? We only need blocks for now. `
+const subscriber = "NewBlockEvents" // TODO @renaynay: do we want to enable other types of ws subscriptions for the
+// TODO  client? We only need blocks for now.
 
 type Client struct {
 	http       *http.HTTP

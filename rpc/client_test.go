@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/tendermint/tendermint/abci/example/kvstore"
 	"github.com/tendermint/tendermint/node"
 	rpctest "github.com/tendermint/tendermint/rpc/test"
@@ -78,7 +80,6 @@ func TestClient_StartBlockSubscription(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func() {
-		client.StopBlockSubscription(ctx)
 		backgroundNode.Stop()
 		cancel()
 	}()
@@ -87,6 +88,8 @@ func TestClient_StartBlockSubscription(t *testing.T) {
 		event := <-eventChan
 		t.Log("NEW BLOCK: ", event.Data)
 	}
+	err = client.StopBlockSubscription(ctx)
+	assert.NoError(t, err)
 }
 
 func newClient(t *testing.T) (*Client, *node.Node) {

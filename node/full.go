@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+
 	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/node/config"
