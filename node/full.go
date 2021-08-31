@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"github.com/celestiaorg/celestia-node/service/block"
 
 	"go.uber.org/fx"
 
@@ -40,5 +41,11 @@ func full(cfg *config.Config) fx.Option {
 func RPCClientConstructor(cfg *config.Config) interface{} {
 	return func() (*rpc.Client, error) {
 		return rpc.NewClient(cfg.RPCConfig.Protocol, cfg.RPCConfig.RemoteAddr)
+	}
+}
+
+func BlockServiceConstructor(cfg *config.Config) interface{} {
+	return func() (*block.Service, error) {
+		return block.NewBlockService()
 	}
 }
