@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/celestiaorg/celestia-core/abci/example/kvstore"
 	"github.com/celestiaorg/celestia-core/node"
 	rpctest "github.com/celestiaorg/celestia-core/rpc/test"
@@ -32,7 +30,7 @@ func TestClient_GetStatus(t *testing.T) {
 	t.Log(status.NodeInfo)
 }
 
-func TestClient_GetBlock(t *testing.T) {
+func TestClient_StartBlockSubscription_And_GetBlock(t *testing.T) {
 	client, backgroundNode := newClient(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -65,31 +63,6 @@ func TestClient_GetBlock(t *testing.T) {
 	if block.Block.Height != height {
 		t.Fatalf("mismatched block heights: expected %v, got %v", height, block.Block.Height)
 	}
-}
-
-func TestClient_StartBlockSubscription(t *testing.T) {
-	client, backgroundNode := newClient(t)
-	if err := client.Start(); err != nil {
-		t.Fatal(err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	eventChan, err := client.StartBlockSubscription(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		backgroundNode.Stop()
-		cancel()
-	}()
-
-	for i := 0; i < 10; i++ {
-		event := <-eventChan
-		t.Log("NEW BLOCK: ", event.Data)
-	}
-	err = client.StopBlockSubscription(ctx)
-	assert.NoError(t, err)
 }
 
 func newClient(t *testing.T) (*Client, *node.Node) {
