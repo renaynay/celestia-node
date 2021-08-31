@@ -11,20 +11,19 @@ import (
 
 func TestNewClient(t *testing.T) {
 	_, backgroundNode := newClient(t)
-	t.Cleanup(func() {
-		backgroundNode.Stop()
-	})
+	//nolint:errcheck
+	backgroundNode.Stop()
 }
 
 func TestClient_GetStatus(t *testing.T) {
 	client, backgroundNode := newClient(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
+	//nolint:errcheck
 	t.Cleanup(func() {
 		backgroundNode.Stop()
 		cancel()
 	})
-
 
 	status, err := client.GetStatus(ctx)
 	if err != nil {
@@ -37,6 +36,7 @@ func TestClient_StartBlockSubscription_And_GetBlock(t *testing.T) {
 	client, backgroundNode := newClient(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
+	//nolint:errcheck
 	t.Cleanup(func() {
 		backgroundNode.Stop()
 		cancel()

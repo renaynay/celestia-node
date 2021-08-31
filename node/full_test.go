@@ -32,6 +32,7 @@ func TestNewFull(t *testing.T) {
 	require.NotNil(t, node.RPCClient)
 
 	stopCtx, stopCtxCancel := context.WithCancel(context.Background())
+	//nolint:errcheck
 	t.Cleanup(func() {
 		tendNode.Stop()
 		startCtxCancel()
