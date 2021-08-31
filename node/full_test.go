@@ -9,9 +9,9 @@ import (
 
 	"github.com/celestiaorg/celestia-node/node/config"
 	"github.com/celestiaorg/celestia-node/rpc"
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	tend_node "github.com/tendermint/tendermint/node"
-	rpctest "github.com/tendermint/tendermint/rpc/test"
+	"github.com/celestiaorg/celestia-core/abci/example/kvstore"
+	core_node "github.com/celestiaorg/celestia-core/node"
+	rpctest "github.com/celestiaorg/celestia-core/rpc/test"
 )
 
 func TestNewFull(t *testing.T) {
@@ -42,7 +42,7 @@ func TestNewFull(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func startTendermint() *tend_node.Node {
+func startTendermint() *core_node.Node {
 	app := kvstore.NewApplication()
 	app.RetainBlocks = 10
 	return rpctest.StartTendermint(app, rpctest.SuppressStdout)

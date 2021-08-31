@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	"github.com/tendermint/tendermint/node"
-	rpctest "github.com/tendermint/tendermint/rpc/test"
+	"github.com/celestiaorg/celestia-core/abci/example/kvstore"
+	"github.com/celestiaorg/celestia-core/node"
+	rpctest "github.com/celestiaorg/celestia-core/rpc/test"
 )
 
 func TestNewClient(t *testing.T) {

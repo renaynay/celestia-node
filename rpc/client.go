@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tendermint/tendermint/rpc/client/http"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	"github.com/tendermint/tendermint/types"
+	"github.com/celestiaorg/celestia-core/rpc/client/http"
+	ctypes "github.com/celestiaorg/celestia-core/rpc/core/types"
+	"github.com/celestiaorg/celestia-core/types"
 )
 
 const subscriber = "NewBlockEvents" // TODO @renaynay: do we want to enable other types of ws subscriptions for the
