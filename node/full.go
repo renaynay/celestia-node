@@ -35,17 +35,12 @@ func full(cfg *config.Config) fx.Option {
 	return fx.Options(
 		fx.Provide(p2p.Host),
 		fx.Provide(RPCClientConstructor(cfg)),
+		fx.Provide(block.NewBlockService),
 	)
 }
 
 func RPCClientConstructor(cfg *config.Config) interface{} {
 	return func() (*rpc.Client, error) {
 		return rpc.NewClient(cfg.RPCConfig.Protocol, cfg.RPCConfig.RemoteAddr)
-	}
-}
-
-func BlockServiceConstructor(cfg *config.Config) interface{} {
-	return func() (*block.Service, error) {
-		return block.NewBlockService()
 	}
 }
