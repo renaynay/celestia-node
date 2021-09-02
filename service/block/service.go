@@ -16,6 +16,7 @@ type Service struct {
 	rpc *rpc.Client
 }
 
+// NewBlockService // TODO document
 func NewBlockService(rpc *rpc.Client) (*Service, error) {
 	if rpc == nil {
 		return nil, fmt.Errorf("no running rpc found")
@@ -26,26 +27,7 @@ func NewBlockService(rpc *rpc.Client) (*Service, error) {
 	return serv, nil
 }
 
-func (s *Service) Start() error {
-
-	return nil
+// Start starts the BlockService.
+func (s *Service) Start(ctx context.Context) error {
+	return s.newBlockEventListener(ctx)
 }
-
-func (s *Service) newBlockListener(ctx context.Context) error {
-	newBlockEventChan, err := s.rpc.StartBlockSubscription(ctx)
-	if err != nil {
-		return err
-	}
-
-	for {
-		select {
-		case <- ctx.Done():
-
-		}
-	}
-}
-
-// TODO:
-// 	a function that has a listener loop for new events coming through the block subscription chan and then pipes them
-//	 into the erasure coding function which then produces DAH, verifies against data root in header of raw block, if good
-// 	gets stored and is ready to be served.

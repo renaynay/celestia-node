@@ -51,7 +51,7 @@ func TestClient_StartBlockSubscription_And_GetBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := 0; i < 3; i++ {
-		<-eventChan
+		t.Log(<-eventChan)
 	}
 	if err := client.StopBlockSubscription(ctx); err != nil {
 		t.Fatal(err)
