@@ -44,7 +44,7 @@ func TestClient_StartBlockSubscription_And_GetBlock(t *testing.T) {
 	err := client.Start()
 	require.Nil(t, err)
 
-	eventChan, err := client.StartBlockSubscription(ctx)
+	eventChan, err := client.SubscribeNewBlockEvent(ctx)
 	require.Nil(t, err)
 
 	for i := 1; i <= 3; i++ {
@@ -52,11 +52,12 @@ func TestClient_StartBlockSubscription_And_GetBlock(t *testing.T) {
 		// check that `GetBlock` works as intended (passing nil to get block at latest height)
 		block, err := client.GetBlock(ctx, nil)
 		require.Nil(t, err)
-		require.Equal(t, int64(i), block.Block.Height)
+		require.Equal(t, int64(i), block.Height)
 	}
 	// unsubscribe to event channel
-	err = client.StopBlockSubscription(ctx)
-	require.Nil(t, err)
+	if err := client.UnsubscribeNewBlockEvent(ctx); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func newClient(t *testing.T) (*Client, *node.Node) {

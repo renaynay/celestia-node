@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/celestiaorg/celestia-node/node/block"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/rpc"
 )
@@ -10,6 +11,7 @@ import (
 type Config struct {
 	P2P *p2p.Config
 	RPC *rpc.Config
+	Block *block.Config
 }
 
 // DefaultConfig provides a default Node Config.

@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/celestiaorg/celestia-node/node/block"
 	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/node/p2p"
@@ -25,5 +26,6 @@ func fullComponents(cfg *Config) fx.Option {
 		// components
 		p2p.Components(cfg.P2P),
 		rpc.Components(cfg.RPC),
+		fx.Provide(block.Components),
 	)
 }
