@@ -8,6 +8,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/core"
+	"github.com/celestiaorg/celestia-node/service/block"
 )
 
 var log = logging.Logger("node")
@@ -27,6 +28,13 @@ type Node struct {
 
 	// CoreClient provides access to a Core node process.
 	CoreClient core.Client `optional:"true"`
+
+	// BlockService provides access to the node's Block Service
+	// TODO @renaynay: I don't like the concept of storing individual services on the node,
+	// TODO maybe create a struct in full.go that contains `FullServices` (all expected services to be running on a
+	// TODO full node) and in light, same thing `LightServices` (all expected services to be running in a light node.
+	// TODO `FullServices` can include `LightServices` + other services.
+	BlockServ *block.Service `optional:"true"`
 }
 
 // newNode creates a new Node from given DI options.
