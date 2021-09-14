@@ -1,11 +1,12 @@
 package node
 
 import (
+	"github.com/celestiaorg/celestia-node/service/block"
 	"go.uber.org/fx"
 
+	coreclient "github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/p2p"
-	"github.com/celestiaorg/celestia-node/service/block"
 )
 
 // NewFull assembles a new Full Node from required components.
@@ -23,9 +24,11 @@ func fullComponents(cfg *Config) fx.Option {
 		fx.Provide(func() *Config {
 			return cfg
 		}),
+		fx.Provide(func(fetcher *coreclient.BlockFetcher) *block.Service {
+			return block.NewBlockService(fetcher)
+		}),
 		// components
 		p2p.Components(cfg.P2P),
 		core.Components(cfg.Core),
-		fx.Provide(block.NewBlockService),
 	)
 }
