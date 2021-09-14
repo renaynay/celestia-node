@@ -10,6 +10,7 @@ import (
 )
 
 const newBlockSubscriber = "NewBlock/Events"
+
 var newBlockEventQuery = types.QueryForEvent(types.EventNewBlock).String()
 
 type BlockFetcher struct {
