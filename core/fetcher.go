@@ -2,8 +2,7 @@ package core
 
 import (
 	"context"
-	"sync"
-
+	"fmt"
 	rpctypes "github.com/celestiaorg/celestia-core/rpc/core/types"
 	"github.com/celestiaorg/celestia-core/types"
 	"github.com/celestiaorg/celestia-node/service/block"
@@ -16,7 +15,6 @@ var newBlockEventQuery = types.QueryForEvent(types.EventNewBlock).String()
 type BlockFetcher struct {
 	Client
 
-	mux        sync.Mutex
 	newBlockCh chan *block.Raw
 }
 
@@ -47,18 +45,19 @@ func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *bloc
 		return nil, err
 	}
 
-	// create a wrapper channel for translating ResultEvent to *core.Block
+	// create a wrapper channel for translating ResultEvent to "raw" block
+	if f.newBlockCh != nil {
+		return nil, fmt.Errorf("new block event channel exists")
+	}
 	newBlockChan := make(chan *block.Raw)
-	f.mux.Lock()
 	f.newBlockCh = newBlockChan
-	f.mux.Unlock()
 
 	go func(eventChan <-chan rpctypes.ResultEvent, newBlockChan chan *block.Raw) {
 		for {
 			newEvent := <-eventChan
 			rawBlock, ok := newEvent.Data.(types.EventDataNewBlock)
 			if !ok {
-				// TODO log & ignore? or errChan?
+				// TODO log & ignore
 				continue
 			}
 			newBlockChan <- rawBlock.Block
@@ -70,11 +69,14 @@ func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *bloc
 
 // UnsubscribeNewBlockEvent stops the subscription to new block events from Core.
 func (f *BlockFetcher) UnsubscribeNewBlockEvent(ctx context.Context) error {
+	// send done signal
+	ctx.Done()
 	// close the new block channel
+	if f.newBlockCh == nil {
+		return fmt.Errorf("no new block event channel found")
+	}
 	close(f.newBlockCh)
-	f.mux.Lock()
 	f.newBlockCh = nil
-	f.mux.Unlock()
 
 	return f.Unsubscribe(ctx, newBlockSubscriber, newBlockEventQuery)
 }
