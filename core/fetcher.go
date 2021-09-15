@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+
 	rpctypes "github.com/celestiaorg/celestia-core/rpc/core/types"
 	"github.com/celestiaorg/celestia-core/types"
 	"github.com/celestiaorg/celestia-node/service/block"
