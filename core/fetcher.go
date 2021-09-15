@@ -64,7 +64,7 @@ func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *bloc
 			newEvent := <-eventChan
 			newBlock, ok := newEvent.Data.(types.EventDataNewBlock)
 			if !ok {
-				// TODO log & ignore
+				// TODO @renaynay: log & ignore
 				continue
 			}
 			newBlockChan <- newBlock.Block
