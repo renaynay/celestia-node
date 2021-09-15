@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	rpctypes "github.com/celestiaorg/celestia-core/rpc/core/types"
 	"github.com/celestiaorg/celestia-core/types"
 	"github.com/celestiaorg/celestia-node/service/block"
 )
@@ -54,12 +53,11 @@ func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *bloc
 		return nil, fmt.Errorf("new block event channel exists")
 	}
 
-	newBlockChan := make(chan *block.Raw)
 	f.mux.Lock()
-	f.newBlockCh = newBlockChan
+	f.newBlockCh = make(chan *block.Raw)
 	f.mux.Unlock()
 
-	go func(eventChan <-chan rpctypes.ResultEvent, newBlockChan chan *block.Raw) {
+	go func() {
 		for {
 			newEvent := <-eventChan
 			newBlock, ok := newEvent.Data.(types.EventDataNewBlock)
@@ -67,11 +65,11 @@ func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *bloc
 				// TODO @renaynay: log & ignore
 				continue
 			}
-			newBlockChan <- newBlock.Block
+			f.newBlockCh <- newBlock.Block
 		}
-	}(eventChan, newBlockChan)
+	}()
 
-	return newBlockChan, nil
+	return f.newBlockCh, nil
 }
 
 // UnsubscribeNewBlockEvent stops the subscription to new block events from Core.
