@@ -2,13 +2,11 @@ package node
 
 import (
 	"go.uber.org/fx"
-	
+
 	coreclient "github.com/celestiaorg/celestia-node/core"
-	"github.com/celestiaorg/celestia-node/service/block"
-
-
 	"github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/p2p"
+	"github.com/celestiaorg/celestia-node/service/block"
 )
 
 // NewFull assembles a new Full Node from required components.
