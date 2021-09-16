@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/celestiaorg/celestia-core/types"
 	"github.com/celestiaorg/celestia-node/service/block"
@@ -16,7 +15,6 @@ var newBlockEventQuery = types.QueryForEvent(types.EventNewBlock).String()
 type BlockFetcher struct {
 	client Client
 
-	mux        sync.Mutex
 	newBlockCh chan *block.Raw
 }
 
@@ -53,19 +51,21 @@ func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *bloc
 		return nil, fmt.Errorf("new block event channel exists")
 	}
 
-	f.mux.Lock()
 	f.newBlockCh = make(chan *block.Raw)
-	f.mux.Unlock()
 
 	go func() {
 		for {
-			newEvent := <-eventChan
-			newBlock, ok := newEvent.Data.(types.EventDataNewBlock)
-			if !ok {
-				// TODO @renaynay: log & ignore
-				continue
+			select {
+			case <-ctx.Done():
+				return
+			case newEvent := <-eventChan:
+				newBlock, ok := newEvent.Data.(types.EventDataNewBlock)
+				if !ok {
+					// TODO @renaynay: log & ignore
+					continue
+				}
+				f.newBlockCh <- newBlock.Block
 			}
-			f.newBlockCh <- newBlock.Block
 		}
 	}()
 
@@ -79,9 +79,7 @@ func (f *BlockFetcher) UnsubscribeNewBlockEvent(ctx context.Context) error {
 		return fmt.Errorf("no new block event channel found")
 	}
 	close(f.newBlockCh)
-	f.mux.Lock()
 	f.newBlockCh = nil
-	f.mux.Unlock()
 
 	return f.client.Unsubscribe(ctx, newBlockSubscriber, newBlockEventQuery)
 }
