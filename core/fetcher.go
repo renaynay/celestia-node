@@ -61,7 +61,7 @@ func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *bloc
 			case newEvent := <-eventChan:
 				newBlock, ok := newEvent.Data.(types.EventDataNewBlock)
 				if !ok {
-					// TODO @renaynay: log & ignore
+					log.Debugf("unexpected event: %v", newEvent)
 					continue
 				}
 				f.newBlockCh <- newBlock.Block
