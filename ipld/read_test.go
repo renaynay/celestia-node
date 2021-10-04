@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
-	"github.com/celestiaorg/celestia-core/testutils"
 	"math"
 	"math/rand"
 	"testing"
@@ -130,9 +129,13 @@ func TestRetrieveBlockData(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// generate EDS
-			eds := generateRandEDS(t)
+			namespacedShares := RandNamespacedShares(t, tc.squareSize*tc.squareSize)
+			shares := namespacedShares.Raw()
+			extSquareSize := uint64(math.Sqrt(float64(len(namespacedShares))))
+			tree := wrapper.NewErasuredNamespacedMerkleTree(extSquareSize)
+			eds, err := rsmt2d.ComputeExtendedDataSquare(shares, rsmt2d.NewRSGF8Codec(), tree.Constructor)
+			require.NoError(t, err)
 
-			// TODO @renaynay: remove this: shares := RandNamespacedShares(t, tc.squareSize*tc.squareSize)
 			in, err := PutData(ctx, eds, dag)
 			require.NoError(t, err)
 
@@ -150,16 +153,14 @@ func TestRetrieveBlockData(t *testing.T) {
 	}
 }
 
-func generateRandEDS(t *testing.T) *rsmt2d.ExtendedDataSquare {
-	randData, err := testutils.GenerateRandomBlockData(1, 1, 1, 1, 400)
-	require.NoError(t, err)
+func generateRandEDS(t *testing.T, squareSize int) *rsmt2d.ExtendedDataSquare {
+	namespacedShares := RandNamespacedShares(t, squareSize*squareSize)
 
-	namespacedShares, _ := randData.ComputeShares()
-	shares := namespacedShares.RawShares()
+	shares := namespacedShares.Raw()
 
 	// create the nmt wrapper to generate row and col commitments
-	squareSize := uint64(math.Sqrt(float64(len(namespacedShares))))
-	tree := wrapper.NewErasuredNamespacedMerkleTree(squareSize)
+	extendedSquareSize := uint64(math.Sqrt(float64(len(shares))))
+	tree := wrapper.NewErasuredNamespacedMerkleTree(extendedSquareSize)
 
 	// compute extended square
 	eds, err := rsmt2d.ComputeExtendedDataSquare(shares, rsmt2d.NewRSGF8Codec(), tree.Constructor)
