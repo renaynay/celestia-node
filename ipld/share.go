@@ -8,16 +8,7 @@
 //  but had some time off of it. Instead, we shouldn't copy(1) and likely have only one type - NamespacedShare, as we
 //  don't support shares without namespace.
 
-// Share contains the raw share data without the corresponding namespace.
-type Share []byte
-
-// TODO(Wondertan): Consider using alias to namespace.PrefixedData instead
-// NamespacedShare extends a Share with the corresponding namespace.
-type NamespacedShare struct {
-	Share
-	ID namespace.ID
-}
-
+// Share contain
 func (n NamespacedShare) NamespaceID() namespace.ID {
 	return n.ID
 }
