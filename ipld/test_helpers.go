@@ -26,11 +26,6 @@ import (
 func RandNamespacedCID(t *testing.T) cid.Cid {
 	raw := make([]byte, NamespaceSize*2+sha256.Size)
 	_, err := mrand.Read(raw) // nolint:gosec // G404: Use of weak random number generator
-	require.NoError(t, err)
-	id, err := plugin.CidFromNamespacedSha256(raw)
-	require.NoError(t, err)
-	return id
-}
 
 func RandEDS(t *testing.T, size int) *rsmt2d.ExtendedDataSquare {
 	shares := RandNamespacedShares(t, size*size)
