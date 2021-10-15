@@ -17,24 +17,6 @@ import (
 	"github.com/celestiaorg/celestia-node/ipld/plugin"
 )
 
-// TODO(Wondertan): Move to rsmt2d
-// TODO(Wondertan): Propose use of int by default instead of uint for the sake convenience and Golang practices
-func EqualEDS(a *rsmt2d.ExtendedDataSquare, b *rsmt2d.ExtendedDataSquare) bool {
-	if a.Width() != b.Width() {
-		return false
-	}
-
-	for i := uint(0); i < a.Width(); i++ {
-		ar, br := a.Row(i), b.Row(i)
-		for j := 0; j < len(ar); j++ {
-			if !bytes.Equal(ar[j], br[j]) {
-				return false
-			}
-		}
-	}
-
-	return true
-}
 
 // TODO(Wondertan): Move to NMT plugin
 func RandNamespacedCID(t *testing.T) cid.Cid {
