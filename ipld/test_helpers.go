@@ -30,15 +30,6 @@ func RandNamespacedCID(t *testing.T) cid.Cid {
 func RandEDS(t *testing.T, size int) *rsmt2d.ExtendedDataSquare {
 	shares := RandNamespacedShares(t, size*size)
 	// create the nmt wrapper to generate row and col commitments
-	squareSize := uint32(math.Sqrt(float64(len(shares))))
-	tree := wrapper.NewErasuredNamespacedMerkleTree(uint64(squareSize))
-	// recompute the eds
-	eds, err := rsmt2d.ComputeExtendedDataSquare(shares.Raw(), rsmt2d.NewRSGF8Codec(), tree.Constructor)
-	require.NoError(t, err, "failure to recompute the extended data square")
-	return eds
-}
-
-func RandNamespacedShares(t *testing.T, total int) NamespacedShares {
 	if total&(total-1) != 0 {
 		t.Fatal("Namespace total must be power of 2")
 	}
