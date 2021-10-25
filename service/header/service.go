@@ -19,8 +19,11 @@ type Service struct {
 var log = logging.Logger("header-service")
 
 // NewHeaderService creates a new instance of header Service.
-func NewHeaderService() *Service {
-	return &Service{}
+func NewHeaderService(exchange Exchange, store Store) *Service {
+	return &Service{
+		exchange: exchange,
+		store: store,
+	}
 }
 
 // Start starts the header Service.
