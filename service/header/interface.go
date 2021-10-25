@@ -11,10 +11,11 @@ type Subscriber interface {
 }
 
 // Exchange encompasses the behaviour necessary for a node to
-// retrieve and provide ExtendedHeaders to the Celestia network.
+// request ExtendedHeaders and respond to ExtendedHeader requests
+// from the network.
 type Exchange interface {
-	RetrieveHeaders(ctx context.Context, request *ExtendedHeaderRequest) ([]*ExtendedHeader, error)
-	ProvideHeaders(ctx context.Context, header []*ExtendedHeader) error
+	RequestHeaders(ctx context.Context, request *ExtendedHeaderRequest) ([]*ExtendedHeader, error)
+	RespondToHeadersRequest(ctx context.Context, request *ExtendedHeaderRequest) error
 }
 
 // Store encompasses the behaviour necessary to store and retrieve ExtendedHeaders
