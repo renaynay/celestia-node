@@ -11,7 +11,9 @@ import (
 // 		1. Listening for/requesting new ExtendedHeaders from the network.
 // 		2. Verifying and serving ExtendedHeaders to the network.
 // 		3. Storing/caching ExtendedHeaders.
-type Service struct {}
+type Service struct {
+	exchange Exchange
+}
 
 var log = logging.Logger("header-service")
 

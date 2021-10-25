@@ -17,3 +17,11 @@ type ExtendedHeader struct {
 // "raw" because it is not yet wrapped to include
 // the DataAvailabilityHeader.
 type RawHeader = core.Header
+
+// ExtendedHeaderRequest represents a request for one or several
+// ExtendedHeaders.
+type ExtendedHeaderRequest struct {
+	Origin  int64 // TODO @renaynay: should we do this by hash or height?
+	Amount  int64 // TODO @renaynay: should this just be an uint?
+	Reverse bool
+}
