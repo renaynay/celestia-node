@@ -22,7 +22,7 @@ var log = logging.Logger("header-service")
 func NewHeaderService(exchange Exchange, store Store) *Service {
 	return &Service{
 		exchange: exchange,
-		store: store,
+		store:    store,
 	}
 }
 
