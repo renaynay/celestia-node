@@ -13,6 +13,7 @@ import (
 // 		3. Storing/caching ExtendedHeaders.
 type Service struct {
 	exchange Exchange
+	store    Store
 }
 
 var log = logging.Logger("header-service")
@@ -33,4 +34,3 @@ func (s *Service) Stop(ctx context.Context) error {
 	log.Info("stopping header service")
 	return nil
 }
-
