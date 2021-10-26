@@ -2,7 +2,7 @@ package header
 
 import "context"
 
-// Subscriber encompasses the behaviour necessary for a node to
+// Subscriber encompasses the behavior necessary for a node to
 // subscribe/unsubscribe from new ExtendedHeader events from the
 // network.
 type Subscriber interface {
@@ -10,7 +10,7 @@ type Subscriber interface {
 	Unsubscribe() error
 }
 
-// Exchange encompasses the behaviour necessary for a node to
+// Exchange encompasses the behavior necessary for a node to
 // request ExtendedHeaders and respond to ExtendedHeader requests
 // from the network.
 type Exchange interface {
@@ -18,7 +18,7 @@ type Exchange interface {
 	RespondToHeadersRequest(ctx context.Context, request *ExtendedHeaderRequest) error
 }
 
-// Store encompasses the behaviour necessary to store and retrieve ExtendedHeaders
+// Store encompasses the behavior necessary to store and retrieve ExtendedHeaders
 // from a node's local storage.
 type Store interface {
 	GetHeaders(ctx context.Context, request *ExtendedHeaderRequest) ([]*ExtendedHeader, error)
