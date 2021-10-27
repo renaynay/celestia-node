@@ -2,12 +2,16 @@ package header
 
 import "context"
 
-// Subscriber encompasses the behavior necessary for a node to
+// Subscriber encompasses the behavior necessary to
 // subscribe/unsubscribe from new ExtendedHeader events from the
 // network.
 type Subscriber interface {
-	Subscribe(ctx context.Context) (<-chan *ExtendedHeader, error)
-	Unsubscribe() error
+	Subscribe() (Subscription, error)
+}
+
+type Subscription interface {
+	NextHeader(ctx context.Context) (*ExtendedHeader, error)
+	Cancel()
 }
 
 // Exchange encompasses the behavior necessary for a node to
