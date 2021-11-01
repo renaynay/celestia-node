@@ -44,6 +44,7 @@ func (s *Service) Start(ctx context.Context) error {
 
 	// TODO @renaynay: start internal header service processes
 	return nil
+	
 }
 
 // Subscribe returns a new subscription to the header pubsub topic
