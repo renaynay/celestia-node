@@ -78,6 +78,8 @@ func Components(cfg Config) fx.Option {
 }
 
 func (cfg *Config) bootstrapPeers() (_ []peer.AddrInfo, err error) {
+	fmt.Println("HELLO I SAID HELLOOOOOOOOOOOOOO:    ", cfg.BootstrapPeers[0])
+
 	maddrs := make([]ma.Multiaddr, len(cfg.BootstrapPeers))
 	for i, addr := range cfg.BootstrapPeers {
 		maddrs[i], err = ma.NewMultiaddr(addr)

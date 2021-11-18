@@ -11,3 +11,9 @@ func WithRemoteClient(protocol string, address string) Options {
 		args.Core.RemoteConfig.RemoteAddr = address
 	}
 }
+
+func WithBootstrapPeers(peers []string) Options {
+	return func(args *Config) {
+		args.P2P.BootstrapPeers = peers
+	}
+}

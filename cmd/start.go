@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -22,7 +23,10 @@ func Start(repoName string, tp node.Type) *cobra.Command {
 		panic("parent command must specify a persistent flag name for repository path")
 	}
 
-	const cfgAddress = "core.remote"
+	const (
+		cfgAddress = "core.remote"
+		bootstrap = "bootstrap"
+	)
 	cmd := &cobra.Command{
 		Use:          "start",
 		Short:        "Starts Node daemon. First stopping signal gracefully stops the Node and second terminates it.",
@@ -58,11 +62,17 @@ func Start(repoName string, tp node.Type) *cobra.Command {
 				opts = append(opts, node.WithRemoteClient(protocol, ip))
 			}
 
+			if cmd.Flag(bootstrap).Value.String() != "" {
+				bootstrapPeers := strings.Split(cmd.Flag(bootstrap).Value.String(), ",")
+				opts = append(opts, node.WithBootstrapPeers(bootstrapPeers))
+			}
+
 			return start(cmd, tp, repo, opts...)
 		},
 	}
 
 	cmd.Flags().String(cfgAddress, "", "Indicates node to connect to the given remote core node")
+	cmd.Flags().StringSlice(bootstrap, []string{}, "Enter bootstrap peer IDs to dial upon node start up")
 	return cmd
 }
 
