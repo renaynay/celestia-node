@@ -50,7 +50,10 @@ func DefaultConfig() Config {
 			"/ip6/::/tcp/2121",
 		},
 		Network:        "devnet",
-		BootstrapPeers: []string{},
+		BootstrapPeers: []string{
+			"",
+			"",
+		},
 		MutualPeers:    []string{},
 		Bootstrapper:   false,
 		PeerExchange:   false,
