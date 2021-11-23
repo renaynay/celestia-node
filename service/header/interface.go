@@ -6,6 +6,15 @@ import (
 	"fmt"
 
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	core "github.com/tendermint/tendermint/types"
+)
+
+var (
+	// ErrNotFound is returned when there is no requested header.
+	ErrNotFound = errors.New("header: not found")
+
+	// ErrNoHead is returned when Store does not contain Head of the chain,
+	ErrNoHead = fmt.Errorf("header/store: no chain head")
 )
 
 // Subscriber encompasses the behavior necessary to
@@ -48,14 +57,6 @@ type Exchange interface {
 	RequestByHash(ctx context.Context, hash tmbytes.HexBytes) (*ExtendedHeader, error)
 }
 
-var (
-	// ErrNotFound is returned when there is no requested header.
-	ErrNotFound = errors.New("header: not found")
-
-	// ErrNoHead is returned when Store does not contain Head of the chain,
-	ErrNoHead = fmt.Errorf("header/store: no chain head")
-)
-
 // Store encompasses the behavior necessary to store and retrieve ExtendedHeaders
 // from a node's local storage.
 type Store interface {
@@ -77,4 +78,13 @@ type Store interface {
 	// Append stores and verifies the given ExtendedHeader(s).
 	// It requires them to be adjacent and in ascending order.
 	Append(context.Context, ...*ExtendedHeader) error
+}
+
+// TODO @renaynay: document
+type Fetcher interface {
+	GetHeader(ctx context.Context, height *int64) (*RawHeader, error)
+	Commit(ctx context.Context, height *int64) (*core.Commit, error)
+	ValidatorSet(ctx context.Context, height *int64) (*core.ValidatorSet, error)
+	SubscribeNewHeaderEvent(ctx context.Context) (<-chan *RawHeader, error)
+	UnsubscribeNewBlockEvent(ctx context.Context) error
 }

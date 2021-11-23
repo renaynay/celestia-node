@@ -12,7 +12,7 @@ import (
 
 func TestBlockFetcher_GetBlock_and_SubscribeNewBlockEvent(t *testing.T) {
 	client := MockEmbeddedClient()
-	fetcher := NewBlockFetcher(client)
+	fetcher := NewHeaderFetcher(client)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -38,7 +38,7 @@ func TestBlockFetcher_GetBlock_and_SubscribeNewBlockEvent(t *testing.T) {
 // endpoints are working as intended.
 func TestBlockFetcherHeaderValues(t *testing.T) {
 	client := MockEmbeddedClient()
-	fetcher := NewBlockFetcher(client)
+	fetcher := NewHeaderFetcher(client)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)

@@ -78,7 +78,7 @@ func HeaderStore(ds datastore.Batching) (header.Store, error) {
 // BlockService constructs new block.Service.
 func BlockService(
 	lc fx.Lifecycle,
-	fetcher *core.BlockFetcher,
+	fetcher *core.HeaderFetcher,
 	store ipld.DAGService,
 	broadcaster header.Broadcaster,
 ) *block.Service {

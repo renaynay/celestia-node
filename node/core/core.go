@@ -27,7 +27,7 @@ func DefaultConfig() Config {
 // Components collects all the components and services related to managing the relationship with the Core node.
 func Components(cfg Config, loader core.RepoLoader) fx.Option {
 	return fx.Options(
-		fx.Provide(core.NewBlockFetcher),
+		fx.Provide(core.NewHeaderFetcher),
 		fxutil.ProvideAs(header.NewCoreExchange, new(header.Exchange)),
 		fxutil.ProvideIf(cfg.Remote, func() (core.Client, error) {
 			return RemoteClient(cfg)
