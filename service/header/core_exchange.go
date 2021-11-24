@@ -20,11 +20,11 @@ import (
 )
 
 type CoreExchange struct {
-	fetcher    *core.HeaderFetcher
+	fetcher    *core.BlockFetcher
 	shareStore format.DAGService
 }
 
-func NewCoreExchange(fetcher *core.HeaderFetcher, dag format.DAGService) *CoreExchange {
+func NewCoreExchange(fetcher *core.BlockFetcher, dag format.DAGService) *CoreExchange {
 	return &CoreExchange{
 		fetcher:    fetcher,
 		shareStore: dag,

@@ -32,12 +32,12 @@ func Test_hashMatch(t *testing.T) {
 	assert.False(t, hashMatch(expected, mismatch))
 }
 
-func createCoreFetcher() *core.HeaderFetcher {
+func createCoreFetcher() *core.BlockFetcher {
 	mock := core.MockEmbeddedClient()
-	return core.NewHeaderFetcher(mock)
+	return core.NewBlockFetcher(mock)
 }
 
-func generateBlocks(t *testing.T, fetcher *core.HeaderFetcher) {
+func generateBlocks(t *testing.T, fetcher *core.BlockFetcher) {
 	sub, err := fetcher.SubscribeNewBlockEvent(context.Background())
 	require.NoError(t, err)
 

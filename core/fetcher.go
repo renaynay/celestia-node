@@ -12,23 +12,22 @@ const newBlockSubscriber = "NewBlock/Events"
 
 var newBlockEventQuery = types.QueryForEvent(types.EventNewBlock).String()
 
-type HeaderFetcher struct {
+type BlockFetcher struct {
 	client Client
 
 	newBlockCh chan *types.Block
 	doneCh     chan struct{}
 }
 
-// NewHeaderFetcher returns a new `HeaderFetcher`.
-func NewHeaderFetcher(client Client) *HeaderFetcher {
-	return &HeaderFetcher{
+// NewBlockFetcher returns a new `BlockFetcher`.
+func NewBlockFetcher(client Client) *BlockFetcher {
+	return &BlockFetcher{
 		client: client,
 	}
 }
 
-// GetHeader queries Core for a `Block` at the given height and returns
-// its Header.
-func (f *HeaderFetcher) GetHeader(ctx context.Context, height *int64) (*types.Header, error) {
+// GetBlock queries Core for a `Block` at the given height.
+func (f *BlockFetcher) GetBlock(ctx context.Context, height *int64) (*types.Block, error) {
 	res, err := f.client.Block(ctx, height)
 	if err != nil {
 		return nil, err
@@ -37,14 +36,11 @@ func (f *HeaderFetcher) GetHeader(ctx context.Context, height *int64) (*types.He
 	if res != nil && res.Block == nil {
 		return nil, fmt.Errorf("core/fetcher: block not found")
 	}
-	header := res.Block.Header
 
-	return &header, nil
+	return res.Block, nil
 }
 
-// GetHeaderByHash queries Core for a `Block` at the given hash and returns
-// its Header.
-func (f *HeaderFetcher) GetHeaderByHash(ctx context.Context, hash tmbytes.HexBytes) (*types.Header, error) {
+func (f *BlockFetcher) GetBlockByHash(ctx context.Context, hash tmbytes.HexBytes) (*types.Block, error) {
 	res, err := f.client.BlockByHash(ctx, hash)
 	if err != nil {
 		return nil, err
@@ -53,14 +49,13 @@ func (f *HeaderFetcher) GetHeaderByHash(ctx context.Context, hash tmbytes.HexByt
 	if res != nil && res.Block == nil {
 		return nil, fmt.Errorf("core/fetcher: block not found")
 	}
-	header := res.Block.Header
 
-	return &header, nil
+	return res.Block, nil
 }
 
 // Commit queries Core for a `Commit` from the block at
 // the given height.
-func (f *HeaderFetcher) Commit(ctx context.Context, height *int64) (*types.Commit, error) {
+func (f *BlockFetcher) Commit(ctx context.Context, height *int64) (*types.Commit, error) {
 	res, err := f.client.Commit(ctx, height)
 	if err != nil {
 		return nil, err
@@ -75,7 +70,7 @@ func (f *HeaderFetcher) Commit(ctx context.Context, height *int64) (*types.Commi
 
 // ValidatorSet queries Core for the ValidatorSet from the
 // block at the given height.
-func (f *HeaderFetcher) ValidatorSet(ctx context.Context, height *int64) (*types.ValidatorSet, error) {
+func (f *BlockFetcher) ValidatorSet(ctx context.Context, height *int64) (*types.ValidatorSet, error) {
 	res, err := f.client.Validators(ctx, height, nil, nil)
 	if err != nil {
 		return nil, err
@@ -88,9 +83,9 @@ func (f *HeaderFetcher) ValidatorSet(ctx context.Context, height *int64) (*types
 	return types.NewValidatorSet(res.Validators), nil
 }
 
-// SubscribeNewHeaderEvent subscribes to new block events from Core, returning
+// SubscribeNewBlockEvent subscribes to new block events from Core, returning
 // a new block event channel on success.
-func (f *HeaderFetcher) SubscribeNewHeaderEvent(ctx context.Context) (<-chan *types.Block, error) {
+func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *types.Block, error) {
 	// start the client if not started yet
 	if !f.client.IsRunning() {
 		return nil, fmt.Errorf("client not running")
@@ -135,7 +130,7 @@ func (f *HeaderFetcher) SubscribeNewHeaderEvent(ctx context.Context) (<-chan *ty
 }
 
 // UnsubscribeNewBlockEvent stops the subscription to new block events from Core.
-func (f *HeaderFetcher) UnsubscribeNewBlockEvent(ctx context.Context) error {
+func (f *BlockFetcher) UnsubscribeNewBlockEvent(ctx context.Context) error {
 	if f.newBlockCh == nil {
 		return fmt.Errorf("no new block event channel found")
 	}
