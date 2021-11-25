@@ -49,6 +49,7 @@ func (s *Service) Start(context.Context) error {
 
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 	go s.syncer.Sync(s.ctx)
+	// TODO @renaynay: spin up routine that waits on syncing
 
 	err := s.pubsub.RegisterTopicValidator(PubSubTopic, s.syncer.Validate)
 	if err != nil {

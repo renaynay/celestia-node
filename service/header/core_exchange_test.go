@@ -12,7 +12,7 @@ import (
 )
 
 func TestCoreExchange_RequestHeaders(t *testing.T) {
-	fetcher := createCoreFetcher()
+	fetcher := createMockCoreFetcher()
 	store := mdutils.Mock()
 
 	// generate 10 blocks
@@ -32,7 +32,7 @@ func Test_hashMatch(t *testing.T) {
 	assert.False(t, hashMatch(expected, mismatch))
 }
 
-func createCoreFetcher() *core.BlockFetcher {
+func createMockCoreFetcher() *core.BlockFetcher {
 	mock := core.MockEmbeddedClient()
 	return core.NewBlockFetcher(mock)
 }

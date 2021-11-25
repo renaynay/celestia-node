@@ -85,7 +85,7 @@ func (f *BlockFetcher) ValidatorSet(ctx context.Context, height *int64) (*types.
 
 // SubscribeNewBlockEvent subscribes to new block events from Core, returning
 // a new block event channel on success.
-func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *types.Block, error) {
+func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan *types.Block, error) { // TODO @renaynay: delete?
 	// start the client if not started yet
 	if !f.client.IsRunning() {
 		return nil, fmt.Errorf("client not running")

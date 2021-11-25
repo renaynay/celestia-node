@@ -8,7 +8,7 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
-// Syncer implements simplest possible synchronization for headers.
+// Syncer implements simple synchronization for headers.
 type Syncer struct {
 	exchange Exchange
 	store    Store
