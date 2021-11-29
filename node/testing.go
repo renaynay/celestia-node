@@ -33,7 +33,7 @@ func mockFullComponents(cfg *Config, repo Repository) fx.Option {
 		fx.Provide(repo.Core),
 		fx.Provide(core.MockEmbeddedClient),
 		fx.Provide(func(client core.Client) block.Fetcher {
-			return core.NewHeaderFetcher(client)
+			return core.NewBlockFetcher(client)
 		}),
 		fx.Provide(block.NewBlockService),
 	)

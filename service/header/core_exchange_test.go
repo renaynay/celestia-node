@@ -2,6 +2,7 @@ package header
 
 import (
 	"context"
+	"github.com/tendermint/tendermint/types"
 	"testing"
 
 	mdutils "github.com/ipfs/go-merkledag/test"
@@ -15,8 +16,10 @@ func TestCoreExchange_RequestHeaders(t *testing.T) {
 	fetcher := createMockCoreFetcher()
 	store := mdutils.Mock()
 
+	blockSub, err := fetcher.SubscribeNewBlockEvent(context.Background())
+	require.NoError(t, err)
 	// generate 10 blocks
-	generateBlocks(t, fetcher)
+	generateBlocks(blockSub, 10)
 
 	ce := NewCoreExchange(fetcher, store)
 	headers, err := ce.RequestHeaders(context.Background(), 1, 10)
@@ -37,11 +40,8 @@ func createMockCoreFetcher() *core.BlockFetcher {
 	return core.NewBlockFetcher(mock)
 }
 
-func generateBlocks(t *testing.T, fetcher *core.BlockFetcher) {
-	sub, err := fetcher.SubscribeNewBlockEvent(context.Background())
-	require.NoError(t, err)
-
-	for i := 0; i < 10; i++ {
+func generateBlocks(sub <-chan *types.Block, numBlocks int) {
+	for i := 0; i < numBlocks; i++ {
 		<-sub
 	}
 }
