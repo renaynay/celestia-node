@@ -31,7 +31,8 @@ func TestSubscriber(t *testing.T) {
 	require.NoError(t, err)
 
 	// create header Service
-	headerServ1 := NewHeaderService(NewSyncer(NewLocalExchange(store1), store1, suite.Head().Hash()), pubsub1)
+	headerServ1 := NewHeaderService(NewSyncer(NewLocalExchange(store1), store1, suite.Head().Hash()), pubsub1,
+		false)
 	err = headerServ1.Start(ctx)
 	require.NoError(t, err)
 
@@ -48,7 +49,8 @@ func TestSubscriber(t *testing.T) {
 	require.NoError(t, err)
 
 	// create header Service
-	headerServ2 := NewHeaderService(NewSyncer(NewLocalExchange(store2), store2, suite.Head().Hash()), pubsub2)
+	headerServ2 := NewHeaderService(NewSyncer(NewLocalExchange(store2), store2, suite.Head().Hash()), pubsub2,
+		false)
 	err = headerServ2.Start(ctx)
 	require.NoError(t, err)
 

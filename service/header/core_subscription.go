@@ -2,6 +2,7 @@ package header
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/tendermint/tendermint/types"
@@ -13,14 +14,19 @@ type coreSubscription struct {
 	sub <-chan *types.Block
 }
 
-func newCoreSubscription(ex *CoreExchange) (*coreSubscription, error) {
-	sub, err := ex.fetcher.SubscribeNewBlockEvent(context.Background())
+func newCoreSubscription(ex Exchange) (*coreSubscription, error) {
+	coreEx, ok := ex.(*CoreExchange)
+	if !ok {
+		// TODO @renaynay: better error?
+		return nil, errors.New("header using core backend must use header.coreExchange implementation")
+	}
+	sub, err := coreEx.fetcher.SubscribeNewBlockEvent(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
 	return &coreSubscription{
-		ex:  ex,
+		ex:  coreEx,
 		sub: sub,
 	}, nil
 }

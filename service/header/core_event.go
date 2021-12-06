@@ -10,11 +10,11 @@ type coreListener struct {
 }
 
 // NewCoreListener returns a new Header coreListener.
-func NewCoreListener(sub *coreSubscription, sync *Syncer, broadcaster Broadcaster) *coreListener {
+func NewCoreListener(sub *coreSubscription , serv *Service) *coreListener {
 	return &coreListener{
 		sub:         sub,
-		sync:        sync,
-		broadcaster: broadcaster,
+		sync:        serv.syncer,
+		broadcaster: serv,
 	}
 }
 
@@ -24,15 +24,17 @@ func (cl *coreListener) listen(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			log.Debugw("closing out core header listener")
 			return
 		case <-cl.sync.done:
 			header, err := cl.sub.NextHeader(context.Background())
 			if err != nil {
-				// TODO @renaynay: how to handle this err?
+				log.Errorw("reading next header from subscription", "err", err)
+				return
 			}
 			err = cl.broadcaster.Broadcast(context.Background(), header)
 			if err != nil {
-				log.Errorw("broadcast new ExtendedHeader", "err", err)
+				log.Errorw("broadcasting new ExtendedHeader", "height", header.Height, "err", err)
 				return
 			}
 		}

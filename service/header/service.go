@@ -25,6 +25,8 @@ type Service struct {
 	topic  *pubsub.Topic // instantiated header-sub topic
 	pubsub *pubsub.PubSub
 
+	coreEnabled bool // indicates whether Service should use core or p2p backend
+
 	ctx    context.Context
 	cancel context.CancelFunc
 }
@@ -33,10 +35,12 @@ type Service struct {
 func NewHeaderService(
 	syncer *Syncer,
 	pubsub *pubsub.PubSub,
+	coreEnabled bool,
 ) *Service {
 	return &Service{
-		syncer: syncer,
-		pubsub: pubsub,
+		syncer:      syncer,
+		pubsub:      pubsub,
+		coreEnabled: coreEnabled,
 	}
 }
 
@@ -47,9 +51,20 @@ func (s *Service) Start(context.Context) error {
 	}
 	log.Info("starting header service")
 
+	// start syncing
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 	go s.syncer.Sync(s.ctx)
-	// TODO @renaynay: spin up routine that waits on syncing
+
+	// if core backend, start listening to new header events from core
+	if s.coreEnabled {
+		coreSub, err := newCoreSubscription(s.syncer.exchange)
+		if err != nil {
+			return err
+		}
+
+		listener := NewCoreListener(coreSub, s)
+		go listener.listen(s.ctx)
+	}
 
 	err := s.pubsub.RegisterTopicValidator(PubSubTopic, s.syncer.Validate)
 	if err != nil {
