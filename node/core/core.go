@@ -1,6 +1,9 @@
 package core
 
 import (
+	format "github.com/ipfs/go-ipld-format"
+	"go.uber.org/fx"
+
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/node/fxutil"
 	"github.com/celestiaorg/celestia-node/service/header"
@@ -26,7 +29,8 @@ func DefaultConfig() Config {
 func Components(cfg Config, loader core.RepoLoader) fxutil.Option {
 	return fxutil.Options(
 		fxutil.Provide(core.NewBlockFetcher),
-		fxutil.ProvideAs(header.NewCoreExchange, new(header.Exchange)),
+		fxutil.Provide(HeaderCoreExchange),
+		fxutil.Provide(HeaderCoreListener),
 		fxutil.ProvideIf(cfg.Remote, func() (core.Client, error) {
 			return RemoteClient(cfg)
 		}),
@@ -47,6 +51,20 @@ func Components(cfg Config, loader core.RepoLoader) fxutil.Option {
 			return core.NewEmbedded(cfg)
 		}),
 	)
+}
+
+func HeaderCoreExchange(fetcher *core.BlockFetcher, dag format.DAGService) (*header.CoreExchange, header.Exchange) {
+	ce := header.NewCoreExchange(fetcher, dag)
+	return ce, ce
+}
+
+func HeaderCoreListener(lc fx.Lifecycle, ex *header.CoreExchange, p2pSub *header.P2PSubscriber) *header.CoreListener {
+	cl := header.NewCoreListener(ex, p2pSub)
+	lc.Append(fx.Hook{
+		OnStart: cl.Start,
+		OnStop:  cl.Stop,
+	})
+	return cl
 }
 
 // RemoteClient provides a constructor for core.Client over RPC.
