@@ -2,9 +2,11 @@ package header
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	format "github.com/ipfs/go-ipld-format"
+	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/tendermint/tendermint/types"
 
 	"github.com/celestiaorg/celestia-node/core"
@@ -87,8 +89,15 @@ func (cl *CoreListener) listen() {
 			// broadcast new ExtendedHeader
 			err = cl.p2pSub.Broadcast(cl.ctx, eh)
 			if err != nil {
-				log.Errorw("core-listener: broadcasting next header", "height", eh.Height,
-					"err", err)
+				var pserr pubsub.ValidationError
+				if errors.As(err, &pserr) && pserr.Reason == pubsub.RejectValidationIgnored {
+					log.Warnw("core-listener: broadcasting next header", "height", eh.Height,
+						"err", err)
+				} else {
+					log.Errorw("core-listener: broadcasting next header", "height", eh.Height,
+						"err", err)
+				}
+
 				return
 			}
 		case <-cl.ctx.Done():
