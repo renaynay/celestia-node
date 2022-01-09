@@ -129,8 +129,19 @@ func (s *service) GetShare(ctx context.Context, dah *Root, row, col int) (Share,
 	return nd.RawData()[1:], nil
 }
 
-func (s *service) GetShares(context.Context, *Root) ([][]Share, error) {
-	panic("implement me")
+func (s *service) GetShares(ctx context.Context, root *Root) ([][]Share, error) {
+	shares := make([][]Share, len(root.RowsRoots))
+	for i := range root.RowsRoots {
+		shares[i] = make([]Share, len(root.ColumnRoots))
+		for j := range root.ColumnRoots {
+			share, err := s.GetShare(ctx, root, i, j)
+			if err != nil {
+				return nil, err
+			}
+			shares[i][j] = share
+		}
+	}
+	return shares, nil
 }
 
 func (s *service) GetSharesByNamespace(ctx context.Context, root *Root, nID namespace.ID) ([]Share, error) {

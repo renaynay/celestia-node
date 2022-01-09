@@ -37,7 +37,11 @@ func RandServiceWithSquare(t *testing.T, n int) (Service, *Root) {
 
 func RandFillDAG(t *testing.T, n int, dag format.DAGService) *Root {
 	shares := RandShares(t, n*n)
-	sharesSlices := make([][]byte, n*n)
+	return FillDAGWithShares(t, dag, shares)
+}
+
+func FillDAGWithShares(t *testing.T, dag format.DAGService, shares []Share) *Root {
+	sharesSlices := make([][]byte, len(shares))
 	for i, share := range shares {
 		sharesSlices[i] = share
 	}

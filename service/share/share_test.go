@@ -2,6 +2,8 @@ package share
 
 import (
 	"context"
+	"fmt"
+	mdutils "github.com/ipfs/go-merkledag/test"
 	"strconv"
 	"testing"
 
@@ -24,6 +26,31 @@ func TestGetShare(t *testing.T) {
 			assert.NotNil(t, share)
 			assert.NoError(t, err)
 		}
+	}
+
+	err = serv.Stop(ctx)
+	require.NoError(t, err)
+}
+
+func TestGetShares(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	n := 4
+
+	dag := mdutils.Mock()
+	serv := NewService(dag, NewLightAvailability(dag))
+	expectedShares := RandShares(t, n*n)
+	dah := FillDAGWithShares(t, dag, expectedShares)
+
+	err := serv.Start(ctx)
+	require.NoError(t, err)
+
+	shares, err := serv.GetShares(ctx, dah)
+	require.NoError(t, err)
+
+	for _, share := range shares {
+		fmt.Println(share)
 	}
 
 	err = serv.Stop(ctx)
