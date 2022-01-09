@@ -64,6 +64,7 @@ func (cl *CoreListener) Stop(ctx context.Context) error {
 // generating ExtendedHeaders and broadcasting them to the header-sub
 // gossipsub network.
 func (cl *CoreListener) listen() {
+	defer log.Info("core-listener: listening stopped")
 	for {
 		select {
 		case b, ok := <-cl.blockSub:
@@ -74,13 +75,13 @@ func (cl *CoreListener) listen() {
 			comm, vals, err := cl.fetcher.GetBlockInfo(cl.ctx, &b.Height)
 			if err != nil {
 				log.Errorw("core-listener: getting block info", "err", err)
-				continue
+				return
 			}
 
 			eh, err := MakeExtendedHeader(cl.ctx, b, comm, vals, cl.dag)
 			if err != nil {
 				log.Errorw("core-listener: making extended header", "err", err)
-				continue
+				return
 			}
 
 			// broadcast new ExtendedHeader
@@ -88,6 +89,7 @@ func (cl *CoreListener) listen() {
 			if err != nil {
 				log.Errorw("core-listener: broadcasting next header", "height", eh.Height,
 					"err", err)
+				return
 			}
 		case <-cl.ctx.Done():
 			return
