@@ -120,6 +120,12 @@ func (s *store) Get(_ context.Context, hash tmbytes.HexBytes) (*ExtendedHeader, 
 }
 
 func (s *store) GetByHeight(ctx context.Context, height uint64) (*ExtendedHeader, error) {
+	if head, _ := s.Head(ctx); head != nil && uint64(head.Height) < height {
+		// we know that the head is always the highest header
+		// so there is no point to waste IO to check higher heights
+		return nil, ErrNotFound
+	}
+
 	hash, err := s.index.HashByHeight(height)
 	if err != nil {
 		if err == datastore.ErrNotFound {
