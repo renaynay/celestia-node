@@ -49,6 +49,9 @@ func TestSyncSimpleRequestingHead(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, exp.Height, have.Height)
 	assert.Empty(t, syncer.pending.Head())
+	assert.Equal(t, uint64(exp.Height), syncer.State().Height)
+	assert.Equal(t, uint64(2), syncer.State().FromHeight)
+	assert.Equal(t, uint64(exp.Height), syncer.State().ToHeight)
 }
 
 func TestSyncerInitStore(t *testing.T) {
@@ -87,6 +90,9 @@ func TestSyncerInitStore(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, exp.Height, have.Height)
 	assert.Empty(t, syncer.pending.Head())
+	assert.Equal(t, uint64(exp.Height), syncer.State().Height)
+	assert.Equal(t, uint64(2), syncer.State().FromHeight)
+	assert.Equal(t, uint64(exp.Height), syncer.State().ToHeight)
 }
 
 func TestSyncCatchUp(t *testing.T) {
@@ -132,6 +138,9 @@ func TestSyncCatchUp(t *testing.T) {
 	// 4. assert syncer caught-up
 	assert.Equal(t, exp.Height+1, have.Height) // plus one as we didn't add last header to remoteStore
 	assert.Empty(t, syncer.pending.Head())
+	assert.Equal(t, uint64(exp.Height+1), syncer.State().Height)
+	assert.Equal(t, uint64(2), syncer.State().FromHeight)
+	assert.Equal(t, uint64(exp.Height+1), syncer.State().ToHeight)
 }
 
 func TestSyncPendingRangesWithMisses(t *testing.T) {
