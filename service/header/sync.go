@@ -42,6 +42,7 @@ type Syncer struct {
 	// is set to 0 once syncing is either finished or
 	// not currently in progress
 	inProgress uint64
+	heightSub  *heightSub
 	// signals to start syncing
 	triggerSync chan struct{}
 	// pending keeps ranges of valid headers received from the network awaiting to be appended to store
@@ -57,6 +58,7 @@ func NewSyncer(exchange Exchange, store Store, sub Subscriber, trusted tmbytes.H
 		exchange:    exchange,
 		store:       store,
 		trusted:     trusted,
+		heightSub:   newHeightSub(store),
 		triggerSync: make(chan struct{}, 1), // should be buffered
 	}
 }
@@ -77,6 +79,7 @@ func (s *Syncer) Start(ctx context.Context) error {
 	if err != nil {
 		log.Error(err)
 	}
+	s.heightSub.Start()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go s.syncLoop(ctx)
@@ -87,6 +90,7 @@ func (s *Syncer) Start(ctx context.Context) error {
 
 // Stop stops Syncer.
 func (s *Syncer) Stop(context.Context) error {
+	s.heightSub.Stop()
 	s.cancel()
 	s.cancel = nil
 	return nil
@@ -119,6 +123,11 @@ func (s *Syncer) State() SyncState {
 	s.stateLk.RLock()
 	defer s.stateLk.RUnlock()
 	return s.state
+}
+
+// GetByHeight gets header by height from Store or, if not found, waits until it is available.
+func (s *Syncer) GetByHeight(ctx context.Context, height uint64) (*ExtendedHeader, error) {
+	return s.heightSub.GetByHeight(ctx, height)
 }
 
 // init initializes if it's empty
@@ -214,6 +223,7 @@ func (s *Syncer) processIncoming(ctx context.Context, maybeHead *ExtendedHeader)
 	switch err {
 	case nil:
 		// a happy case where we append adjacent header correctly
+		s.heightSub.ProvideHeights(ctx, maybeHead)
 		return pubsub.ValidationAccept
 	case ErrNonAdjacent:
 		// not adjacent, so try to cache it after verifying
@@ -360,6 +370,7 @@ func (s *Syncer) processHeaders(ctx context.Context, from, amount uint64) (uint6
 		return 0, err
 	}
 
+	s.heightSub.ProvideHeights(ctx, headers...)
 	return uint64(len(headers)), nil
 }
 
@@ -402,4 +413,122 @@ func (s *Syncer) getHeaders(ctx context.Context, start, amount uint64) ([]*Exten
 	}
 
 	return out, nil
+}
+
+// heightSub provides a way to wait until a specific height becomes available and synced
+type heightSub struct {
+	// usually we don't attach context to structs, but this is an exception
+	// as GetByHeight and ProvideHeights needs to access it
+	ctx       context.Context
+	cancel    context.CancelFunc
+	store     Store
+	height    uint64
+	provideCh chan []*ExtendedHeader
+	reqsCh    chan *heightReq
+	reqs      map[uint64][]chan *heightResp
+}
+
+type heightReq struct {
+	resp   chan *heightResp
+	height uint64
+}
+
+type heightResp struct {
+	header *ExtendedHeader
+	err    error
+}
+
+func newHeightSub(store Store) *heightSub {
+	return &heightSub{
+		store:     store,
+		provideCh: make(chan []*ExtendedHeader, 4),
+		reqsCh:    make(chan *heightReq, 4),
+		reqs:      make(map[uint64][]chan *heightResp),
+	}
+}
+
+func (hs *heightSub) Start() {
+	hs.ctx, hs.cancel = context.WithCancel(context.Background())
+	go hs.subLoop()
+}
+
+func (hs *heightSub) Stop() {
+	hs.cancel()
+}
+
+func (hs *heightSub) GetByHeight(ctx context.Context, height uint64) (*ExtendedHeader, error) {
+	h, err := hs.store.GetByHeight(ctx, height)
+	if err != ErrNotFound {
+		return h, err
+	}
+
+	resp := make(chan *heightResp, 1)
+	select {
+	case hs.reqsCh <- &heightReq{resp, height}:
+		select {
+		case resp := <-resp:
+			return resp.header, resp.err
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-hs.ctx.Done():
+			return nil, hs.ctx.Err()
+		}
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-hs.ctx.Done():
+		return nil, hs.ctx.Err()
+	}
+}
+
+func (hs *heightSub) ProvideHeights(ctx context.Context, headers ...*ExtendedHeader) {
+	select {
+	case hs.provideCh <- headers:
+	case <-ctx.Done():
+	case <-hs.ctx.Done():
+	}
+	return
+}
+
+func (hs *heightSub) subLoop() {
+	for {
+		select {
+		case req := <-hs.reqsCh:
+			if req.height <= hs.height {
+				// this is a very rare case which can happen when the following flow happens
+				// 1. store.GetByHeight in hs.GetByHeight reports ErrNotFound for the requested height
+				// 2. store is appended with range including the requested height and headerSub is provided with them
+				// 3. headerSub processes provide before the request, leaving the requestor deadlocked forever
+				// to avoid the above,this if is required
+				h, err := hs.store.GetByHeight(hs.ctx, req.height)
+				req.resp <- &heightResp{h, err} // reqs are always buffered, so this won't block
+				continue
+			}
+
+			hs.reqs[req.height] = append(hs.reqs[req.height], req.resp)
+		case headers := <-hs.provideCh:
+			from, to := uint64(headers[0].Height), uint64(headers[len(headers)-1].Height)
+			if hs.height != 0 && hs.height+1 != from {
+				log.Warnf("BUG: headers given to the heightSub are in the wrong order")
+				continue
+			}
+
+			// instead of looping over each header in 'headers', we can loop over each request
+			// which will drastically decrease idle iterations, as there will be lesser requests than the headers
+			for height, reqs := range hs.reqs {
+				// then we look if any of the requests match the given range of headers
+				if height >= from && height <= to {
+					// and if so, calculate its position and fulfill requests
+					h := headers[height-from]
+					for _, req := range reqs {
+						req <- &heightResp{header: h} // reqs are always buffered, so this won't block
+					}
+					delete(hs.reqs, height)
+				}
+			}
+
+			hs.height = to
+		case <-hs.ctx.Done():
+			return
+		}
+	}
 }
