@@ -323,7 +323,6 @@ func (s *Syncer) syncTo(ctx context.Context, newHead *ExtendedHeader) {
 		"from", head.Height,
 		"to", newHead.Height,
 		"took", s.state.End.Sub(s.state.Start))
-	return
 }
 
 // doSync performs actual syncing updating the internal SyncState
@@ -331,7 +330,7 @@ func (s *Syncer) doSync(ctx context.Context, oldHead, newHead *ExtendedHeader) (
 	from, to := uint64(oldHead.Height)+1, uint64(newHead.Height)
 
 	s.stateLk.Lock()
-	s.state.ID = s.state.ID + 1
+	s.state.ID++
 	s.state.FromHeight = from
 	s.state.ToHeight = to
 	s.state.FromHash = oldHead.Hash()
@@ -493,7 +492,6 @@ func (hs *heightSub) ProvideHeights(ctx context.Context, headers ...*ExtendedHea
 	case <-ctx.Done():
 	case <-hs.ctx.Done():
 	}
-	return
 }
 
 func (hs *heightSub) subLoop() {
