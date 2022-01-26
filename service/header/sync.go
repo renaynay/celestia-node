@@ -104,7 +104,12 @@ func (s *Syncer) IsSyncing() bool {
 
 // WaitSync blocks until ongoing sync is done.
 func (s *Syncer) WaitSync(ctx context.Context) error {
-	_, err := s.GetByHeight(ctx, s.State().ToHeight)
+	state := s.State()
+	if state.Finished() {
+		return nil
+	}
+
+	_, err := s.GetByHeight(ctx, state.ToHeight)
 	return err
 }
 
