@@ -89,16 +89,23 @@ func (s *Syncer) Start(ctx context.Context) error {
 }
 
 // Stop stops Syncer.
-func (s *Syncer) Stop(context.Context) error {
+func (s *Syncer) Stop(ctx context.Context) error {
+	err := s.WaitSync(ctx)
 	s.heightSub.Stop()
 	s.cancel()
 	s.cancel = nil
-	return nil
+	return err
 }
 
 // IsSyncing returns the current sync status of the Syncer.
 func (s *Syncer) IsSyncing() bool {
 	return atomic.LoadUint64(&s.inProgress) == 1
+}
+
+// WaitSync blocks until ongoing sync is done.
+func (s *Syncer) WaitSync(ctx context.Context) error {
+	_, err := s.GetByHeight(ctx, s.State().ToHeight)
+	return err
 }
 
 // SyncState collects all the information about o sync.
