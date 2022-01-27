@@ -90,11 +90,12 @@ func (s *Syncer) Start(ctx context.Context) error {
 
 // Stop stops Syncer.
 func (s *Syncer) Stop(ctx context.Context) error {
-	err := s.WaitSync(ctx)
-	s.heightSub.Stop()
-	s.cancel()
-	s.cancel = nil
-	return err
+	defer func() {
+		s.heightSub.Stop()
+		s.cancel()
+		s.cancel = nil
+	}()
+	return s.WaitSync(ctx)
 }
 
 // IsSyncing returns the current sync status of the Syncer.
