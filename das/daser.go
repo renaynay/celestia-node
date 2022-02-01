@@ -15,19 +15,22 @@ var log = logging.Logger("das")
 
 // DASer continuously validates availability of data committed to headers.
 type DASer struct {
-	da   share.Availability
-	hsub header.Subscriber
+	da      share.Availability
+	headSub header.Subscriber
+
+	heightSub *header.HeightSub
 
 	cancel context.CancelFunc
 	done   chan struct{}
 }
 
 // NewDASer creates a new DASer.
-func NewDASer(da share.Availability, hsub header.Subscriber) *DASer {
+func NewDASer(da share.Availability, headSub header.Subscriber, heightSub *header.HeightSub) *DASer {
 	return &DASer{
-		da:   da,
-		hsub: hsub,
-		done: make(chan struct{}),
+		da:        da,
+		headSub:   headSub,
+		heightSub: heightSub,
+		done:      make(chan struct{}),
 	}
 }
 
@@ -37,7 +40,7 @@ func (d *DASer) Start(context.Context) error {
 		return fmt.Errorf("da: DASer already started")
 	}
 
-	sub, err := d.hsub.Subscribe()
+	sub, err := d.headSub.Subscribe()
 	if err != nil {
 		return err
 	}

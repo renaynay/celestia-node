@@ -42,7 +42,7 @@ type Syncer struct {
 	// is set to 0 once syncing is either finished or
 	// not currently in progress
 	inProgress uint64
-	heightSub  *heightSub
+	heightSub  *HeightSub
 	// signals to start syncing
 	triggerSync chan struct{}
 	// pending keeps ranges of valid headers received from the network awaiting to be appended to store
@@ -96,6 +96,14 @@ func (s *Syncer) Stop(ctx context.Context) error {
 		s.cancel = nil
 	}()
 	return s.WaitSync(ctx)
+}
+
+// HeightSub returns the HeightSub of the Syncer.
+func (s *Syncer) HeightSub() (*HeightSub, error) {
+	if s.heightSub == nil {
+		return nil, errors.New("height sub not found")
+	}
+	return s.heightSub, nil
 }
 
 // IsSyncing returns the current sync status of the Syncer.
@@ -428,8 +436,8 @@ func (s *Syncer) getHeaders(ctx context.Context, start, amount uint64) ([]*Exten
 	return out, nil
 }
 
-// heightSub provides a way to wait until a specific height becomes available and synced
-type heightSub struct {
+// HeightSub provides a way to wait until a specific height becomes available and synced
+type HeightSub struct {
 	// usually we don't attach context to structs, but this is an exception
 	// as GetByHeight and ProvideHeights needs to access it
 	ctx       context.Context
@@ -451,8 +459,8 @@ type heightResp struct {
 	err    error
 }
 
-func newHeightSub(store Store) *heightSub {
-	return &heightSub{
+func newHeightSub(store Store) *HeightSub {
+	return &HeightSub{
 		store:     store,
 		provideCh: make(chan []*ExtendedHeader, 4),
 		reqsCh:    make(chan *heightReq, 4),
@@ -460,16 +468,16 @@ func newHeightSub(store Store) *heightSub {
 	}
 }
 
-func (hs *heightSub) Start() {
+func (hs *HeightSub) Start() {
 	hs.ctx, hs.cancel = context.WithCancel(context.Background())
 	go hs.subLoop()
 }
 
-func (hs *heightSub) Stop() {
+func (hs *HeightSub) Stop() {
 	hs.cancel()
 }
 
-func (hs *heightSub) GetByHeight(ctx context.Context, height uint64) (*ExtendedHeader, error) {
+func (hs *HeightSub) GetByHeight(ctx context.Context, height uint64) (*ExtendedHeader, error) {
 	h, err := hs.store.GetByHeight(ctx, height)
 	if err != ErrNotFound {
 		return h, err
@@ -493,7 +501,7 @@ func (hs *heightSub) GetByHeight(ctx context.Context, height uint64) (*ExtendedH
 	}
 }
 
-func (hs *heightSub) ProvideHeights(ctx context.Context, headers ...*ExtendedHeader) {
+func (hs *HeightSub) ProvideHeights(ctx context.Context, headers ...*ExtendedHeader) {
 	select {
 	case hs.provideCh <- headers:
 	case <-ctx.Done():
@@ -501,7 +509,7 @@ func (hs *heightSub) ProvideHeights(ctx context.Context, headers ...*ExtendedHea
 	}
 }
 
-func (hs *heightSub) subLoop() {
+func (hs *HeightSub) subLoop() {
 	for {
 		select {
 		case req := <-hs.reqsCh:
@@ -520,7 +528,7 @@ func (hs *heightSub) subLoop() {
 		case headers := <-hs.provideCh:
 			from, to := uint64(headers[0].Height), uint64(headers[len(headers)-1].Height)
 			if hs.height != 0 && hs.height+1 != from {
-				log.Warnf("BUG: headers given to the heightSub are in the wrong order")
+				log.Warnf("BUG: headers given to the HeightSub are in the wrong order")
 				continue
 			}
 
