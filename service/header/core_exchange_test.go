@@ -35,6 +35,9 @@ func Test_hashMatch(t *testing.T) {
 
 func createCoreFetcher(t *testing.T) *core.BlockFetcher {
 	mock := core.EphemeralMockEmbeddedClient(t)
+	t.Cleanup(func() {
+		mock.Stop() //nolint:errcheck
+	})
 	return core.NewBlockFetcher(mock)
 }
 
