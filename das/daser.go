@@ -3,6 +3,7 @@ package das
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ipfs/go-datastore"
@@ -39,12 +40,11 @@ func NewDASer(
 ) *DASer {
 	wrappedDS := wrapCheckpointStore(cstore)
 	return &DASer{
-		da:        da,
-		hsub:      hsub,
-		getter:    getter,
-		cstore:    wrappedDS,
-		sampleDn:  make(chan struct{}),
-		catchUpDn: make(chan struct{}),
+		da:       da,
+		hsub:     hsub,
+		getter:   getter,
+		cstore:   wrappedDS,
+		sampleDn: make(chan struct{}),
 	}
 }
 
@@ -92,7 +92,12 @@ func (d *DASer) Stop(ctx context.Context) error {
 
 // sample validates availability for each Header received from header subscription.
 func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint int64) {
+	// responsible for waiting for active `catchUp` routines
+	var catchUpWg sync.WaitGroup
+
 	defer func() {
+		// wait for all remaining `catchUp` routines to exit
+		catchUpWg.Wait()
 		// store latest DASed checkpoint to disk
 		// TODO @renaynay: what sample DASes [100:150] and
 		//  stores latest checkpoint to disk as network head (150)
@@ -120,10 +125,14 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 		// to our last DASed header, kick off routine to DAS all headers
 		// between last DASed header and h. This situation could occur
 		// either on start or due to network latency/disconnection.
-		if h.Height > checkpoint + 1 {
+		if h.Height > checkpoint+1 {
+			catchUpWg.Add(1)
 			// DAS headers between last DASed height up to the current
 			// header
-			go d.catchUp(ctx, checkpoint, h.Height-1)
+			go func() {
+				d.catchUp(ctx, checkpoint, h.Height-1)
+				catchUpWg.Done()
+			}()
 		}
 
 		startTime := time.Now()
