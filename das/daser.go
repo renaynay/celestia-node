@@ -120,7 +120,7 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 		// to our last DASed header, kick off routine to DAS all headers
 		// between last DASed header and h. This situation could occur
 		// either on start or due to network latency/disconnection.
-		if h.Height > (checkpoint + 1) {
+		if h.Height > checkpoint + 1 {
 			// DAS headers between last DASed height up to the current
 			// header
 			go d.catchUp(ctx, checkpoint, h.Height-1)
