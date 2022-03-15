@@ -32,7 +32,13 @@ func TestDASerLifecycle(t *testing.T) {
 	err := daser.Start(ctx)
 	require.NoError(t, err)
 
-	// wait for dasing routine to finish
+	// wait for dasing catch-up routine to finish
+	select {
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case <-mockGet.doneCh:
+	}
+
 	err = daser.Stop(ctx)
 	require.NoError(t, err)
 
@@ -110,6 +116,7 @@ func createDASerSubcomponents(t *testing.T, numGetter, numSub int) (*mockGetter,
 
 	mockGet := &mockGetter{
 		headers: make(map[int64]*header.ExtendedHeader),
+		doneCh:  make(chan struct{}),
 	}
 
 	// generate 15 headers from the past for HeaderGetter
@@ -147,14 +154,21 @@ func createDASerSubcomponents(t *testing.T, numGetter, numSub int) (*mockGetter,
 }
 
 type mockGetter struct {
+	doneCh chan struct{} // signals all stored headers have been retrieved
+
 	head    int64
 	headers map[int64]*header.ExtendedHeader
 }
 
-func (m mockGetter) Head(context.Context) (*header.ExtendedHeader, error) {
+func (m *mockGetter) Head(context.Context) (*header.ExtendedHeader, error) {
 	return m.headers[m.head], nil
 }
 
-func (m mockGetter) GetByHeight(_ context.Context, height uint64) (*header.ExtendedHeader, error) {
+func (m *mockGetter) GetByHeight(_ context.Context, height uint64) (*header.ExtendedHeader, error) {
+	defer func() {
+		if int64(height) == m.head {
+			close(m.doneCh)
+		}
+	}()
 	return m.headers[int64(height)], nil
 }
