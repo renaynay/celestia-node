@@ -174,7 +174,6 @@ func (d *DASer) catchUpScheduler(ctx context.Context, jobsCh chan *catchUpJob, c
 	for {
 		select {
 		case <-ctx.Done():
-			log.Errorw("da: exiting catchUp routine", "err", ctx.Err())
 			return
 		case job := <-jobsCh:
 			// spawn catchUp routine
