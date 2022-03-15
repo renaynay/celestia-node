@@ -21,6 +21,7 @@ import (
 func TestDASerLifecycle(t *testing.T) {
 	ds := ds_sync.MutexWrap(datastore.NewMapDatastore())
 
+	// 15 headers from the past and 15 future headers
 	mockGet, shareServ, sub := createDASerSubcomponents(t, 15, 15)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
@@ -31,20 +32,15 @@ func TestDASerLifecycle(t *testing.T) {
 	err := daser.Start(ctx)
 	require.NoError(t, err)
 
-	select {
-	// wait for sample routine to finish so that it stores the
-	// latest DASed checkpoint so that it stores the latest DASed checkpoint
-	case <-daser.sampleDn:
-	case <-ctx.Done():
-	}
+	// wait for dasing routine to finish
+	err = daser.Stop(ctx)
+	require.NoError(t, err)
 
 	// load checkpoint and ensure it's at network head
 	checkpoint, err := loadCheckpoint(daser.cstore)
 	require.NoError(t, err)
-	assert.Equal(t, int64(30), checkpoint)
-
-	err = daser.Stop(ctx)
-	require.NoError(t, err)
+	// ensure checkpoint is stored at 15
+	assert.Equal(t, int64(15), checkpoint)
 }
 
 func TestDASer_catchUp(t *testing.T) {
@@ -62,7 +58,11 @@ func TestDASer_catchUp(t *testing.T) {
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		// catch up from height 2 to head
-		daser.catchUp(ctx, 2, mockGet.head)
+		job := &catchUpJob{
+			from: 2,
+			to:   mockGet.head,
+		}
+		daser.catchUp(ctx, job)
 		wg.Done()
 	}(wg)
 	wg.Wait()
@@ -90,7 +90,11 @@ func TestDASer_catchUp_oneHeader(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
-		daser.catchUp(ctx, checkpoint, mockGet.head)
+		job := &catchUpJob{
+			from: checkpoint,
+			to:   mockGet.head,
+		}
+		daser.catchUp(ctx, job)
 		wg.Done()
 	}(wg)
 	wg.Wait()
