@@ -105,6 +105,10 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 		close(d.sampleDn)
 	}()
 
+	// since sample routine just started,
+	// set catchUpJobID to 1
+	catchUpJobID := uint64(1)
+
 	for {
 		h, err := sub.NextHeader(ctx)
 		if err != nil {
@@ -124,6 +128,7 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 			// DAS headers between last DASed height up to the current
 			// header
 			job := &catchUpJob{
+				id:   catchUpJobID,
 				from: checkpoint,
 				to:   h.Height - 1,
 			}
@@ -131,6 +136,8 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 			case <-ctx.Done():
 				return
 			case d.jobsCh <- job:
+				// increment job ID for subsequent job
+				catchUpJobID++
 			}
 		}
 
@@ -156,13 +163,24 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 
 // catchUpJob represents a catch-up job. (from:to]
 type catchUpJob struct {
+	id       uint64
 	from, to int64
+}
+
+// catchUpResult contains the result of a catch-up routine for
+// a single `catchUpJob`.
+type catchUpResult struct {
+	id uint64 // ID of referenced catchUpJob
+
+	checkpoint int64 // last successfully sampled height
+	err        error // error that occurred during catch-up routine
 }
 
 // catchUpScheduler spawns and manages catch-up jobs, exiting only once all jobs
 // are complete and the last known DASing checkpoint has been stored to disk.
 func (d *DASer) catchUpScheduler(ctx context.Context, checkpoint int64) {
 	wg := sync.WaitGroup{}
+	lastID := uint64(0)
 
 	defer func() {
 		// wait for all catch-up jobs to finish
@@ -188,11 +206,24 @@ func (d *DASer) catchUpScheduler(ctx context.Context, checkpoint int64) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-
-				d.catchUp(ctx, job)
-				// TODO @renaynay: assumption that each subsequent job is to a higher height than the previous.
-				//  I don't see why that is *not* the case, though.
-				checkpoint = job.to
+				result := d.catchUp(ctx, job)
+				// only set checkpoint if the ID from this respective
+				// catchUpJob is later than the previous resulting
+				// catchUpJob to prevent a potential race where a catchUpJob
+				// of a lower (from:to] range finishes after a catchUpJob of
+				// a higher range.
+				if result.id > lastID {
+					// store checkpoint before checking error from result
+					// as the checkpoint of the result is still valid as the
+					// latest successfully sampled height
+					checkpoint = result.checkpoint
+					lastID = result.id
+				}
+				if result.err != nil {
+					log.Errorw("catch-up routine failed", "err", result.err,
+						"last successfully sampled height", result.checkpoint)
+					return
+				}
 			}()
 		}
 	}
@@ -200,7 +231,7 @@ func (d *DASer) catchUpScheduler(ctx context.Context, checkpoint int64) {
 
 // catchUp starts a sampling routine for headers starting at the next header
 // after the `from` height and exits the loop once `to` is reached. (from:to]
-func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) {
+func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
 	routineStartTime := time.Now()
 	log.Infow("sampling past headers", "from", job.from, "to", job.to)
 
@@ -210,11 +241,19 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) {
 		h, err := d.getter.GetByHeight(ctx, uint64(height))
 		if err != nil {
 			if err == context.Canceled {
-				return
+				return &catchUpResult{
+					id:         job.id,
+					checkpoint: height - 1, // previous height is the last successfully sampled height
+					err:        nil,        // report error as nil as routine was ordered to stop
+				}
 			}
 
 			log.Errorw("failed to get next header", "height", height, "err", err)
-			return
+			return &catchUpResult{
+				id:         job.id,
+				checkpoint: height - 1, // previous height is the last successfully sampled height
+				err:        err,
+			}
 		}
 
 		startTime := time.Now()
@@ -222,7 +261,12 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) {
 		err = d.da.SharesAvailable(ctx, h.DAH)
 		if err != nil {
 			if err == context.Canceled {
-				return
+				return &catchUpResult{
+					id:         job.id,
+					checkpoint: height - 1, // previous height is the last successfully sampled height
+					err:        nil,        // report error as nil as routine was ordered to stop
+				}
+
 			}
 			log.Errorw("sampling failed", "height", h.Height, "hash", h.Hash(),
 				"square width", len(h.DAH.RowsRoots), "data root", h.DAH.Hash(), "err", err)
@@ -236,4 +280,10 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) {
 
 	log.Infow("successfully caught up", "from", job.from,
 		"to", job.to, "finished (s)", time.Since(routineStartTime))
+	// report successful result
+	return &catchUpResult{
+		id:         job.id,
+		checkpoint: job.to,
+		err:        nil,
+	}
 }

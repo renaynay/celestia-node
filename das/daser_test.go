@@ -41,6 +41,9 @@ func TestDASerLifecycle(t *testing.T) {
 	case <-mockGet.doneCh:
 	}
 
+	// give catch-up routine a second to finish up sampling last header
+	time.Sleep(time.Second * 1)
+
 	err = daser.Stop(ctx)
 	require.NoError(t, err)
 
@@ -98,6 +101,9 @@ func TestDASer_Restart(t *testing.T) {
 	case <-mockGet.doneCh:
 	}
 
+	// give catch-up routine a second to finish up sampling last header
+	time.Sleep(time.Second * 1)
+
 	err = daser.Stop(restartCtx)
 	require.NoError(t, err)
 
@@ -119,18 +125,25 @@ func TestDASer_catchUp(t *testing.T) {
 
 	daser := NewDASer(shareServ, nil, mockGet, ds)
 
+	resultCh := make(chan *catchUpResult, 1)
+
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
+	go func() {
+		defer wg.Done()
 		// catch up from height 2 to head
 		job := &catchUpJob{
 			from: 2,
 			to:   mockGet.head,
 		}
-		daser.catchUp(ctx, job)
-		wg.Done()
-	}(wg)
+		result := daser.catchUp(ctx, job)
+		resultCh <- result
+	}()
 	wg.Wait()
+
+	result := <-resultCh
+	assert.Equal(t, mockGet.head, result.checkpoint)
+	require.NoError(t, result.err)
 }
 
 // TestDASer_catchUp_oneHeader tests that catchUp works with a from-to
@@ -152,17 +165,24 @@ func TestDASer_catchUp_oneHeader(t *testing.T) {
 	checkpoint, err := loadCheckpoint(daser.cstore)
 	require.NoError(t, err)
 
+	resultCh := make(chan *catchUpResult, 1)
+
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
+	go func() {
+		defer wg.Done()
 		job := &catchUpJob{
 			from: checkpoint,
 			to:   mockGet.head,
 		}
-		daser.catchUp(ctx, job)
-		wg.Done()
-	}(wg)
+		result := daser.catchUp(ctx, job)
+		resultCh <- result
+	}()
 	wg.Wait()
+
+	result := <-resultCh
+	assert.Equal(t, mockGet.head, result.checkpoint)
+	require.NoError(t, result.err)
 }
 
 // createDASerSubcomponents takes numGetter (number of headers
