@@ -17,6 +17,8 @@ import (
 	"github.com/celestiaorg/celestia-node/service/share"
 )
 
+var timeout = time.Second * 15
+
 // TestDASerLifecycle tests to ensure every mock block is DASed and
 // the DASer checkpoint is updated to network head.
 func TestDASerLifecycle(t *testing.T) {
@@ -26,7 +28,7 @@ func TestDASerLifecycle(t *testing.T) {
 	// 15 headers from the past and 15 future headers
 	mockGet, shareServ, sub := createDASerSubcomponents(t, dag, 15, 15)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	t.Cleanup(cancel)
 
 	daser := NewDASer(shareServ, sub, mockGet, ds)
@@ -42,6 +44,9 @@ func TestDASerLifecycle(t *testing.T) {
 	}
 
 	// give catch-up routine a second to finish up sampling last header
+	// TODO @renaynay: this sleep is a known flakey solution to the issue that
+	//  we do not have DASState implemented yet. Once DASState is implemented, rely
+	//  on that instead of sleeping.
 	time.Sleep(time.Second * 1)
 
 	err = daser.Stop(ctx)
@@ -61,7 +66,7 @@ func TestDASer_Restart(t *testing.T) {
 	// 15 headers from the past and 15 future headers
 	mockGet, shareServ, sub := createDASerSubcomponents(t, dag, 15, 15)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	t.Cleanup(cancel)
 
 	daser := NewDASer(shareServ, sub, mockGet, ds)
@@ -88,7 +93,7 @@ func TestDASer_Restart(t *testing.T) {
 	mockGet.head = int64(45)
 
 	// restart DASer with new context
-	restartCtx, restartCancel := context.WithTimeout(context.Background(), time.Second*15)
+	restartCtx, restartCancel := context.WithTimeout(context.Background(), timeout)
 	t.Cleanup(restartCancel)
 
 	err = daser.Start(restartCtx)
@@ -102,6 +107,9 @@ func TestDASer_Restart(t *testing.T) {
 	}
 
 	// give catch-up routine a second to finish up sampling last header
+	// TODO @renaynay: this sleep is a known flakey solution to the issue that
+	//  we do not have DASState implemented yet. Once DASState is implemented, rely
+	//  on that instead of sleeping.
 	time.Sleep(time.Second * 1)
 
 	err = daser.Stop(restartCtx)
