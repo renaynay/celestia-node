@@ -105,10 +105,6 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 		close(d.sampleDn)
 	}()
 
-	// since sample routine just started,
-	// set catchUpJobID to 1
-	catchUpJobID := uint64(1)
-
 	for {
 		h, err := sub.NextHeader(ctx)
 		if err != nil {
@@ -128,7 +124,6 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 			// DAS headers between last DASed height up to the current
 			// header
 			job := &catchUpJob{
-				id:   catchUpJobID,
 				from: checkpoint,
 				to:   h.Height - 1,
 			}
@@ -136,8 +131,6 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 			case <-ctx.Done():
 				return
 			case d.jobsCh <- job:
-				// increment job ID for subsequent job
-				catchUpJobID++
 			}
 		}
 
@@ -163,14 +156,13 @@ func (d *DASer) sample(ctx context.Context, sub header.Subscription, checkpoint 
 
 // catchUpJob represents a catch-up job. (from:to]
 type catchUpJob struct {
-	id       uint64
 	from, to int64
 }
 
 // catchUpResult contains the result of a catch-up routine for
 // a single `catchUpJob`.
 type catchUpResult struct {
-	id uint64 // ID of referenced catchUpJob
+	id int64 // `to` value from referenced catchUpJob
 
 	checkpoint int64 // last successfully sampled height
 	err        error // error that occurred during catch-up routine
@@ -180,7 +172,8 @@ type catchUpResult struct {
 // are complete and the last known DASing checkpoint has been stored to disk.
 func (d *DASer) catchUpScheduler(ctx context.Context, checkpoint int64) {
 	wg := sync.WaitGroup{}
-	lastID := uint64(0)
+	// set lastJobID to 0 since we haven't scheduled any jobs yet
+	lastJobID := int64(0)
 
 	defer func() {
 		// wait for all catch-up jobs to finish
@@ -212,16 +205,16 @@ func (d *DASer) catchUpScheduler(ctx context.Context, checkpoint int64) {
 				// catchUpJob to prevent a potential race where a catchUpJob
 				// of a lower (from:to] range finishes after a catchUpJob of
 				// a higher range.
-				if result.id > lastID {
+				if result.id > lastJobID {
 					// store checkpoint before checking error from result
 					// as the checkpoint of the result is still valid as the
 					// latest successfully sampled height
 					checkpoint = result.checkpoint
-					lastID = result.id
+					lastJobID = result.id
 				}
 				if result.err != nil {
-					log.Errorw("catch-up routine failed", "err", result.err,
-						"last successfully sampled height", result.checkpoint)
+					log.Errorw("catch-up routine failed", "attempted range (from, to)", job.from,
+						job.to, "last successfully sampled height", result.checkpoint)
 					return
 				}
 			}()
@@ -242,7 +235,7 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
 		if err != nil {
 			if err == context.Canceled {
 				return &catchUpResult{
-					id:         job.id,
+					id:         job.to,
 					checkpoint: height - 1, // previous height is the last successfully sampled height
 					err:        nil,        // report error as nil as routine was ordered to stop
 				}
@@ -250,7 +243,7 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
 
 			log.Errorw("failed to get next header", "height", height, "err", err)
 			return &catchUpResult{
-				id:         job.id,
+				id:         job.to,
 				checkpoint: height - 1, // previous height is the last successfully sampled height
 				err:        err,
 			}
@@ -262,7 +255,7 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
 		if err != nil {
 			if err == context.Canceled {
 				return &catchUpResult{
-					id:         job.id,
+					id:         job.to,
 					checkpoint: height - 1, // previous height is the last successfully sampled height
 					err:        nil,        // report error as nil as routine was ordered to stop
 				}
@@ -282,7 +275,7 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
 		"to", job.to, "finished (s)", time.Since(routineStartTime))
 	// report successful result
 	return &catchUpResult{
-		id:         job.id,
+		id:         job.to,
 		checkpoint: job.to,
 		err:        nil,
 	}
