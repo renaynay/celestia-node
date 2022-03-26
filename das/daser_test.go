@@ -133,6 +133,10 @@ func TestDASer_catchUp(t *testing.T) {
 
 	daser := NewDASer(shareServ, nil, mockGet, ds)
 
+	type catchUpResult struct {
+		checkpoint int64
+		err        error
+	}
 	resultCh := make(chan *catchUpResult, 1)
 
 	wg := &sync.WaitGroup{}
@@ -144,8 +148,11 @@ func TestDASer_catchUp(t *testing.T) {
 			from: 2,
 			to:   mockGet.head,
 		}
-		result := daser.catchUp(ctx, job)
-		resultCh <- result
+		checkpt, err := daser.catchUp(ctx, job)
+		resultCh <- &catchUpResult{
+			checkpoint: checkpt,
+			err:        err,
+		}
 	}()
 	wg.Wait()
 
@@ -173,6 +180,10 @@ func TestDASer_catchUp_oneHeader(t *testing.T) {
 	checkpoint, err := loadCheckpoint(daser.cstore)
 	require.NoError(t, err)
 
+	type catchUpResult struct {
+		checkpoint int64
+		err        error
+	}
 	resultCh := make(chan *catchUpResult, 1)
 
 	wg := &sync.WaitGroup{}
@@ -183,8 +194,11 @@ func TestDASer_catchUp_oneHeader(t *testing.T) {
 			from: checkpoint,
 			to:   mockGet.head,
 		}
-		result := daser.catchUp(ctx, job)
-		resultCh <- result
+		checkpt, err := daser.catchUp(ctx, job)
+		resultCh <- &catchUpResult{
+			checkpoint: checkpt,
+			err:        err,
+		}
 	}()
 	wg.Wait()
 

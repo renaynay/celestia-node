@@ -46,7 +46,7 @@ func NewDASer(
 		hsub:   hsub,
 		getter: getter,
 		cstore: wrappedDS,
-		jobsCh: make(chan *catchUpJob, 4), // TODO @renaynay: is this a reasonable buffer?
+		jobsCh: make(chan *catchUpJob, 16),
 	}
 }
 
@@ -158,13 +158,6 @@ type catchUpJob struct {
 	from, to int64
 }
 
-// catchUpResult contains the result of a catch-up routine for
-// a single `catchUpJob`.
-type catchUpResult struct {
-	checkpoint int64 // last successfully sampled height
-	err        error // error that occurred during catch-up routine
-}
-
 // catchUpManager manages catch-up jobs, performing them one at a time, exiting
 // only once context is canceled and storing latest DASed checkpoint to disk.
 func (d *DASer) catchUpManager(ctx context.Context, checkpoint int64) {
@@ -187,15 +180,15 @@ func (d *DASer) catchUpManager(ctx context.Context, checkpoint int64) {
 			return
 		case job := <-d.jobsCh:
 			// perform catchUp routine
-			result := d.catchUp(ctx, job)
-			// update checkpoint before checking error as the checkpoint
-			// value from result represents the last successfully DASed height
-			// of the routine's success
-			checkpoint = result.checkpoint
+			height, err := d.catchUp(ctx, job)
+			// update checkpoint before checking error as the height
+			// value from catchUp represents the last successfully DASed height,
+			// regardless of the routine's success
+			checkpoint = height
 			// exit routine if a catch-up job was unsuccessful
-			if result.err != nil {
+			if err != nil {
 				log.Errorw("catch-up routine failed", "attempted range (from, to)", job.from,
-					job.to, "last successfully sampled height", result.checkpoint)
+					job.to, "last successfully sampled height", height)
 				return
 			}
 		}
@@ -204,7 +197,7 @@ func (d *DASer) catchUpManager(ctx context.Context, checkpoint int64) {
 
 // catchUp starts a sampling routine for headers starting at the next header
 // after the `from` height and exits the loop once `to` is reached. (from:to]
-func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
+func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) (int64, error) {
 	routineStartTime := time.Now()
 	log.Infow("sampling past headers", "from", job.from, "to", job.to)
 
@@ -214,17 +207,14 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
 		h, err := d.getter.GetByHeight(ctx, uint64(height))
 		if err != nil {
 			if err == context.Canceled {
-				return &catchUpResult{
-					checkpoint: height - 1, // previous height is the last successfully sampled height
-					err:        nil,        // report error as nil as routine was ordered to stop
-				}
+				// report previous height as the last successfully sampled height and
+				// error as nil since the routine was ordered to stop
+				return height - 1, nil
 			}
 
 			log.Errorw("failed to get next header", "height", height, "err", err)
-			return &catchUpResult{
-				checkpoint: height - 1, // previous height is the last successfully sampled height
-				err:        err,
-			}
+			// report previous height as the last successfully sampled height
+			return height - 1, err
 		}
 
 		startTime := time.Now()
@@ -232,11 +222,9 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
 		err = d.da.SharesAvailable(ctx, h.DAH)
 		if err != nil {
 			if err == context.Canceled {
-				return &catchUpResult{
-					checkpoint: height - 1, // previous height is the last successfully sampled height
-					err:        nil,        // report error as nil as routine was ordered to stop
-				}
-
+				// report previous height as the last successfully sampled height and
+				// error as nil since the routine was ordered to stop
+				return height - 1, nil
 			}
 			log.Errorw("sampling failed", "height", h.Height, "hash", h.Hash(),
 				"square width", len(h.DAH.RowsRoots), "data root", h.DAH.Hash(), "err", err)
@@ -251,8 +239,5 @@ func (d *DASer) catchUp(ctx context.Context, job *catchUpJob) *catchUpResult {
 	log.Infow("successfully caught up", "from", job.from,
 		"to", job.to, "finished (s)", time.Since(routineStartTime))
 	// report successful result
-	return &catchUpResult{
-		checkpoint: job.to,
-		err:        nil,
-	}
+	return job.to, nil
 }
