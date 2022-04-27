@@ -3,10 +3,14 @@ package swamp
 import (
 	"context"
 	"fmt"
+	"github.com/celestiaorg/celestia-node/params"
 	"math/rand"
 	"net"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/host"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
@@ -17,8 +21,9 @@ import (
 	rpctest "github.com/tendermint/tendermint/rpc/test"
 	"github.com/tendermint/tendermint/types"
 
-	"github.com/celestiaorg/celestia-node/params"
-
+	"github.com/celestiaorg/celestia-app/app"
+	apputil "github.com/celestiaorg/celestia-app/testutil"
+	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/libs/keystore"
 	"github.com/celestiaorg/celestia-node/node"
@@ -185,6 +190,18 @@ func (s *Swamp) getTrustedHash(ctx context.Context) (string, error) {
 		newBlock := block.Data.(types.EventDataNewBlock).Block
 		return newBlock.Hash().String(), nil
 	}
+}
+
+func (s *Swamp) NewAppInstance(t *testing.T) *app.App {
+	path, err := filepath.Abs("./swamp/keys")
+	require.NoError(t, err)
+
+	ring, err := keyring.New(app.Name, keyring.BackendTest, path, os.Stdin)
+	require.NoError(t, err)
+
+	signer := apptypes.NewKeyringSigner(ring, "celes", "test")
+
+	return apputil.SetupTestApp(t, signer.GetSignerInfo().GetAddress())
 }
 
 // NewBridgeNode creates a new instance of a BridgeNode providing a default config
