@@ -29,6 +29,11 @@ func (m *mapKeystore) Put(n KeyName, k PrivKey) error {
 	return nil
 }
 
+// TODO IMPLEMENT
+func (m *mapKeystore) PutInPath(path string, n KeyName, k PrivKey) error {
+	return nil
+}
+
 func (m *mapKeystore) Get(n KeyName) (PrivKey, error) {
 	m.keysLk.Lock()
 	defer m.keysLk.Unlock()
@@ -39,6 +44,11 @@ func (m *mapKeystore) Get(n KeyName) (PrivKey, error) {
 	}
 
 	return k, nil
+}
+
+// TODO IMPLEMENT
+func (m *mapKeystore) GetFromPath(path string, n KeyName) (PrivKey, error) {
+	return PrivKey{}, nil
 }
 
 func (m *mapKeystore) Delete(n KeyName) error {

@@ -23,8 +23,14 @@ type Keystore interface {
 	// Put stores given PrivKey.
 	Put(KeyName, PrivKey) error
 
+	// TODO document
+	PutInPath(path string, name KeyName, privKey PrivKey) error
+
 	// Get reads PrivKey using given KeyName.
 	Get(KeyName) (PrivKey, error)
+
+	// TODO document
+	GetFromPath(path string, name KeyName) (PrivKey, error)
 
 	// Delete erases PrivKey using given KeyName.
 	Delete(name KeyName) error

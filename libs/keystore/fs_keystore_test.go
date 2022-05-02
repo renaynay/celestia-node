@@ -18,6 +18,13 @@ func TestFSKeystore(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []byte("test_private_key"), key.Body)
 
+
+	err = kstore.PutInPath("keyring-test", "test", PrivKey{Body: []byte("test_private_key")})
+	require.NoError(t, err)
+
+	key, err = kstore.GetFromPath("keyring-test/", "test")
+	require.NoError(t, err)
+
 	keys, err := kstore.List()
 	require.NoError(t, err)
 	assert.Len(t, keys, 1)

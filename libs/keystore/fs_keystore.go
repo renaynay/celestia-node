@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // ErrNotFound is returned when the key does not exist.
@@ -29,7 +30,16 @@ func NewFSKeystore(path string) (Keystore, error) {
 
 func (f *fsKeystore) Put(n KeyName, pk PrivKey) error {
 	path := f.pathTo(n.Base32())
+	return put(path, n, pk)
+}
 
+func (f *fsKeystore) PutInPath(path string, n KeyName, pk PrivKey) error {
+	path = strings.Trim(path, "/")
+	path = f.pathTo(fmt.Sprintf("%s/%s", path, n.Base32()))
+	return put(path, n, pk)
+}
+
+func put(path string, n KeyName, pk PrivKey) error {
 	_, err := os.Stat(path)
 	if err == nil {
 		return fmt.Errorf("keystore: key '%s' already exists", n)
@@ -51,7 +61,16 @@ func (f *fsKeystore) Put(n KeyName, pk PrivKey) error {
 
 func (f *fsKeystore) Get(n KeyName) (PrivKey, error) {
 	path := f.pathTo(n.Base32())
+	return get(path, n)
+}
 
+func (f *fsKeystore) GetFromPath(path string, n KeyName) (PrivKey, error) {
+	path = strings.Trim(path, "/")
+	path = f.pathTo(fmt.Sprintf("%s/%s", path, n.Base32()))
+	return get(path, n)
+}
+
+func get(path string, n KeyName) (PrivKey, error) {
 	st, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
