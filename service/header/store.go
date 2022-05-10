@@ -7,7 +7,6 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/namespace"
-
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
