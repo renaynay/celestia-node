@@ -51,6 +51,11 @@ func (s *Service) GetByHeight(ctx context.Context, height uint64) (*ExtendedHead
 	return s.syncer.store.GetByHeight(ctx, height)
 }
 
+// Head returns the ExtendedHeader of the chain head.
+func (s *Service) Head(ctx context.Context) (*ExtendedHeader, error) {
+	return s.syncer.store.Head(ctx)
+}
+
 // IsSyncing returns the status of sync
 func (s *Service) IsSyncing() bool {
 	return !s.syncer.State().Finished()
