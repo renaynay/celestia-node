@@ -1,6 +1,7 @@
 package state
 
 import (
+	"github.com/celestiaorg/celestia-node/node/key"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -16,24 +17,21 @@ import (
 
 var (
 	log = logging.Logger("state-access-constructor")
-
-	keyringAccName = "celes"
 )
 
-func CoreAccessor(endpoint string) func(fx.Lifecycle, keystore.Keystore, params.Network) (state.Accessor, error) {
+func CoreAccessor(endpoint string, conf key.Config) func(fx.Lifecycle, keystore.Keystore, params.Network) (state.Accessor, error) {
 	return func(lc fx.Lifecycle, ks keystore.Keystore, net params.Network) (state.Accessor, error) {
+		// sanity check keyring backend
 		// TODO @renaynay: Include option for setting custom `userInput` parameter with
 		//  implementation of https://github.com/celestiaorg/celestia-node/issues/415.
-		// TODO @renaynay @Wondertan: ensure that keyring backend from config is passed
-		//  here instead of hardcoded `BackendTest`: https://github.com/celestiaorg/celestia-node/issues/603.
-		ring, err := keyring.New(app.Name, keyring.BackendTest, ks.Path(), os.Stdin)
+		ring, err := keyring.New(app.Name, conf.Backend, ks.Path(), os.Stdin)
 		if err != nil {
 			return nil, err
 		}
-		signer := apptypes.NewKeyringSigner(ring, keyringAccName, string(net))
+		signer := apptypes.NewKeyringSigner(ring, conf.AccName, string(net))
 
-		log.Infow("constructed keyring signer", "backend", keyring.BackendTest, "path", ks.Path(),
-			"keyring account name", keyringAccName)
+		log.Infow("constructed keyring signer", "backend", conf.Backend, "path", ks.Path(),
+			"keyring account name", conf.AccName)
 
 		ca := state.NewCoreAccessor(signer, endpoint)
 		lc.Append(fx.Hook{

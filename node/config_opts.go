@@ -59,3 +59,16 @@ func WithMutualPeers(addrs []string) Option {
 		sets.cfg.P2P.MutualPeers = addrs
 	}
 }
+
+// WithKeyName sets the `AccName` field in the key config.
+func WithKeyName(name string) Option {
+	return func(sets *settings) {
+		sets.cfg.Key.AccName = name
+	}
+}
+
+func WithKeyBackend(backend string) Option {
+	return func(sets *settings) {
+		sets.cfg.Key.Backend = backend
+	}
+}
