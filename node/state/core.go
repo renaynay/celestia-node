@@ -1,7 +1,7 @@
 package state
 
 import (
-	"github.com/celestiaorg/celestia-node/node/key"
+	"fmt"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -11,6 +11,7 @@ import (
 	"github.com/celestiaorg/celestia-app/app"
 	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
 	"github.com/celestiaorg/celestia-node/libs/keystore"
+	"github.com/celestiaorg/celestia-node/node/key"
 	"github.com/celestiaorg/celestia-node/params"
 	"github.com/celestiaorg/celestia-node/service/state"
 )
@@ -28,7 +29,19 @@ func CoreAccessor(endpoint string, conf key.Config) func(fx.Lifecycle, keystore.
 		if err != nil {
 			return nil, err
 		}
+		keyring.BackendPass
 		signer := apptypes.NewKeyringSigner(ring, conf.AccName, string(net))
+		// ensure that signer can actually find the key associated
+		// to the given `conf.AccName`
+		list, err := signer.List()
+		if err != nil {
+			return nil, err
+		}
+		if len(list) == 0 {
+			// if no key found, state access cannot be used.
+			return nil, fmt.Errorf("key for given name %s not found in directory %s for the backend %s",
+				conf.AccName, ks.Path(), conf.Backend)
+		}
 
 		log.Infow("constructed keyring signer", "backend", conf.Backend, "path", ks.Path(),
 			"keyring account name", conf.AccName)

@@ -89,10 +89,7 @@ var fullCmd = &cobra.Command{
 			return err
 		}
 
-		err = cmdnode.ParseKeyFlags(cmd, env)
-		if err != nil {
-			return err
-		}
+		cmdnode.ParseKeyFlags(cmd, env)
 
 		return nil
 	},

@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"github.com/celestiaorg/celestia-node/node"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+
+	"github.com/celestiaorg/celestia-node/node"
 )
 
 var (
@@ -15,19 +16,22 @@ var (
 func KeyFlags() *flag.FlagSet {
 	flags := &flag.FlagSet{}
 
-	flags.String(keyNameFlag, "celes",
+	flags.String(keyNameFlag, "",
 		"Indicates key name to use as the node's default account. (default: \"celes\")")
-	flags.String(keyBackendFlag, "os",
-		"Indicates keyring-backend to use for keyring construction. (default: \"os\")")
+	flags.String(keyBackendFlag, "",
+		"Indicates keyring-backend to use for keyring construction. (default: \"file\")")
 	return flags
 }
 
 // ParseKeyFlags parses key-related flags from the given cmd and applies values to Env.
-func ParseKeyFlags(cmd *cobra.Command, env *Env) error {
+func ParseKeyFlags(cmd *cobra.Command, env *Env) {
 	keyName := cmd.Flag(keyNameFlag).Value.String()
-	env.AddOptions(node.WithKeyName(keyName))
+	if keyName != "" {
+		env.AddOptions(node.WithKeyName(keyName))
+	}
 
 	keyBackend := cmd.Flag(keyBackendFlag).Value.String()
-	env.AddOptions(node.WithKeyBackend(keyBackend))
-	return nil
+	if keyBackend != "" {
+		env.AddOptions(node.WithKeyBackend(keyBackend))
+	}
 }

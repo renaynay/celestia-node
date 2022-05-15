@@ -1,13 +1,13 @@
 package node
 
 import (
-	"github.com/celestiaorg/celestia-node/node/key"
 	"io"
 	"os"
 
 	"github.com/BurntSushi/toml"
 
 	"github.com/celestiaorg/celestia-node/node/core"
+	"github.com/celestiaorg/celestia-node/node/key"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/services"
 	"github.com/celestiaorg/celestia-node/service/rpc"

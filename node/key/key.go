@@ -15,6 +15,6 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		"celes",
-		keyring.BackendOS,
+		keyring.BackendFile,
 	}
 }
