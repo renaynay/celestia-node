@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/celestiaorg/celestia-node/service/metrics"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"math/rand"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -18,6 +21,11 @@ import (
 	"github.com/celestiaorg/celestia-node/ipld/plugin"
 	"github.com/celestiaorg/nmt"
 	"github.com/celestiaorg/nmt/namespace"
+)
+
+const (
+	shareServiceTracer         = "service/share"
+	getSharesByNamespaceTracer = "getSharesByNamespace"
 )
 
 var log = logging.Logger("share")
@@ -59,9 +67,10 @@ type Service struct {
 	// cancel controls lifecycle of the session
 	cancel context.CancelFunc
 
-	// optional: tracks metrics related to share retrieval
-	// if nil, the Service will not track/report metrics
-	metrics *metrics.Metrics
+	tracingEnabled bool
+	// tracer will trace key metrics inside Service if tracing is
+	// enabled for the Service
+	tracer trace.Tracer
 }
 
 // NewService creates new basic share.Service.
@@ -99,19 +108,20 @@ func (s *Service) Stop(context.Context) error {
 	return nil
 }
 
-// EnableMetrics enables metrics on the Service.
-func (s *Service) EnableMetrics(metrics *metrics.Metrics) error {
-	if s.metrics != nil {
+// EnableTracing enables tracing on the Service.
+func (s *Service) EnableTracing() error {
+	if s.tracingEnabled {
 		return fmt.Errorf("metrics already enabled for share service")
 	}
-	s.metrics = metrics
+	s.tracingEnabled = true
+	s.tracer = metrics.NewTracer(shareServiceTracer)
 	return nil
 }
 
-// MetricsEnabled reports whether metrics has been enabled
+// TracingEnabled reports whether tracing has been enabled
 // on the Service.
-func (s *Service) MetricsEnabled() bool {
-	return s.metrics != nil
+func (s *Service) TracingEnabled() bool {
+	return s.tracingEnabled
 }
 
 func (s *Service) GetShare(ctx context.Context, dah *Root, row, col int) (Share, error) {
@@ -145,10 +155,38 @@ func (s *Service) GetShares(ctx context.Context, root *Root) ([][]Share, error) 
 }
 
 func (s *Service) GetSharesByNamespace(ctx context.Context, root *Root, nID namespace.ID) ([]Share, error) {
-	if s.MetricsEnabled() {
-		s.metrics.
+	if s.TracingEnabled() {
+		return s.getSharesByNamespaceWithTrace(ctx, root, nID)
 	}
+	return s.getSharesByNamespace(ctx, root, nID)
+}
 
+func (s *Service) getSharesByNamespaceWithTrace(ctx context.Context, root *Root, nID namespace.ID) ([]Share, error) {
+	ctx, span := s.tracer.Start(
+		ctx,
+		getSharesByNamespaceTracer,
+		trace.WithAttributes(
+			attribute.KeyValue{
+				Key:   "root_hash",
+				Value: attribute.StringValue(fmt.Sprintf("%X", root.Hash())),
+			},
+			attribute.KeyValue{
+				Key:   "nID",
+				Value: attribute.StringValue(fmt.Sprintf("%X", nID)),
+			},
+		),
+		trace.WithTimestamp(time.Now()),
+	)
+	defer span.End(trace.WithTimestamp(time.Now()))
+
+	shares, err := s.getSharesByNamespace(ctx, root, nID)
+	if err != nil {
+		span.RecordError(err, trace.WithStackTrace(true))
+	}
+	return shares, err
+}
+
+func (s *Service) getSharesByNamespace(ctx context.Context, root *Root, nID namespace.ID) ([]Share, error) {
 	err := ipld.SanityCheckNID(nID)
 	if err != nil {
 		return nil, err
