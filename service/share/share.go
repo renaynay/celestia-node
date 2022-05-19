@@ -3,6 +3,7 @@ package share
 import (
 	"context"
 	"fmt"
+	"github.com/celestiaorg/celestia-node/service/metrics"
 	"math/rand"
 
 	"golang.org/x/sync/errgroup"
@@ -57,6 +58,10 @@ type Service struct {
 	session format.NodeGetter
 	// cancel controls lifecycle of the session
 	cancel context.CancelFunc
+
+	// optional: tracks metrics related to share retrieval
+	// if nil, the Service will not track/report metrics
+	metrics *metrics.Metrics
 }
 
 // NewService creates new basic share.Service.
@@ -94,6 +99,21 @@ func (s *Service) Stop(context.Context) error {
 	return nil
 }
 
+// EnableMetrics enables metrics on the Service.
+func (s *Service) EnableMetrics(metrics *metrics.Metrics) error {
+	if s.metrics != nil {
+		return fmt.Errorf("metrics already enabled for share service")
+	}
+	s.metrics = metrics
+	return nil
+}
+
+// MetricsEnabled reports whether metrics has been enabled
+// on the Service.
+func (s *Service) MetricsEnabled() bool {
+	return s.metrics != nil
+}
+
 func (s *Service) GetShare(ctx context.Context, dah *Root, row, col int) (Share, error) {
 	root, leaf := translate(dah, row, col)
 	nd, err := ipld.GetShare(ctx, s.dag, root, leaf, len(dah.RowsRoots))
@@ -125,6 +145,10 @@ func (s *Service) GetShares(ctx context.Context, root *Root) ([][]Share, error) 
 }
 
 func (s *Service) GetSharesByNamespace(ctx context.Context, root *Root, nID namespace.ID) ([]Share, error) {
+	if s.MetricsEnabled() {
+		s.metrics.
+	}
+
 	err := ipld.SanityCheckNID(nID)
 	if err != nil {
 		return nil, err
