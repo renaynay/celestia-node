@@ -131,6 +131,10 @@ func ShareService(lc fx.Lifecycle, dag ipld.DAGService, avail share.Availability
 	return service
 }
 
+func EnableServiceTracing(serv *share.Service) error {
+	return serv.EnableTracing()
+}
+
 // DASer constructs a new Data Availability Sampler.
 func DASer(
 	lc fx.Lifecycle,

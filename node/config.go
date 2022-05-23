@@ -7,6 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 
 	"github.com/celestiaorg/celestia-node/node/core"
+	"github.com/celestiaorg/celestia-node/node/metrics"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/services"
 	"github.com/celestiaorg/celestia-node/service/rpc"
@@ -19,6 +20,7 @@ type ConfigLoader func() (*Config, error)
 // It combines configuration units for all Node subsystems.
 type Config struct {
 	Core     core.Config
+	Metrics  metrics.Config
 	P2P      p2p.Config
 	RPC      rpc.Config
 	Services services.Config
@@ -31,18 +33,21 @@ func DefaultConfig(tp Type) *Config {
 	case Bridge:
 		return &Config{
 			Core:     core.DefaultConfig(),
+			Metrics:  metrics.DefaultConfig(),
 			P2P:      p2p.DefaultConfig(),
 			RPC:      rpc.DefaultConfig(),
 			Services: services.DefaultConfig(),
 		}
 	case Light:
 		return &Config{
+			Metrics:  metrics.DefaultConfig(),
 			RPC:      rpc.DefaultConfig(),
 			P2P:      p2p.DefaultConfig(),
 			Services: services.DefaultConfig(),
 		}
 	case Full:
 		return &Config{
+			Metrics:  metrics.DefaultConfig(),
 			RPC:      rpc.DefaultConfig(),
 			P2P:      p2p.DefaultConfig(),
 			Services: services.DefaultConfig(),

@@ -62,6 +62,7 @@ func baseComponents(cfg *Config, store Store) fx.Option {
 		fx.Provide(store.Datastore),
 		fx.Provide(store.Keystore),
 		fx.Provide(services.ShareService),
+		fxutil.InvokeIf(cfg.Metrics.TracingEnabled, services.EnableServiceTracing),
 		fx.Provide(services.HeaderService),
 		fx.Provide(services.HeaderStore),
 		fx.Invoke(services.HeaderStoreInit(&cfg.Services)),

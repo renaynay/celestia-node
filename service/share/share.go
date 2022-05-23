@@ -3,22 +3,21 @@ package share
 import (
 	"context"
 	"fmt"
-	"github.com/celestiaorg/celestia-node/service/metrics"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"math/rand"
 	"time"
-
-	"golang.org/x/sync/errgroup"
 
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/ipfs/go-merkledag"
 	"github.com/tendermint/tendermint/pkg/da"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/celestiaorg/celestia-node/ipld"
 	"github.com/celestiaorg/celestia-node/ipld/plugin"
+	"github.com/celestiaorg/celestia-node/service/metrics"
 	"github.com/celestiaorg/nmt"
 	"github.com/celestiaorg/nmt/namespace"
 )
@@ -162,6 +161,7 @@ func (s *Service) GetSharesByNamespace(ctx context.Context, root *Root, nID name
 }
 
 func (s *Service) getSharesByNamespaceWithTrace(ctx context.Context, root *Root, nID namespace.ID) ([]Share, error) {
+	metrics.TraceLogger.Info("trace initiated...", "tracer", getSharesByNamespaceTracer)
 	ctx, span := s.tracer.Start(
 		ctx,
 		getSharesByNamespaceTracer,
@@ -177,7 +177,10 @@ func (s *Service) getSharesByNamespaceWithTrace(ctx context.Context, root *Root,
 		),
 		trace.WithTimestamp(time.Now()),
 	)
-	defer span.End(trace.WithTimestamp(time.Now()))
+	defer func() {
+		span.End(trace.WithTimestamp(time.Now()))
+		metrics.TraceLogger.Info("finished trace...", "tracer", getSharesByNamespaceTracer)
+	}()
 
 	shares, err := s.getSharesByNamespace(ctx, root, nID)
 	if err != nil {

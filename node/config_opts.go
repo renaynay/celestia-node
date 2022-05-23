@@ -59,3 +59,11 @@ func WithMutualPeers(addrs []string) Option {
 		sets.cfg.P2P.MutualPeers = addrs
 	}
 }
+
+// WithTracingEnabled sets the `TracingEnabled` field in the config
+// to true.
+func WithTracingEnabled() Option {
+	return func(sets *settings) {
+		sets.cfg.Metrics.TracingEnabled = true
+	}
+}
