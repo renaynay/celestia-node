@@ -64,10 +64,10 @@ func Keyring(cfg key.Config) func(keystore.Keystore, params.Network) (*apptypes.
 			}
 		}
 		// construct signer using the default key found / generated above
-		signer := apptypes.NewKeyringSigner(ring, info.GetName(), string(net))
+		signer := apptypes.NewKeyringSigner(ring, info.Name, string(net))
 		signerInfo := signer.GetSignerInfo()
 		log.Infow("constructed keyring signer", "backend", keyring.BackendTest, "path", ks.Path(),
-			"key name", signerInfo.GetName(), "chain-id", string(net))
+			"key name", signerInfo.Name, "chain-id", string(net))
 
 		return signer, nil
 	}
