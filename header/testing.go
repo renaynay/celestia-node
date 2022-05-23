@@ -8,8 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/celestiaorg/celestia-node/core"
 	"github.com/stretchr/testify/require"
+
+	"github.com/celestiaorg/celestia-node/core"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/bytes"
