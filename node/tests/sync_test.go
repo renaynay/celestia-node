@@ -236,6 +236,7 @@ Steps:
 9. Check LN is synced to height 50
 */
 func TestSyncLightWithTrustedPeers(t *testing.T) {
+	t.Skip()
 	sw := swamp.NewSwamp(t)
 
 	bridge := sw.NewBridgeNode()
