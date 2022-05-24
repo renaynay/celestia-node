@@ -35,7 +35,7 @@ func TestSyncLightWithBridge(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	t.Cleanup(cancel)
 
-	sw.WaitTillHeight(ctx, 20)
+	sw.WaitTillHeight(ctx, 60)
 
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
@@ -83,7 +83,7 @@ func TestSyncStartStopLightWithBridge(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	t.Cleanup(cancel)
 
-	sw.WaitTillHeight(ctx, 50)
+	sw.WaitTillHeight(ctx, 60)
 
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
@@ -135,7 +135,7 @@ func TestSyncFullWithBridge(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	t.Cleanup(cancel)
 
-	sw.WaitTillHeight(ctx, 20)
+	sw.WaitTillHeight(ctx, 60)
 
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
@@ -181,7 +181,7 @@ func TestSyncLightWithFull(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	t.Cleanup(cancel)
 
-	sw.WaitTillHeight(ctx, 20)
+	sw.WaitTillHeight(ctx, 60)
 
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
@@ -243,7 +243,7 @@ func TestSyncLightWithTrustedPeers(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	t.Cleanup(cancel)
 
-	sw.WaitTillHeight(ctx, 20)
+	sw.WaitTillHeight(ctx, 60)
 
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
