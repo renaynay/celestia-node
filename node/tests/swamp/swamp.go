@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -22,13 +23,12 @@ import (
 	"github.com/celestiaorg/celestia-node/libs/keystore"
 	"github.com/celestiaorg/celestia-node/node"
 	"github.com/celestiaorg/celestia-node/node/p2p"
-
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 )
 
 var blackholeIP6 = net.ParseIP("100::")
 
-const subscriberID string = "NewBlockSwamp/Events"
+// const subscriberID string = "NewBlockSwamp/Events"
 
 var queryEvent string = types.QueryForEvent(types.EventNewBlockValue).String()
 
@@ -65,6 +65,7 @@ func NewSwamp(t *testing.T, options ...Option) *Swamp {
 
 	protocol, ip := core.GetEndpoint(ic.CoreCfg)
 	remote, err := core.NewRemote(protocol, ip)
+
 	require.NoError(t, err)
 
 	swp := &Swamp{
@@ -126,11 +127,11 @@ func (s *Swamp) WaitTillHeight(ctx context.Context, height int64) {
 
 	err := rpcclient.WaitForHeight(s.CoreClient, height, waiter)
 	require.NoError(s.t, err)
-	// results, err := s.CoreClient.Subscribe(ctx, subscriberID, core.NewBlockEventQuery)
+	// results, err := s.CoreClient.Subscribe(ctx, subscriberID, queryEvent)
 	// require.NoError(s.t, err)
 
 	// defer func() {
-	// 	err = s.CoreClient.Unsubscribe(ctx, subscriberID, core.NewBlockEventQuery)
+	// 	err = s.CoreClient.Unsubscribe(ctx, subscriberID, queryEvent)
 	// 	require.NoError(s.t, err)
 	// }()
 
@@ -175,21 +176,31 @@ func (s *Swamp) createPeer(ks keystore.Keystore) host.Host {
 // getTrustedHash is needed for celestia nodes to get the trustedhash
 // from CoreClient. This is required to initialize and start correctly.
 func (s *Swamp) getTrustedHash(ctx context.Context) (string, error) {
-	results, err := s.CoreClient.Subscribe(ctx, subscriberID, queryEvent)
-	require.NoError(s.t, err)
+	// waiter := func(delta int64) (abort error) {
+	// 	return rpcclient.DefaultWaitStrategy(1)
+	// }
 
-	defer func() {
-		err = s.CoreClient.Unsubscribe(ctx, subscriberID, queryEvent)
-		require.NoError(s.t, err)
-	}()
+	evt, err := rpcclient.WaitForOneEvent(s.CoreClient, types.EventNewBlockValue, time.Second)
+	// require.NoError(s.t, err)
 
-	select {
-	case <-ctx.Done():
-		return "", fmt.Errorf("can't get trusted hash as the channel is closed")
-	case block := <-results:
-		newBlock := block.Data.(types.EventDataNewBlock).Block
-		return newBlock.Hash().String(), nil
-	}
+	nb, _ := evt.(types.EventDataNewBlock)
+	fmt.Println(nb.Block.Hash().String())
+	return nb.Block.Hash().String(), err
+	// results, err := s.CoreClient.Subscribe(ctx, "Block/TrustedHash", queryEvent)
+	// require.NoError(s.t, err)
+
+	// defer func() {
+	// 	err = s.CoreClient.Unsubscribe(ctx, "Block/TrustedHash", queryEvent)
+	// 	require.NoError(s.t, err)
+	// }()
+
+	// select {
+	// case <-ctx.Done():
+	// 	return "", fmt.Errorf("can't get trusted hash as the channel is closed")
+	// case block := <-results:
+	// 	newBlock := block.Data.(types.EventDataNewBlock).Block
+	// 	return newBlock.Hash().String(), nil
+	// }
 }
 
 // NewBridgeNode creates a new instance of a BridgeNode providing a default config
