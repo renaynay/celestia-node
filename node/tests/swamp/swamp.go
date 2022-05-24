@@ -67,14 +67,14 @@ func NewSwamp(t *testing.T, options ...Option) *Swamp {
 	remote, err := core.NewRemote(protocol, ip)
 	require.NoError(t, err)
 
-	err = remote.Start()
-	require.NoError(t, err)
-
 	swp := &Swamp{
 		t:          t,
 		Network:    mocknet.New(ctx),
 		CoreClient: remote,
 	}
+
+	err = swp.CoreClient.Start()
+	require.NoError(t, err)
 
 	swp.trustedHash, err = swp.getTrustedHash(ctx)
 	require.NoError(t, err)
