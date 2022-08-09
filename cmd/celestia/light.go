@@ -4,7 +4,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	cmdnode "github.com/celestiaorg/celestia-node/cmd"
+	cmdnode "github.com/celestiaorg/celestia-node/node/cmd"
 	"github.com/celestiaorg/celestia-node/node/config"
 )
 
@@ -20,9 +20,9 @@ func init() {
 			cmdnode.MiscFlags(),
 			// NOTE: for now, state-related queries can only be accessed
 			// over an RPC connection with a celestia-core node.
-			cmdnode.CoreFlags(),
-			cmdnode.RPCFlags(),
-			cmdnode.KeyFlags(),
+			nodecmd.CoreFlags(),
+			nodecmd.RPCFlags(),
+			nodecmd.KeyFlags(),
 		),
 		cmdnode.Start(
 			cmdnode.NodeFlags(config.Light),
@@ -31,9 +31,9 @@ func init() {
 			cmdnode.MiscFlags(),
 			// NOTE: for now, state-related queries can only be accessed
 			// over an RPC connection with a celestia-core node.
-			cmdnode.CoreFlags(),
-			cmdnode.RPCFlags(),
-			cmdnode.KeyFlags(),
+			nodecmd.CoreFlags(),
+			nodecmd.RPCFlags(),
+			nodecmd.KeyFlags(),
 		),
 	)
 }

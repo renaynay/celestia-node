@@ -1,4 +1,4 @@
-package key
+package state
 
 // Config contains configuration parameters for constructing
 // the node's keyring signer.

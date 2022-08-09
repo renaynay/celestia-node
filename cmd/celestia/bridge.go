@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	cmdnode "github.com/celestiaorg/celestia-node/cmd"
+	cmdnode "github.com/celestiaorg/celestia-node/node/cmd"
 	"github.com/celestiaorg/celestia-node/node/config"
 )
 

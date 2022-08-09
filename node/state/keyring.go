@@ -11,11 +11,10 @@ import (
 	"github.com/celestiaorg/celestia-app/app/encoding"
 	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
 	"github.com/celestiaorg/celestia-node/libs/keystore"
-	"github.com/celestiaorg/celestia-node/node/key"
 	"github.com/celestiaorg/celestia-node/params"
 )
 
-func Keyring(cfg key.Config) func(keystore.Keystore, params.Network) (*apptypes.KeyringSigner, error) {
+func Keyring(cfg Config) func(keystore.Keystore, params.Network) (*apptypes.KeyringSigner, error) {
 	return func(ks keystore.Keystore, net params.Network) (*apptypes.KeyringSigner, error) {
 		// TODO @renaynay: Include option for setting custom `userInput` parameter with
 		//  implementation of https://github.com/celestiaorg/celestia-node/issues/415.

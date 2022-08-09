@@ -1,13 +1,13 @@
 package config
 
 import (
+	"github.com/celestiaorg/celestia-node/node/state"
 	"io"
 	"os"
 
 	"github.com/BurntSushi/toml"
 
 	"github.com/celestiaorg/celestia-node/node/core"
-	"github.com/celestiaorg/celestia-node/node/key"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/services"
 	"github.com/celestiaorg/celestia-node/service/rpc"
@@ -20,7 +20,7 @@ type Loader func() (*Config, error)
 // It combines configuration units for all Node subsystems.
 type Config struct {
 	Core     core.Config
-	Key      key.Config
+	Key      state.Config
 	P2P      p2p.Config
 	RPC      rpc.Config
 	Services services.Config
@@ -33,21 +33,21 @@ func DefaultConfig(tp NodeType) *Config {
 	case Bridge:
 		return &Config{
 			Core:     core.DefaultConfig(),
-			Key:      key.DefaultConfig(),
+			Key:      state.DefaultConfig(),
 			P2P:      p2p.DefaultConfig(),
 			RPC:      rpc.DefaultConfig(),
 			Services: services.DefaultConfig(),
 		}
 	case Light:
 		return &Config{
-			Key:      key.DefaultConfig(),
+			Key:      state.DefaultConfig(),
 			RPC:      rpc.DefaultConfig(),
 			P2P:      p2p.DefaultConfig(),
 			Services: services.DefaultConfig(),
 		}
 	case Full:
 		return &Config{
-			Key:      key.DefaultConfig(),
+			Key:      state.DefaultConfig(),
 			RPC:      rpc.DefaultConfig(),
 			P2P:      p2p.DefaultConfig(),
 			Services: services.DefaultConfig(),

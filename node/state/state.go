@@ -10,7 +10,6 @@ import (
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	"github.com/celestiaorg/celestia-node/node/core"
-	"github.com/celestiaorg/celestia-node/node/key"
 	"github.com/celestiaorg/celestia-node/node/services"
 	"github.com/celestiaorg/celestia-node/service/state"
 )
@@ -19,7 +18,7 @@ var log = logging.Logger("state-access-constructor")
 
 // Module provides all components necessary to construct the
 // state service.
-func Module(coreCfg core.Config, keyCfg key.Config) fx.Option {
+func Module(coreCfg core.Config, keyCfg Config) fx.Option {
 	return fx.Module(
 		"state",
 		fx.Provide(Keyring(keyCfg)),
