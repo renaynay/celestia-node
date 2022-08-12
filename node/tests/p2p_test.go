@@ -14,7 +14,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 
 	"github.com/celestiaorg/celestia-node/node"
-	"github.com/celestiaorg/celestia-node/node/config"
 	"github.com/celestiaorg/celestia-node/node/tests/swamp"
 )
 
@@ -40,8 +39,8 @@ func TestUseBridgeNodeAsBootstraper(t *testing.T) {
 
 	addr := host.InfoFromHost(bridge.Host)
 
-	full := sw.NewFullNode(config.WithBootstrappers([]peer.AddrInfo{*addr}))
-	light := sw.NewLightNode(config.WithBootstrappers([]peer.AddrInfo{*addr}))
+	full := sw.NewFullNode(node.WithBootstrappers([]peer.AddrInfo{*addr}))
+	light := sw.NewLightNode(node.WithBootstrappers([]peer.AddrInfo{*addr}))
 	nodes := []*node.Node{full, light}
 	for index := range nodes {
 		require.NoError(t, nodes[index].Start(ctx))
@@ -91,16 +90,16 @@ Steps:
 */
 func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	sw := swamp.NewSwamp(t)
-	cfg := config.DefaultConfig(config.Bridge)
+	cfg := node.DefaultConfig(node.Bridge)
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 10
-	var defaultOptions = []config.Option{
-		config.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		config.WithDiscoveryInterval(defaultTimeInterval),
-		config.WithAdvertiseInterval(defaultTimeInterval),
+	var defaultOptions = []node.Option{
+		node.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		node.WithDiscoveryInterval(defaultTimeInterval),
+		node.WithAdvertiseInterval(defaultTimeInterval),
 	}
 
-	bridgeConfig := append([]config.Option{config.WithConfig(cfg)}, defaultOptions...)
+	bridgeConfig := append([]node.Option{node.WithConfig(cfg)}, defaultOptions...)
 	bridge := sw.NewBridgeNode(bridgeConfig...)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -110,7 +109,7 @@ func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	require.NoError(t, err)
 	addr := host.InfoFromHost(bridge.Host)
 
-	nodesConfig := append([]config.Option{config.WithBootstrappers([]peer.AddrInfo{*addr})},
+	nodesConfig := append([]node.Option{node.WithBootstrappers([]peer.AddrInfo{*addr})},
 		defaultOptions...)
 	full := sw.NewFullNode(nodesConfig...)
 	light := sw.NewLightNode(nodesConfig...)
@@ -165,17 +164,17 @@ Steps:
 */
 func TestRestartNodeDiscovery(t *testing.T) {
 	sw := swamp.NewSwamp(t)
-	cfg := config.DefaultConfig(config.Bridge)
+	cfg := node.DefaultConfig(node.Bridge)
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 2
 	const fullNodes = 2
-	var defaultOptions = []config.Option{
-		config.WithPeersLimit(fullNodes),
-		config.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		config.WithDiscoveryInterval(defaultTimeInterval),
-		config.WithAdvertiseInterval(defaultTimeInterval),
+	var defaultOptions = []node.Option{
+		node.WithPeersLimit(fullNodes),
+		node.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		node.WithDiscoveryInterval(defaultTimeInterval),
+		node.WithAdvertiseInterval(defaultTimeInterval),
 	}
-	bridgeConfig := append([]config.Option{config.WithConfig(cfg)}, defaultOptions...)
+	bridgeConfig := append([]node.Option{node.WithConfig(cfg)}, defaultOptions...)
 	bridge := sw.NewBridgeNode(bridgeConfig...)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -185,7 +184,7 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	require.NoError(t, err)
 	addr := host.InfoFromHost(bridge.Host)
 	nodes := make([]*node.Node, fullNodes)
-	nodesConfig := append([]config.Option{config.WithBootstrappers([]peer.AddrInfo{*addr})},
+	nodesConfig := append([]node.Option{node.WithBootstrappers([]peer.AddrInfo{*addr})},
 		defaultOptions...)
 	for index := 0; index < fullNodes; index++ {
 		nodes[index] = sw.NewFullNode(nodesConfig...)
@@ -210,7 +209,7 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	require.True(t, nodes[0].Host.Network().Connectedness(id) == network.Connected)
 
 	// create one more node with disabled discovery
-	nodesConfig[1] = config.WithPeersLimit(0)
+	nodesConfig[1] = node.WithPeersLimit(0)
 	node := sw.NewFullNode(nodesConfig...)
 	connectSub, err := nodes[0].Host.EventBus().Subscribe(&event.EvtPeerConnectednessChanged{})
 	require.NoError(t, err)

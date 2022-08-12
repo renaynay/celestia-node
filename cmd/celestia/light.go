@@ -4,8 +4,9 @@ package main
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/celestiaorg/celestia-node/cmd"
+	"github.com/celestiaorg/celestia-node/node"
 	cmdnode "github.com/celestiaorg/celestia-node/node/cmd"
-	"github.com/celestiaorg/celestia-node/node/config"
 )
 
 // NOTE: We should always ensure that the added Flags below are parsed somewhere, like in the PersistentPreRun func on
@@ -13,8 +14,8 @@ import (
 
 func init() {
 	lightCmd.AddCommand(
-		cmdnode.Init(
-			cmdnode.NodeFlags(config.Light),
+		cmd.Init(
+			cmdnode.NodeFlags(node.Light),
 			cmdnode.P2PFlags(),
 			cmdnode.HeadersFlags(),
 			cmdnode.MiscFlags(),
@@ -24,8 +25,8 @@ func init() {
 			nodecmd.RPCFlags(),
 			nodecmd.KeyFlags(),
 		),
-		cmdnode.Start(
-			cmdnode.NodeFlags(config.Light),
+		cmd.Start(
+			cmdnode.NodeFlags(node.Light),
 			cmdnode.P2PFlags(),
 			cmdnode.HeadersFlags(),
 			cmdnode.MiscFlags(),
@@ -48,7 +49,7 @@ var lightCmd = &cobra.Command{
 			err error
 		)
 
-		ctx = cmdnode.WithNodeType(ctx, config.Light)
+		ctx = cmdnode.WithNodeType(ctx, node.Light)
 
 		ctx, err = cmdnode.ParseNodeFlags(ctx, cmd)
 		if err != nil {

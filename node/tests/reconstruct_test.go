@@ -18,7 +18,6 @@ import (
 
 	"github.com/celestiaorg/celestia-node/ipld"
 	"github.com/celestiaorg/celestia-node/node"
-	"github.com/celestiaorg/celestia-node/node/config"
 	"github.com/celestiaorg/celestia-node/node/tests/swamp"
 	"github.com/celestiaorg/celestia-node/service/share"
 )
@@ -51,7 +50,7 @@ func TestFullReconstructFromBridge(t *testing.T) {
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
 
-	full := sw.NewFullNode(config.WithTrustedPeers(getMultiAddr(t, bridge.Host)))
+	full := sw.NewFullNode(node.WithTrustedPeers(getMultiAddr(t, bridge.Host)))
 	err = full.Start(ctx)
 	require.NoError(t, err)
 
@@ -102,22 +101,22 @@ func TestFullReconstructFromLights(t *testing.T) {
 	sw := swamp.NewSwamp(t, swamp.WithBlockTime(btime))
 	go sw.FillBlocks(ctx, t, bsize, blocks)
 
-	cfg := config.DefaultConfig(config.Bridge)
+	cfg := node.DefaultConfig(node.Bridge)
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 10
-	var defaultOptions = []config.Option{
-		config.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		config.WithDiscoveryInterval(defaultTimeInterval),
-		config.WithAdvertiseInterval(defaultTimeInterval),
+	var defaultOptions = []node.Option{
+		node.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		node.WithDiscoveryInterval(defaultTimeInterval),
+		node.WithAdvertiseInterval(defaultTimeInterval),
 	}
 
-	bridgeConfig := append([]config.Option{config.WithConfig(cfg)}, defaultOptions...)
+	bridgeConfig := append([]node.Option{node.WithConfig(cfg)}, defaultOptions...)
 	cfg.P2P.Bootstrapper = true
 	bridge := sw.NewBridgeNode(bridgeConfig...)
 	require.NoError(t, bridge.Start(ctx))
 	addr := host.InfoFromHost(bridge.Host)
 
-	nodesConfig := append([]config.Option{config.WithBootstrappers([]peer.AddrInfo{*addr})},
+	nodesConfig := append([]node.Option{node.WithBootstrappers([]peer.AddrInfo{*addr})},
 		defaultOptions...)
 	full := sw.NewFullNode(nodesConfig...)
 	lights := make([]*node.Node, lnodes)

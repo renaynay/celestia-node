@@ -1,9 +1,10 @@
-package config
+package node
 
 import (
-	"github.com/celestiaorg/celestia-node/node/state"
 	"io"
 	"os"
+
+	"github.com/celestiaorg/celestia-node/node/state"
 
 	"github.com/BurntSushi/toml"
 

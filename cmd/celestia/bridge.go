@@ -3,8 +3,9 @@ package main
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/celestiaorg/celestia-node/cmd"
+	"github.com/celestiaorg/celestia-node/node"
 	cmdnode "github.com/celestiaorg/celestia-node/node/cmd"
-	"github.com/celestiaorg/celestia-node/node/config"
 )
 
 // NOTE: We should always ensure that the added Flags below are parsed somewhere, like in the PersistentPreRun func on
@@ -12,16 +13,16 @@ import (
 
 func init() {
 	bridgeCmd.AddCommand(
-		cmdnode.Init(
-			cmdnode.NodeFlags(config.Bridge),
+		cmd.Init(
+			cmdnode.NodeFlags(node.Bridge),
 			cmdnode.P2PFlags(),
 			cmdnode.CoreFlags(),
 			cmdnode.MiscFlags(),
 			cmdnode.RPCFlags(),
 			cmdnode.KeyFlags(),
 		),
-		cmdnode.Start(
-			cmdnode.NodeFlags(config.Bridge),
+		cmd.Start(
+			cmdnode.NodeFlags(node.Bridge),
 			cmdnode.P2PFlags(),
 			cmdnode.CoreFlags(),
 			cmdnode.MiscFlags(),
@@ -41,7 +42,7 @@ var bridgeCmd = &cobra.Command{
 			err error
 		)
 
-		ctx = cmdnode.WithNodeType(ctx, config.Bridge)
+		ctx = cmdnode.WithNodeType(ctx, node.Bridge)
 
 		ctx, err = cmdnode.ParseNodeFlags(ctx, cmd)
 		if err != nil {

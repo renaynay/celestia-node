@@ -51,7 +51,7 @@ func TestLight(t *testing.T) {
 		            "--headers.trusted-hash",
 		            "54A8B66D2BEF13850D67C8D474E196BD7485FE5A79989E31B17169371B0A9C96",
 				})
-				err := rootCmd.ExecuteContext(nodecmd.WithEnv(context.Background()))
+				err := rootCmd.ExecuteContext(cmdnodcmdnodee.WithEnv(context.Background()))
 				require.NoError(t, err)
 			})
 	*/
@@ -98,7 +98,7 @@ func TestBridge(t *testing.T) {
 					"--headers.trusted-hash",
 					"54A8B66D2BEF13850D67C8D474E196BD7485FE5A79989E31B17169371B0A9C96",
 				})
-				err := rootCmd.ExecuteContext(nodecmd.WithEnv(context.Background()))
+				err := rootCmd.ExecuteContext(cmdnode.WithEnv(context.Background()))
 				require.NoError(t, err)
 			})
 	*/

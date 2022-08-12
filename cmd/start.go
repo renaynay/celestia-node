@@ -8,6 +8,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/celestiaorg/celestia-node/node"
+	cmdnode "github.com/celestiaorg/celestia-node/node/cmd"
 )
 
 // Start constructs a CLI command to start Celestia Node daemon of any type with the given flags.
@@ -22,12 +23,12 @@ Options passed on start override configuration options only on start and are not
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			store, err := node.OpenStore(StorePath(ctx))
+			store, err := node.OpenStore(cmdnode.StorePath(ctx))
 			if err != nil {
 				return err
 			}
 
-			nd, err := node.New(NodeType(ctx), store, NodeOptions(ctx)...)
+			nd, err := node.New(cmdnode.NodeType(ctx), store, cmdnode.NodeOptions(ctx)...)
 			if err != nil {
 				return err
 			}

@@ -1,4 +1,4 @@
-package config
+package node
 
 // NodeType defines the Node type (e.g. `light`, `bridge`) for identity purposes.
 // The zero value for NodeType is invalid.

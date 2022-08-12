@@ -1,6 +1,8 @@
-package config
+package node
 
-import "time"
+import (
+	"time"
+)
 
 // WithRemoteCoreIP configures Node to connect to the given remote Core IP.
 func WithRemoteCoreIP(ip string) Option {

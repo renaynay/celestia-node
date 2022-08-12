@@ -6,15 +6,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/celestiaorg/celestia-node/node/config"
 )
 
 func TestRepo(t *testing.T) {
 	var tests = []struct {
-		tp config.NodeType
+		tp NodeType
 	}{
-		{tp: config.Bridge}, {tp: config.Light}, {tp: config.Full},
+		{tp: Bridge}, {tp: Light}, {tp: Full},
 	}
 
 	for i, tt := range tests {
