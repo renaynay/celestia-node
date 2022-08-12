@@ -1,4 +1,4 @@
-package node
+package config
 
 import (
 	"io"
@@ -13,8 +13,8 @@ import (
 	"github.com/celestiaorg/celestia-node/service/rpc"
 )
 
-// ConfigLoader defines a function that loads a config from any source.
-type ConfigLoader func() (*Config, error)
+// Loader defines a function that loads a config from any source.
+type Loader func() (*Config, error)
 
 // Config is main configuration structure for a Node.
 // It combines configuration units for all Node subsystems.

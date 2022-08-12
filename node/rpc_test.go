@@ -20,6 +20,7 @@ import (
 	"github.com/celestiaorg/celestia-node/header/local"
 	"github.com/celestiaorg/celestia-node/header/store"
 	"github.com/celestiaorg/celestia-node/header/sync"
+	"github.com/celestiaorg/celestia-node/node/config"
 	service "github.com/celestiaorg/celestia-node/service/header"
 	"github.com/celestiaorg/celestia-node/service/rpc"
 	"github.com/celestiaorg/celestia-node/service/share"
@@ -202,11 +203,11 @@ func setupNodeWithModifiedRPC(t *testing.T) *Node {
 	hServ := setupHeaderService(ctx, t)
 	daser := setupDASer()
 	// create overrides
-	overrideHeaderServ := func(sets *settings) {
-		sets.opts = append(sets.opts, fx.Replace(hServ))
+	overrideHeaderServ := func(sets *config.Settings) {
+		sets.Opts = append(sets.Opts, fx.Replace(hServ))
 	}
-	overrideDASer := func(sets *settings) {
-		sets.opts = append(sets.opts, fx.Replace(func() func(lc fx.Lifecycle) *das.DASer {
+	overrideDASer := func(sets *config.Settings) {
+		sets.Opts = append(sets.Opts, fx.Replace(func() func(lc fx.Lifecycle) *das.DASer {
 			return func(lc fx.Lifecycle) *das.DASer {
 				lc.Append(fx.Hook{
 					OnStart: daser.Start,
@@ -216,13 +217,13 @@ func setupNodeWithModifiedRPC(t *testing.T) *Node {
 			}
 		}))
 	}
-	overrideRPCHandler := func(sets *settings) {
-		sets.opts = append(sets.opts, fx.Invoke(func(srv *rpc.Server) {
+	overrideRPCHandler := func(sets *config.Settings) {
+		sets.Opts = append(sets.Opts, fx.Invoke(func(srv *rpc.Server) {
 			handler := rpc.NewHandler(nil, nil, hServ, daser)
 			handler.RegisterEndpoints(srv)
 		}))
 	}
-	nd := TestNode(t, Full, overrideHeaderServ, overrideDASer, overrideRPCHandler)
+	nd := TestNode(t, config.Full, overrideHeaderServ, overrideDASer, overrideRPCHandler)
 	// start node
 	err := nd.Start(ctx)
 	require.NoError(t, err)
