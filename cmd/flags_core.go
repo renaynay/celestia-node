@@ -44,6 +44,7 @@ func CoreFlags() *flag.FlagSet {
 
 // ParseCoreFlags parses Core flags from the given cmd and applies values to Env.
 func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+	coreIP := cmd.Flag(coreFlag).Value.String()
 	if coreIP == "" {
 		if cmd.Flag(coreGRPCFlag).Changed || cmd.Flag(coreRPCFlag).Changed {
 			return ctx, fmt.Errorf("cannot specify RPC/gRPC ports without specifying an IP address for --core.ip")
