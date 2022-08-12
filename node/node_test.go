@@ -12,7 +12,7 @@ import (
 
 func TestLifecycle(t *testing.T) {
 	var test = []struct {
-		tp           config.Type
+		tp           config.NodeType
 		coreExpected bool
 	}{
 		{tp: config.Bridge, coreExpected: true},

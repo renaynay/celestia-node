@@ -13,6 +13,7 @@ import (
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
 	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
+
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/node/config"
 	"github.com/celestiaorg/celestia-node/params"
@@ -27,7 +28,7 @@ func MockStore(t *testing.T, cfg *config.Config) Store {
 	return store
 }
 
-func TestNode(t *testing.T, tp config.Type, opts ...config.Option) *Node {
+func TestNode(t *testing.T, tp config.NodeType, opts ...config.Option) *Node {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	t.Cleanup(cancel)
 

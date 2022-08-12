@@ -6,9 +6,9 @@ import (
 	"github.com/celestiaorg/celestia-node/node/config"
 )
 
-// NodeType reads the node.Type from the context.
-func NodeType(ctx context.Context) config.Type {
-	return ctx.Value(nodeTypeKey{}).(config.Type)
+// NodeType reads the node type from the context.
+func NodeType(ctx context.Context) config.NodeType {
+	return ctx.Value(nodeTypeKey{}).(config.NodeType)
 }
 
 // StorePath reads the store path from the context.
@@ -16,8 +16,8 @@ func StorePath(ctx context.Context) string {
 	return ctx.Value(storePathKey{}).(string)
 }
 
-// WithNodeType sets Node Type in the given context.
-func WithNodeType(ctx context.Context, tp config.Type) context.Context {
+// WithNodeType sets the node type in the given context.
+func WithNodeType(ctx context.Context, tp config.NodeType) context.Context {
 	return context.WithValue(ctx, nodeTypeKey{}, tp)
 }
 

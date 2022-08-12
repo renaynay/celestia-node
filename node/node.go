@@ -38,7 +38,7 @@ var log = logging.Logger("node")
 // * Light
 // * Full
 type Node struct {
-	Type          config.Type
+	Type          config.NodeType
 	Network       params.Network
 	Bootstrappers params.Bootstrappers
 	Config        *config.Config
@@ -68,7 +68,7 @@ type Node struct {
 }
 
 // New assembles a new Node with the given type 'tp' over Store 'store'.
-func New(tp config.Type, store Store, options ...config.Option) (*Node, error) {
+func New(tp config.NodeType, store Store, options ...config.Option) (*Node, error) {
 	cfg, err := store.Config()
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func New(tp config.Type, store Store, options ...config.Option) (*Node, error) {
 	case config.Full:
 		return newNode(fullComponents(s.Cfg, store), fx.Options(s.Opts...))
 	default:
-		panic("node: unknown Node Type")
+		panic("node: unknown Node NodeType")
 	}
 }
 

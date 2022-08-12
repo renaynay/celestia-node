@@ -12,7 +12,7 @@ import (
 
 func TestRepo(t *testing.T) {
 	var tests = []struct {
-		tp config.Type
+		tp config.NodeType
 	}{
 		{tp: config.Bridge}, {tp: config.Light}, {tp: config.Full},
 	}

@@ -217,7 +217,7 @@ func (s *Swamp) NewLightNode(options ...config.Option) *node.Node {
 // NewNodeWithStore creates a new instance of Node with predefined Store.
 // Afterwards, the instance is stored in the swamp's Nodes' slice according to the
 // node's type provided from the user.
-func (s *Swamp) NewNodeWithStore(t config.Type, store node.Store, options ...config.Option) *node.Node {
+func (s *Swamp) NewNodeWithStore(t config.NodeType, store node.Store, options ...config.Option) *node.Node {
 	var n *node.Node
 
 	options = append(options, config.WithKeyringSigner(node.TestKeyringSigner(s.t)))
@@ -240,7 +240,7 @@ func (s *Swamp) NewNodeWithStore(t config.Type, store node.Store, options ...con
 	return n
 }
 
-func (s *Swamp) newNode(t config.Type, store node.Store, options ...config.Option) *node.Node {
+func (s *Swamp) newNode(t config.NodeType, store node.Store, options ...config.Option) *node.Node {
 	ks, err := store.Keystore()
 	require.NoError(s.t, err)
 
@@ -263,7 +263,7 @@ func (s *Swamp) newNode(t config.Type, store node.Store, options ...config.Optio
 // RemoveNode removes a node from the swamp's node slice
 // this allows reusage of the same var in the test scenario
 // if the user needs to stop and start the same node
-func (s *Swamp) RemoveNode(n *node.Node, t config.Type) error {
+func (s *Swamp) RemoveNode(n *node.Node, t config.NodeType) error {
 	var err error
 	switch t {
 	case config.Light:

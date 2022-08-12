@@ -17,7 +17,7 @@ var (
 )
 
 // NodeFlags gives a set of hardcoded Node package flags.
-func NodeFlags(tp config.Type) *flag.FlagSet {
+func NodeFlags(tp config.NodeType) *flag.FlagSet {
 	flags := &flag.FlagSet{}
 
 	flags.String(
