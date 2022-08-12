@@ -28,11 +28,11 @@ func HeadersFlags() *flag.FlagSet {
 }
 
 // ParseHeadersFlags parses Header package flags from the given cmd and applies values to Env.
-func ParseHeadersFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
-	if ctx, err := ParseTrustedHashFlags(ctx, cmd); err != nil {
+func ParseHeadersFlags(ctx context.Context, cmd *cobra.Command, config *node.Config) (context.Context, error) {
+	if ctx, err := ParseTrustedHashFlags(ctx, cmd, config); err != nil {
 		return ctx, err
 	}
-	if ctx, err := ParseTrustedPeerFlags(ctx, cmd); err != nil {
+	if ctx, err := ParseTrustedPeerFlags(ctx, cmd, config); err != nil {
 		return ctx, err
 	}
 
@@ -52,7 +52,7 @@ func TrustedPeersFlags() *flag.FlagSet {
 }
 
 // ParseTrustedPeerFlags parses Header package flags from the given cmd and applies values to Env.
-func ParseTrustedPeerFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+func ParseTrustedPeerFlags(ctx context.Context, cmd *cobra.Command, config *node.Config) (context.Context, error) {
 	tpeers, err := cmd.Flags().GetStringSlice(headersTrustedPeersFlag)
 	if err != nil {
 		return ctx, err
@@ -65,8 +65,7 @@ func ParseTrustedPeerFlags(ctx context.Context, cmd *cobra.Command) (context.Con
 		}
 	}
 
-	ctx = WithNodeOptions(ctx, node.WithTrustedPeers(tpeers...))
-
+	config.Services.TrustedPeers = tpeers
 	return ctx, nil
 }
 
@@ -84,7 +83,7 @@ func TrustedHashFlags() *flag.FlagSet {
 }
 
 // ParseTrustedHashFlags parses Header package flags from the given cmd and applies values to Env.
-func ParseTrustedHashFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+func ParseTrustedHashFlags(ctx context.Context, cmd *cobra.Command, config *node.Config) (context.Context, error) {
 	hash := cmd.Flag(headersTrustedHashFlag).Value.String()
 	if hash != "" {
 		_, err := hex.DecodeString(hash)
@@ -92,8 +91,7 @@ func ParseTrustedHashFlags(ctx context.Context, cmd *cobra.Command) (context.Con
 			return ctx, fmt.Errorf("cmd: while parsing '%s': %w", headersTrustedHashFlag, err)
 		}
 
-		ctx = WithNodeOptions(ctx, node.WithTrustedHash(hash))
+		config.Services.TrustedHash = hash
 	}
-
 	return ctx, nil
 }

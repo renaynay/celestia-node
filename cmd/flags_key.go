@@ -19,10 +19,10 @@ func KeyFlags() *flag.FlagSet {
 	return flags
 }
 
-func ParseKeyFlags(ctx context.Context, cmd *cobra.Command) context.Context {
+func ParseKeyFlags(ctx context.Context, cmd *cobra.Command, config *node.Config) context.Context { // todo @renaynay: remove unnecessary ctx params from funcs that take them
 	keyringAccName := cmd.Flag(keyringAccNameFlag).Value.String()
 	if keyringAccName != "" {
-		return WithNodeOptions(ctx, node.WithKeyringAccName(keyringAccName))
+		config.Key.KeyringAccName = keyringAccNameFlag
 	}
 	return ctx
 }

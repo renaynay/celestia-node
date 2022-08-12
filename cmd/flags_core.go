@@ -43,7 +43,7 @@ func CoreFlags() *flag.FlagSet {
 }
 
 // ParseCoreFlags parses Core flags from the given cmd and applies values to Env.
-func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+func ParseCoreFlags(ctx context.Context, cmd *cobra.Command, config *node.Config) (context.Context, error) {
 	coreIP := cmd.Flag(coreFlag).Value.String()
 	if coreIP == "" {
 		if cmd.Flag(coreGRPCFlag).Changed || cmd.Flag(coreRPCFlag).Changed {
@@ -63,7 +63,8 @@ func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, e
 	if err != nil {
 		return ctx, err
 	}
-	ctx = WithNodeOptions(ctx, node.WithRemoteCoreIP(ip), node.WithRemoteCorePort(rpc))
+	config.Core.IP = ip
+	config.Core.RPCPort = rpc
 
 	grpc := cmd.Flag(coreGRPCFlag).Value.String()
 	// sanity check gRPC endpoint
@@ -71,7 +72,7 @@ func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, e
 	if err != nil {
 		return ctx, err
 	}
-	ctx = WithNodeOptions(ctx, node.WithGRPCPort(grpc))
+	config.Core.GRPCPort = grpc
 	return ctx, nil
 }
 

@@ -13,8 +13,8 @@ import (
 
 // Init initializes the Node FileSystem Store for the given Node Type 'tp' in the directory under 'path' with
 // default Config. Options are applied over default Config and persisted on disk.
-func Init(path string, tp Type, options ...Option) error {
-	sets := &settings{cfg: DefaultConfig(tp)}
+func Init(config Config, path string, tp Type, options ...Option) error {
+	sets := &settings{cfg: &config}
 	for _, option := range options {
 		option(sets)
 	}

@@ -41,8 +41,21 @@ func WithNodeOptions(ctx context.Context, opts ...node.Option) context.Context {
 	return context.WithValue(ctx, optionsKey{}, append(options, opts...))
 }
 
+func Config(ctx context.Context) node.Config {
+	cfg, ok := ctx.Value(configKey{}).(node.Config)
+	if !ok {
+		return *node.DefaultConfig(NodeType(ctx))
+	}
+	return cfg
+}
+
+func SetConfig(ctx context.Context, config node.Config) context.Context {
+	return context.WithValue(ctx, configKey{}, config)
+}
+
 type (
 	optionsKey   struct{}
 	storePathKey struct{}
 	nodeTypeKey  struct{}
+	configKey    struct{}
 )
