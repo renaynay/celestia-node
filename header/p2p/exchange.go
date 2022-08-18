@@ -12,15 +12,19 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	"go.opentelemetry.io/otel"
+
+	"github.com/celestiaorg/go-libp2p-messenger/serde"
 
 	"github.com/celestiaorg/celestia-node/header"
 	p2p_pb "github.com/celestiaorg/celestia-node/header/p2p/pb"
 	header_pb "github.com/celestiaorg/celestia-node/header/pb"
 	"github.com/celestiaorg/celestia-node/params"
-	"github.com/celestiaorg/go-libp2p-messenger/serde"
 )
 
 var log = logging.Logger("header/p2p")
+
+var tracer = otel.Tracer("p2p-exchange")
 
 // PubSubTopic hardcodes the name of the ExtendedHeader
 // gossipsub topic.

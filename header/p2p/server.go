@@ -2,15 +2,17 @@ package p2p
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
+	"go.opentelemetry.io/otel/attribute"
 
+	"github.com/celestiaorg/go-libp2p-messenger/serde"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
 	"github.com/celestiaorg/celestia-node/header"
 	p2p_pb "github.com/celestiaorg/celestia-node/header/p2p/pb"
-	"github.com/celestiaorg/go-libp2p-messenger/serde"
 )
 
 // ExchangeServer represents the server-side component for
@@ -52,6 +54,8 @@ func (serv *ExchangeServer) Stop(context.Context) error {
 
 // requestHandler handles inbound ExtendedHeaderRequests.
 func (serv *ExchangeServer) requestHandler(stream network.Stream) {
+	_, span := tracer.Start(context.Background(), "handle-header-request")
+	defer span.End()
 	// unmarshal request
 	pbreq := new(p2p_pb.ExtendedHeaderRequest)
 	_, err := serde.Read(stream, pbreq)
@@ -60,6 +64,10 @@ func (serv *ExchangeServer) requestHandler(stream network.Stream) {
 		stream.Reset() //nolint:errcheck
 		return
 	}
+	span.SetAttributes(
+		attribute.String("amount", fmt.Sprintf("%d", pbreq.Amount)),
+		attribute.String("origin", fmt.Sprintf("%d", pbreq.Origin)),
+	)
 	// retrieve and write ExtendedHeaders
 	if pbreq.Hash != nil {
 		serv.handleRequestByHash(pbreq.Hash, stream)
