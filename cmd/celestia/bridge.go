@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	cmdnode "github.com/celestiaorg/celestia-node/cmd"
-	"github.com/celestiaorg/celestia-node/node/config"
+	"github.com/celestiaorg/celestia-node/cmd"
+	"github.com/celestiaorg/celestia-node/node/node"
 )
 
 // NOTE: We should always ensure that the added Flags below are parsed somewhere, like in the PersistentPreRun func on
@@ -12,21 +12,21 @@ import (
 
 func init() {
 	bridgeCmd.AddCommand(
-		cmdnode.Init(
-			cmdnode.NodeFlags(config.Bridge),
-			cmdnode.P2PFlags(),
-			cmdnode.CoreFlags(),
-			cmdnode.MiscFlags(),
-			cmdnode.RPCFlags(),
-			cmdnode.KeyFlags(),
+		cmd.Init(
+			cmd.NodeFlags(node.Bridge),
+			cmd.P2PFlags(),
+			cmd.CoreFlags(),
+			cmd.MiscFlags(),
+			cmd.RPCFlags(),
+			cmd.KeyFlags(),
 		),
-		cmdnode.Start(
-			cmdnode.NodeFlags(config.Bridge),
-			cmdnode.P2PFlags(),
-			cmdnode.CoreFlags(),
-			cmdnode.MiscFlags(),
-			cmdnode.RPCFlags(),
-			cmdnode.KeyFlags(),
+		cmd.Start(
+			cmd.NodeFlags(node.Bridge),
+			cmd.P2PFlags(),
+			cmd.CoreFlags(),
+			cmd.MiscFlags(),
+			cmd.RPCFlags(),
+			cmd.KeyFlags(),
 		),
 	)
 }
@@ -41,34 +41,34 @@ var bridgeCmd = &cobra.Command{
 			err error
 		)
 
-		ctx = cmdnode.WithNodeType(ctx, config.Bridge)
+		ctx = cmd.WithNodeType(ctx, node.Bridge)
 
-		ctx, err = cmdnode.ParseNodeFlags(ctx, cmd)
+		ctx, err = cmd.ParseNodeFlags(ctx, cmd)
 		if err != nil {
 			return err
 		}
 
-		ctx, err = cmdnode.ParseP2PFlags(ctx, cmd)
+		ctx, err = cmd.ParseP2PFlags(ctx, cmd)
 		if err != nil {
 			return err
 		}
 
-		ctx, err = cmdnode.ParseCoreFlags(ctx, cmd)
+		ctx, err = cmd.ParseCoreFlags(ctx, cmd)
 		if err != nil {
 			return err
 		}
 
-		ctx, err = cmdnode.ParseMiscFlags(ctx, cmd)
+		ctx, err = cmd.ParseMiscFlags(ctx, cmd)
 		if err != nil {
 			return err
 		}
 
-		ctx, err = cmdnode.ParseRPCFlags(ctx, cmd)
+		ctx, err = cmd.ParseRPCFlags(ctx, cmd)
 		if err != nil {
 			return err
 		}
 
-		ctx = cmdnode.ParseKeyFlags(ctx, cmd)
+		ctx = cmd.ParseKeyFlags(ctx, cmd)
 
 		cmd.SetContext(ctx)
 		return nil

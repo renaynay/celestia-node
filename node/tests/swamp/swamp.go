@@ -19,7 +19,7 @@ import (
 	"github.com/celestiaorg/celestia-node/libs/keystore"
 	"github.com/celestiaorg/celestia-node/logs"
 	"github.com/celestiaorg/celestia-node/node"
-	"github.com/celestiaorg/celestia-node/node/config"
+	node2 "github.com/celestiaorg/celestia-node/node/node"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/params"
 )
@@ -189,58 +189,58 @@ func (s *Swamp) getTrustedHash(ctx context.Context) (string, error) {
 
 // NewBridgeNode creates a new instance of a BridgeNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewBridgeNode(options ...config.Option) *node.Node {
-	cfg := config.DefaultConfig(config.Bridge)
+func (s *Swamp) NewBridgeNode(options ...node2.Option) *node.Node {
+	cfg := node2.DefaultConfig(node2.Bridge)
 	store := node.MockStore(s.t, cfg)
 
-	return s.NewNodeWithStore(config.Bridge, store, options...)
+	return s.NewNodeWithStore(node2.Bridge, store, options...)
 }
 
 // NewFullNode creates a new instance of a FullNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewFullNode(options ...config.Option) *node.Node {
-	cfg := config.DefaultConfig(config.Full)
+func (s *Swamp) NewFullNode(options ...node2.Option) *node.Node {
+	cfg := node2.DefaultConfig(node2.Full)
 	store := node.MockStore(s.t, cfg)
 
-	return s.NewNodeWithStore(config.Full, store, options...)
+	return s.NewNodeWithStore(node2.Full, store, options...)
 }
 
 // NewLightNode creates a new instance of a LightNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewLightNode(options ...config.Option) *node.Node {
-	cfg := config.DefaultConfig(config.Light)
+func (s *Swamp) NewLightNode(options ...node2.Option) *node.Node {
+	cfg := node2.DefaultConfig(node2.Light)
 	store := node.MockStore(s.t, cfg)
 
-	return s.NewNodeWithStore(config.Light, store, options...)
+	return s.NewNodeWithStore(node2.Light, store, options...)
 }
 
 // NewNodeWithStore creates a new instance of Node with predefined Store.
 // Afterwards, the instance is stored in the swamp's Nodes' slice according to the
 // node's type provided from the user.
-func (s *Swamp) NewNodeWithStore(t config.NodeType, store node.Store, options ...config.Option) *node.Node {
+func (s *Swamp) NewNodeWithStore(t node2.NodeType, store node.Store, options ...node2.Option) *node.Node {
 	var n *node.Node
 
-	options = append(options, config.WithKeyringSigner(node.TestKeyringSigner(s.t)))
+	options = append(options, node2.WithKeyringSigner(node.TestKeyringSigner(s.t)))
 
 	switch t {
-	case config.Bridge:
+	case node2.Bridge:
 		options = append(options,
-			config.WithCoreClient(s.CoreClient),
+			node2.WithCoreClient(s.CoreClient),
 		)
-		n = s.newNode(config.Bridge, store, options...)
+		n = s.newNode(node2.Bridge, store, options...)
 		s.BridgeNodes = append(s.BridgeNodes, n)
-	case config.Full:
-		n = s.newNode(config.Full, store, options...)
+	case node2.Full:
+		n = s.newNode(node2.Full, store, options...)
 		s.FullNodes = append(s.FullNodes, n)
-	case config.Light:
-		n = s.newNode(config.Light, store, options...)
+	case node2.Light:
+		n = s.newNode(node2.Light, store, options...)
 		s.LightNodes = append(s.LightNodes, n)
 	}
 
 	return n
 }
 
-func (s *Swamp) newNode(t config.NodeType, store node.Store, options ...config.Option) *node.Node {
+func (s *Swamp) newNode(t node2.NodeType, store node.Store, options ...node2.Option) *node.Node {
 	ks, err := store.Keystore()
 	require.NoError(s.t, err)
 
@@ -248,10 +248,10 @@ func (s *Swamp) newNode(t config.NodeType, store node.Store, options ...config.O
 	// like <core, host, hash> from the test case, we need to check them and not use
 	// default that are set here
 	options = append(options,
-		config.WithHost(s.createPeer(ks)),
-		config.WithTrustedHash(s.trustedHash),
-		config.WithNetwork(params.Private),
-		config.WithRPCPort("0"),
+		node2.WithHost(s.createPeer(ks)),
+		node2.WithTrustedHash(s.trustedHash),
+		node2.WithNetwork(params.Private),
+		node2.WithRPCPort("0"),
 	)
 
 	node, err := node.New(t, store, options...)
@@ -263,16 +263,16 @@ func (s *Swamp) newNode(t config.NodeType, store node.Store, options ...config.O
 // RemoveNode removes a node from the swamp's node slice
 // this allows reusage of the same var in the test scenario
 // if the user needs to stop and start the same node
-func (s *Swamp) RemoveNode(n *node.Node, t config.NodeType) error {
+func (s *Swamp) RemoveNode(n *node.Node, t node2.NodeType) error {
 	var err error
 	switch t {
-	case config.Light:
+	case node2.Light:
 		s.LightNodes, err = s.remove(n, s.LightNodes)
 		return err
-	case config.Bridge:
+	case node2.Bridge:
 		s.BridgeNodes, err = s.remove(n, s.BridgeNodes)
 		return err
-	case config.Full:
+	case node2.Full:
 		s.FullNodes, err = s.remove(n, s.FullNodes)
 		return err
 	default:
