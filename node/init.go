@@ -14,8 +14,8 @@ import (
 
 // Init initializes the Node FileSystem Store for the given Node Type 'tp' in the directory under 'path' with
 // default Config. Options are applied over default Config and persisted on disk.
-func Init(path string, tp node.Type, options ...node.Option) error {
-	sets := &node.Settings{Cfg: node.DefaultConfig(tp)}
+func Init(path string, tp node.Type, options ...Option) error {
+	sets := &settings{cfg: DefaultConfig(tp)}
 	for _, option := range options {
 		option(sets)
 	}
@@ -50,13 +50,13 @@ func Init(path string, tp node.Type, options ...node.Option) error {
 		return err
 	}
 
-	if sets.Cfg == nil {
+	if sets.cfg == nil {
 		return errors.New("configuration is missing for the node's initialisation")
 	}
 
 	cfgPath := configPath(path)
 	if !utils.Exists(cfgPath) {
-		err = node.SaveConfig(cfgPath, sets.Cfg)
+		err = SaveConfig(cfgPath, sets.cfg)
 		if err != nil {
 			return err
 		}
@@ -78,7 +78,7 @@ func IsInit(path string) bool {
 		return false
 	}
 
-	_, err = node.LoadConfig(configPath(path)) // load the Config and implicitly check for its existence
+	_, err = LoadConfig(configPath(path)) // load the Config and implicitly check for its existence
 	if err != nil {
 		log.Errorw("loading config", "path", path, "err", err)
 		return false

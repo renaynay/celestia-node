@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	node2 "github.com/celestiaorg/celestia-node/node"
 	"github.com/celestiaorg/celestia-node/node/node"
 )
 
@@ -27,16 +28,16 @@ func WithStorePath(ctx context.Context, storePath string) context.Context {
 }
 
 // NodeOptions returns config options parsed from Environment(Flags, ENV vars, etc)
-func NodeOptions(ctx context.Context) []node.Option {
-	options, ok := ctx.Value(optionsKey{}).([]node.Option)
+func NodeOptions(ctx context.Context) []node2.Option {
+	options, ok := ctx.Value(optionsKey{}).([]node2.Option)
 	if !ok {
-		return []node.Option{}
+		return []node2.Option{}
 	}
 	return options
 }
 
 // WithNodeOptions add new options to Env.
-func WithNodeOptions(ctx context.Context, opts ...node.Option) context.Context {
+func WithNodeOptions(ctx context.Context, opts ...node2.Option) context.Context {
 	options := NodeOptions(ctx)
 	return context.WithValue(ctx, optionsKey{}, append(options, opts...))
 }

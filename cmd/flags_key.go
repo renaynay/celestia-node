@@ -4,6 +4,8 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
+	nodebuilder "github.com/celestiaorg/celestia-node/node"
+
 	"context"
 
 	"github.com/celestiaorg/celestia-node/node/state"
@@ -22,7 +24,7 @@ func KeyFlags() *flag.FlagSet {
 func ParseKeyFlags(ctx context.Context, cmd *cobra.Command) context.Context {
 	keyringAccName := cmd.Flag(keyringAccNameFlag).Value.String()
 	if keyringAccName != "" {
-		return WithNodeOptions(ctx, state.WithKeyringAccName(keyringAccName))
+		return WithNodeOptions(ctx, nodebuilder.WithStateOption(state.WithKeyringAccName(keyringAccName)))
 	}
 	return ctx
 }

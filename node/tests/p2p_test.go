@@ -40,8 +40,8 @@ func TestUseBridgeNodeAsBootstraper(t *testing.T) {
 
 	addr := host.InfoFromHost(bridge.Host)
 
-	full := sw.NewFullNode(node.WithBootstrappers([]peer.AddrInfo{*addr}))
-	light := sw.NewLightNode(node.WithBootstrappers([]peer.AddrInfo{*addr}))
+	full := sw.NewFullNode(nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr}))
+	light := sw.NewLightNode(nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr}))
 	nodes := []*nodebuilder.Node{full, light}
 	for index := range nodes {
 		require.NoError(t, nodes[index].Start(ctx))
@@ -91,16 +91,16 @@ Steps:
 */
 func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	sw := swamp.NewSwamp(t)
-	cfg := node.DefaultConfig(node.Bridge)
+	cfg := nodebuilder.DefaultConfig(node.Bridge)
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 10
-	var defaultOptions = []node.Option{
-		node.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		node.WithDiscoveryInterval(defaultTimeInterval),
-		node.WithAdvertiseInterval(defaultTimeInterval),
+	var defaultOptions = []nodebuilder.Option{
+		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		nodebuilder.WithDiscoveryInterval(defaultTimeInterval),
+		nodebuilder.WithAdvertiseInterval(defaultTimeInterval),
 	}
 
-	bridgeConfig := append([]node.Option{node.WithConfig(cfg)}, defaultOptions...)
+	bridgeConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
 	bridge := sw.NewBridgeNode(bridgeConfig...)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -110,7 +110,7 @@ func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	require.NoError(t, err)
 	addr := host.InfoFromHost(bridge.Host)
 
-	nodesConfig := append([]node.Option{node.WithBootstrappers([]peer.AddrInfo{*addr})},
+	nodesConfig := append([]nodebuilder.Option{nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr})},
 		defaultOptions...)
 	full := sw.NewFullNode(nodesConfig...)
 	light := sw.NewLightNode(nodesConfig...)
@@ -165,17 +165,17 @@ Steps:
 */
 func TestRestartNodeDiscovery(t *testing.T) {
 	sw := swamp.NewSwamp(t)
-	cfg := node.DefaultConfig(node.Bridge)
+	cfg := nodebuilder.DefaultConfig(node.Bridge)
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 2
 	const fullNodes = 2
-	var defaultOptions = []node.Option{
-		node.WithPeersLimit(fullNodes),
-		node.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		node.WithDiscoveryInterval(defaultTimeInterval),
-		node.WithAdvertiseInterval(defaultTimeInterval),
+	var defaultOptions = []nodebuilder.Option{
+		nodebuilder.WithPeersLimit(fullNodes),
+		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		nodebuilder.WithDiscoveryInterval(defaultTimeInterval),
+		nodebuilder.WithAdvertiseInterval(defaultTimeInterval),
 	}
-	bridgeConfig := append([]node.Option{node.WithConfig(cfg)}, defaultOptions...)
+	bridgeConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
 	bridge := sw.NewBridgeNode(bridgeConfig...)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -185,7 +185,7 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	require.NoError(t, err)
 	addr := host.InfoFromHost(bridge.Host)
 	nodes := make([]*nodebuilder.Node, fullNodes)
-	nodesConfig := append([]node.Option{node.WithBootstrappers([]peer.AddrInfo{*addr})},
+	nodesConfig := append([]nodebuilder.Option{nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr})},
 		defaultOptions...)
 	for index := 0; index < fullNodes; index++ {
 		nodes[index] = sw.NewFullNode(nodesConfig...)
@@ -210,7 +210,7 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	require.True(t, nodes[0].Host.Network().Connectedness(id) == network.Connected)
 
 	// create one more node with disabled discovery
-	nodesConfig[1] = node.WithPeersLimit(0)
+	nodesConfig[1] = nodebuilder.WithPeersLimit(0)
 	node := sw.NewFullNode(nodesConfig...)
 	connectSub, err := nodes[0].Host.EventBus().Subscribe(&event.EvtPeerConnectednessChanged{})
 	require.NoError(t, err)

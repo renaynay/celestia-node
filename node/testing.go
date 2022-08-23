@@ -20,7 +20,7 @@ import (
 )
 
 // MockStore provides mock in memory Store for testing purposes.
-func MockStore(t *testing.T, cfg *node.Config) Store {
+func MockStore(t *testing.T, cfg *Config) Store {
 	t.Helper()
 	store := NewMemStore()
 	err := store.PutConfig(cfg)
@@ -28,22 +28,22 @@ func MockStore(t *testing.T, cfg *node.Config) Store {
 	return store
 }
 
-func TestNode(t *testing.T, tp node.Type, opts ...node.Option) *Node {
+func TestNode(t *testing.T, tp node.Type, opts ...Option) *Node {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	t.Cleanup(cancel)
 
-	store := MockStore(t, node.DefaultConfig(tp))
+	store := MockStore(t, DefaultConfig(tp))
 	_, _, cfg := core.StartTestKVApp(ctx, t)
 	endpoint, err := core.GetEndpoint(cfg)
 	require.NoError(t, err)
 	ip, port, err := net.SplitHostPort(endpoint)
 	require.NoError(t, err)
 	opts = append(opts,
-		node.WithRemoteCoreIP(ip),
-		node.WithRemoteCorePort(port),
-		node.WithNetwork(params.Private),
-		node.WithRPCPort("0"),
-		node.WithKeyringSigner(TestKeyringSigner(t)),
+		WithRemoteCoreIP(ip),
+		WithRemoteCorePort(port),
+		WithNetwork(params.Private),
+		WithRPCPort("0"),
+		WithKeyringSigner(TestKeyringSigner(t)),
 	)
 	nd, err := New(tp, store, opts...)
 	require.NoError(t, err)

@@ -12,12 +12,12 @@ import (
 
 func TestConfigWriteRead(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
-	in := node.DefaultConfig(node.Bridge)
+	in := DefaultConfig(node.Bridge)
 
 	err := in.Encode(buf)
 	require.NoError(t, err)
 
-	var out node.Config
+	var out Config
 	err = out.Decode(buf)
 	require.NoError(t, err)
 	assert.EqualValues(t, in, &out)

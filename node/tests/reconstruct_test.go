@@ -54,7 +54,7 @@ func TestFullReconstructFromBridge(t *testing.T) {
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
 
-	full := sw.NewFullNode(node.WithTrustedPeers(getMultiAddr(t, bridge.Host)))
+	full := sw.NewFullNode(nodebuilder.WithTrustedPeers(getMultiAddr(t, bridge.Host)))
 	err = full.Start(ctx)
 	require.NoError(t, err)
 
@@ -109,27 +109,27 @@ func TestFullReconstructFromLights(t *testing.T) {
 	}()
 
 	const defaultTimeInterval = time.Second * 5
-	var defaultOptions = []node.Option{
-		node.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		node.WithDiscoveryInterval(defaultTimeInterval),
-		node.WithAdvertiseInterval(defaultTimeInterval),
+	var defaultOptions = []nodebuilder.Option{
+		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		nodebuilder.WithDiscoveryInterval(defaultTimeInterval),
+		nodebuilder.WithAdvertiseInterval(defaultTimeInterval),
 	}
 
-	cfg := node.DefaultConfig(node.Full)
+	cfg := nodebuilder.DefaultConfig(node.Full)
 	cfg.P2P.Bootstrapper = true
 	bridge := sw.NewBridgeNode()
 	addrsBridge, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
 	require.NoError(t, err)
-	bootstrapConfig := append([]node.Option{node.WithConfig(cfg)}, defaultOptions...)
+	bootstrapConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
 	bootstapFN := sw.NewFullNode(bootstrapConfig...)
 	require.NoError(t, bootstapFN.Start(ctx))
 	require.NoError(t, bridge.Start(ctx))
 	addrBootstrapNode := host.InfoFromHost(bootstapFN.Host)
 
 	nodesConfig := append(
-		[]node.Option{
-			node.WithTrustedPeers(addrsBridge[0].String()),
-			node.WithBootstrappers([]peer.AddrInfo{*addrBootstrapNode})},
+		[]nodebuilder.Option{
+			nodebuilder.WithTrustedPeers(addrsBridge[0].String()),
+			nodebuilder.WithBootstrappers([]peer.AddrInfo{*addrBootstrapNode})},
 		defaultOptions...,
 	)
 	full := sw.NewFullNode(nodesConfig...)
@@ -140,8 +140,8 @@ func TestFullReconstructFromLights(t *testing.T) {
 		i := i
 		errg.Go(func() error {
 			lnConfig := append(
-				[]node.Option{
-					node.WithTrustedPeers(addrsBridge[0].String())},
+				[]nodebuilder.Option{
+					nodebuilder.WithTrustedPeers(addrsBridge[0].String())},
 				nodesConfig...,
 			)
 			light := sw.NewLightNode(lnConfig...)

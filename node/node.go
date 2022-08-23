@@ -19,7 +19,9 @@ import (
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/das"
 	"github.com/celestiaorg/celestia-node/fraud"
+	coremodule "github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/node"
+	statemodule "github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
 	"github.com/celestiaorg/celestia-node/service/header"
 	"github.com/celestiaorg/celestia-node/service/rpc"
@@ -43,7 +45,7 @@ type Node struct {
 	Type          node.Type
 	Network       params.Network
 	Bootstrappers params.Bootstrappers
-	Config        *node.Config
+	Config        *Config
 
 	// CoreClient provides access to a Core node process.
 	CoreClient core.Client `optional:"true"`
@@ -70,24 +72,33 @@ type Node struct {
 }
 
 // New assembles a new Node with the given type 'tp' over Store 'store'.
-func New(tp node.Type, store Store, options ...node.Option) (*Node, error) {
+func New(tp node.Type, store Store, options ...Option) (*Node, error) {
 	cfg, err := store.Config()
 	if err != nil {
 		return nil, err
 	}
 
-	s := &node.Settings{Cfg: cfg}
+	s := &settings{cfg: cfg}
 	for _, option := range options {
 		option(s)
 	}
 
+	// NOTE: As we are going against current components patter, we should stop using it
+	// and access modules elsewhere, like here
+	modules := fx.Options(
+		statemodule.Module(tp, cfg.State, s.stateOpts...),
+		coremodule.Module(tp, cfg.Core),
+	)
+
+	// NOTE: Until the whole refactoring is done, we will continue using components here
+	// and pass modules as an option.
 	switch tp {
 	case node.Bridge:
-		return newNode(bridgeComponents(s.Cfg, store), fx.Options(s.Opts...))
+		return newNode(bridgeComponents(s.cfg, store), fx.Options(s.opts...), modules)
 	case node.Light:
-		return newNode(lightComponents(s.Cfg, store), fx.Options(s.Opts...))
+		return newNode(lightComponents(s.cfg, store), fx.Options(s.opts...), modules)
 	case node.Full:
-		return newNode(fullComponents(s.Cfg, store), fx.Options(s.Opts...))
+		return newNode(fullComponents(s.cfg, store), fx.Options(s.opts...), modules)
 	default:
 		panic("node: unknown Node Type")
 	}
@@ -133,9 +144,9 @@ func (n *Node) Run(ctx context.Context) error {
 	return ctx.Err()
 }
 
-// Stop shuts down the Node, all its running Components/Services and returns.
+// Stop shuts down the Node, all its running Module/Services and returns.
 // Canceling the given context earlier 'ctx' unblocks the Stop and aborts graceful shutdown forcing remaining
-// Components/Services to close immediately.
+// Module/Services to close immediately.
 func (n *Node) Stop(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, Timeout)
 	defer cancel()

@@ -12,12 +12,10 @@ import (
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
-	nodecore "github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/node"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/rpc"
 	"github.com/celestiaorg/celestia-node/node/services"
-	statecomponents "github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
 	headerServ "github.com/celestiaorg/celestia-node/service/header"
 	rpcServ "github.com/celestiaorg/celestia-node/service/rpc"
@@ -26,7 +24,7 @@ import (
 )
 
 // lightComponents keeps all the components as DI options required to build a Light Node.
-func lightComponents(cfg *node.Config, store Store) fx.Option {
+func lightComponents(cfg *Config, store Store) fx.Option {
 	return fx.Options(
 		fx.Supply(node.Light),
 		baseComponents(cfg, store),
@@ -39,11 +37,10 @@ func lightComponents(cfg *node.Config, store Store) fx.Option {
 }
 
 // bridgeComponents keeps all the components as DI options required to build a Bridge Node.
-func bridgeComponents(cfg *node.Config, store Store) fx.Option {
+func bridgeComponents(cfg *Config, store Store) fx.Option {
 	return fx.Options(
 		fx.Supply(node.Bridge),
 		baseComponents(cfg, store),
-		nodecore.Components(cfg.Core),
 		fx.Supply(header.MakeExtendedHeader),
 		fx.Provide(services.FullAvailability(cfg.Services)),
 		fx.Provide(services.CacheAvailability[*share.FullAvailability]),
@@ -59,7 +56,7 @@ func bridgeComponents(cfg *node.Config, store Store) fx.Option {
 }
 
 // fullComponents keeps all the components as DI options required to build a Full Node.
-func fullComponents(cfg *node.Config, store Store) fx.Option {
+func fullComponents(cfg *Config, store Store) fx.Option {
 	return fx.Options(
 		fx.Supply(node.Full),
 		baseComponents(cfg, store),
@@ -72,7 +69,7 @@ func fullComponents(cfg *node.Config, store Store) fx.Option {
 }
 
 // baseComponents keeps all the common components shared between different Node types.
-func baseComponents(cfg *node.Config, store Store) fx.Option {
+func baseComponents(cfg *Config, store Store) fx.Option {
 	return fx.Options(
 		fx.Provide(params.DefaultNetwork),
 		fx.Provide(params.BootstrappersFor),
@@ -95,8 +92,6 @@ func baseComponents(cfg *node.Config, store Store) fx.Option {
 		// p2p components
 		fx.Invoke(invokeWatchdog(store.Path())),
 		p2p.Components(cfg.P2P),
-		// state components
-		statecomponents.Module(cfg.Core, cfg.Key),
 		// RPC components
 		fx.Provide(rpc.Server(cfg.RPC)),
 	)

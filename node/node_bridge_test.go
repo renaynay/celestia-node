@@ -14,14 +14,14 @@ import (
 
 func TestBridge_WithMockedCoreClient(t *testing.T) {
 	t.Skip("skipping") // consult https://github.com/celestiaorg/celestia-core/issues/667 for reasoning
-	repo := MockStore(t, node.DefaultConfig(node.Bridge))
+	repo := MockStore(t, DefaultConfig(node.Bridge))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
 	_, client := core.StartTestClient(ctx, t)
-	node, err := New(node.Bridge, repo, node.WithCoreClient(client),
-		node.WithNetwork(params.Private))
+	node, err := New(node.Bridge, repo, WithCoreClient(client),
+		WithNetwork(params.Private))
 	require.NoError(t, err)
 	require.NotNil(t, node)
 	assert.True(t, node.CoreClient.IsRunning())

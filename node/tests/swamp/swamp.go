@@ -193,8 +193,8 @@ func (s *Swamp) getTrustedHash(ctx context.Context) (string, error) {
 
 // NewBridgeNode creates a new instance of a BridgeNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewBridgeNode(options ...node.Option) *nodebuilder.Node {
-	cfg := node.DefaultConfig(node.Bridge)
+func (s *Swamp) NewBridgeNode(options ...nodebuilder.Option) *nodebuilder.Node {
+	cfg := nodebuilder.DefaultConfig(node.Bridge)
 	store := nodebuilder.MockStore(s.t, cfg)
 
 	return s.NewNodeWithStore(node.Bridge, store, options...)
@@ -202,8 +202,8 @@ func (s *Swamp) NewBridgeNode(options ...node.Option) *nodebuilder.Node {
 
 // NewFullNode creates a new instance of a FullNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewFullNode(options ...node.Option) *nodebuilder.Node {
-	cfg := node.DefaultConfig(node.Full)
+func (s *Swamp) NewFullNode(options ...nodebuilder.Option) *nodebuilder.Node {
+	cfg := nodebuilder.DefaultConfig(node.Full)
 	store := nodebuilder.MockStore(s.t, cfg)
 
 	return s.NewNodeWithStore(node.Full, store, options...)
@@ -211,8 +211,8 @@ func (s *Swamp) NewFullNode(options ...node.Option) *nodebuilder.Node {
 
 // NewLightNode creates a new instance of a LightNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewLightNode(options ...node.Option) *nodebuilder.Node {
-	cfg := node.DefaultConfig(node.Light)
+func (s *Swamp) NewLightNode(options ...nodebuilder.Option) *nodebuilder.Node {
+	cfg := nodebuilder.DefaultConfig(node.Light)
 	store := nodebuilder.MockStore(s.t, cfg)
 
 	return s.NewNodeWithStore(node.Light, store, options...)
@@ -221,15 +221,15 @@ func (s *Swamp) NewLightNode(options ...node.Option) *nodebuilder.Node {
 // NewNodeWithStore creates a new instance of Node with predefined Store.
 // Afterwards, the instance is stored in the swamp's Nodes' slice according to the
 // node's type provided from the user.
-func (s *Swamp) NewNodeWithStore(t node.Type, store nodebuilder.Store, options ...node.Option) *nodebuilder.Node {
+func (s *Swamp) NewNodeWithStore(t node.Type, store nodebuilder.Store, options ...nodebuilder.Option) *nodebuilder.Node {
 	var n *nodebuilder.Node
 
-	options = append(options, node.WithKeyringSigner(nodebuilder.TestKeyringSigner(s.t)))
+	options = append(options, nodebuilder.WithKeyringSigner(nodebuilder.TestKeyringSigner(s.t)))
 
 	switch t {
 	case node.Bridge:
 		options = append(options,
-			node.WithCoreClient(s.CoreClient),
+			nodebuilder.WithCoreClient(s.CoreClient),
 		)
 		n = s.newNode(node.Bridge, store, options...)
 		s.BridgeNodes = append(s.BridgeNodes, n)
@@ -244,7 +244,7 @@ func (s *Swamp) NewNodeWithStore(t node.Type, store nodebuilder.Store, options .
 	return n
 }
 
-func (s *Swamp) newNode(t node.Type, store nodebuilder.Store, options ...node.Option) *nodebuilder.Node {
+func (s *Swamp) newNode(t node.Type, store nodebuilder.Store, options ...nodebuilder.Option) *nodebuilder.Node {
 	ks, err := store.Keystore()
 	require.NoError(s.t, err)
 
@@ -252,10 +252,10 @@ func (s *Swamp) newNode(t node.Type, store nodebuilder.Store, options ...node.Op
 	// like <core, host, hash> from the test case, we need to check them and not use
 	// default that are set here
 	options = append(options,
-		node.WithHost(s.createPeer(ks)),
-		node.WithTrustedHash(s.trustedHash),
-		node.WithNetwork(params.Private),
-		node.WithRPCPort("0"),
+		nodebuilder.WithHost(s.createPeer(ks)),
+		nodebuilder.WithTrustedHash(s.trustedHash),
+		nodebuilder.WithNetwork(params.Private),
+		nodebuilder.WithRPCPort("0"),
 	)
 
 	node, err := nodebuilder.New(t, store, options...)

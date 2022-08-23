@@ -203,11 +203,11 @@ func setupNodeWithModifiedRPC(t *testing.T) *Node {
 	hServ := setupHeaderService(ctx, t)
 	daser := setupDASer()
 	// create overrides
-	overrideHeaderServ := func(sets *node.Settings) {
-		sets.Opts = append(sets.Opts, fx.Replace(hServ))
+	overrideHeaderServ := func(sets *settings) {
+		sets.opts = append(sets.opts, fx.Replace(hServ))
 	}
-	overrideDASer := func(sets *node.Settings) {
-		sets.Opts = append(sets.Opts, fx.Replace(func() func(lc fx.Lifecycle) *das.DASer {
+	overrideDASer := func(sets *settings) {
+		sets.opts = append(sets.opts, fx.Replace(func() func(lc fx.Lifecycle) *das.DASer {
 			return func(lc fx.Lifecycle) *das.DASer {
 				lc.Append(fx.Hook{
 					OnStart: daser.Start,
@@ -217,8 +217,8 @@ func setupNodeWithModifiedRPC(t *testing.T) *Node {
 			}
 		}))
 	}
-	overrideRPCHandler := func(sets *node.Settings) {
-		sets.Opts = append(sets.Opts, fx.Invoke(func(srv *rpc.Server) {
+	overrideRPCHandler := func(sets *settings) {
+		sets.opts = append(sets.opts, fx.Invoke(func(srv *rpc.Server) {
 			handler := rpc.NewHandler(nil, nil, hServ, daser)
 			handler.RegisterEndpoints(srv)
 		}))
