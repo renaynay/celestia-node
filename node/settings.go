@@ -10,7 +10,9 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"go.uber.org/fx"
 
+	coremodule "github.com/celestiaorg/celestia-node/node/core"
 	headermodule "github.com/celestiaorg/celestia-node/node/header"
+	rpcmodule "github.com/celestiaorg/celestia-node/node/rpc"
 	statemodule "github.com/celestiaorg/celestia-node/node/state"
 
 	"github.com/celestiaorg/celestia-node/node/services"
@@ -28,9 +30,15 @@ type settings struct {
 	cfg  *Config
 	opts []fx.Option
 
-	stateOpts  []statemodule.Option
-	headerOpts []headermodule.Option
-	shareOpts  []sharemodule.Option
+	moduleOpts ModuleOpts
+}
+
+type ModuleOpts struct {
+	State  []statemodule.Option
+	Header []headermodule.Option
+	Share  []sharemodule.Option
+	RPC    []rpcmodule.Option
+	Core   []coremodule.Option
 }
 
 // WithStateOption is a top level option which allows customization for state module.
@@ -38,7 +46,7 @@ type settings struct {
 // there are other ways of making this work via another level of indirection.
 func WithStateOption(option statemodule.Option) Option {
 	return func(s *settings) {
-		s.stateOpts = append(s.stateOpts, option)
+		s.moduleOpts.State = append(s.moduleOpts.State, option)
 	}
 }
 
@@ -46,7 +54,7 @@ func WithStateOption(option statemodule.Option) Option {
 // NOTE: See WithStateOption
 func WithHeaderOption(option headermodule.Option) Option {
 	return func(s *settings) {
-		s.headerOpts = append(s.headerOpts, option)
+		s.moduleOpts.Header = append(s.moduleOpts.Header, option)
 	}
 }
 
@@ -54,7 +62,23 @@ func WithHeaderOption(option headermodule.Option) Option {
 // NOTE: See WithStateOption
 func WithShareOption(option sharemodule.Option) Option {
 	return func(s *settings) {
-		s.shareOpts = append(s.shareOpts, option)
+		s.moduleOpts.Share = append(s.moduleOpts.Share, option)
+	}
+}
+
+// WithRPCOption is a top level option which allows customization for state module.
+// NOTE: See WithStateOption
+func WithRPCOption(option rpcmodule.Option) Option {
+	return func(s *settings) {
+		s.moduleOpts.RPC = append(s.moduleOpts.RPC, option)
+	}
+}
+
+// WithCoreOption is a top level option which allows customization for state module.
+// NOTE: See WithStateOption
+func WithCoreOption(option coremodule.Option) Option {
+	return func(s *settings) {
+		s.moduleOpts.Core = append(s.moduleOpts.Core, option)
 	}
 }
 

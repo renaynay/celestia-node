@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-func Module(tp Type, cfg *node.Config, store node.Store, stateOpts []state.Option, headerOpts []header.Option, shareOpts []share.Option) fx.Option {
+func Module(tp Type, cfg *node.Config, store node.Store, moduleOpts node.ModuleOpts) fx.Option {
 
 	baseComponents := fx.Options(
 		fx.Provide(params.DefaultNetwork),
@@ -35,13 +35,12 @@ func Module(tp Type, cfg *node.Config, store node.Store, stateOpts []state.Optio
 		// p2p components
 		fx.Invoke(invokeWatchdog(store.Path())),
 		p2p.Components(cfg.P2P),
-		// RPC components
-		fx.Provide(rpc.Server(cfg.RPC)),
 		// refactored node modules
-		state.Module(tp, cfg.State, stateOpts...),
-		header.Module(tp, cfg.Header, headerOpts...),
-		share.Module(tp, cfg.Share, shareOpts...),
-		core.Module(tp, cfg.Core),
+		state.Module(tp, cfg.State, moduleOpts.State...),
+		header.Module(tp, cfg.Header, moduleOpts.Header...),
+		share.Module(tp, cfg.Share, moduleOpts.Share...),
+		rpc.Module(tp, cfg.RPC, moduleOpts.RPC...),
+		core.Module(tp, cfg.Core, moduleOpts.Core...),
 	)
 
 	switch tp {

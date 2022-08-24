@@ -12,6 +12,7 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 	for _, option := range options {
 		option(sets)
 	}
+
 	switch tp {
 	case node.Light:
 		return fx.Module(

@@ -30,13 +30,18 @@ func DefaultConfig() Config {
 }
 
 // Module collects all the components and services related to managing the relationship with the Core node.
-func Module(tp node.Type, cfg Config) fx.Option { // TODO: Options in
+func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
+	sets := &settings{cfg: &cfg}
+	for _, option := range options {
+		option(sets)
+	}
 	switch tp {
 	case node.Light, node.Full:
-		return fx.Module("core", fx.Supply(cfg))
+		return fx.Module("core", fx.Supply(cfg), fx.Options(sets.opts...))
 	case node.Bridge:
 		return fx.Module("core",
 			fx.Supply(cfg),
+			fx.Options(sets.opts...),
 			fx.Provide(core.NewBlockFetcher),
 			fxutil.ProvideAs(headercore.NewExchange, new(header.Exchange)),
 			fx.Invoke(HeaderListener),

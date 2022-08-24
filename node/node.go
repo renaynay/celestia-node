@@ -81,7 +81,7 @@ func New(tp node.Type, store Store, options ...Option) (*Node, error) {
 		option(s)
 	}
 
-	return newNode(node.Module(tp, s.cfg, store, s.stateOpts, s.headerOpts, s.shareOpts), fx.Options(s.opts...))
+	return newNode(node.Module(tp, s.cfg, store, s.moduleOpts), fx.Options(s.opts...))
 }
 
 // Start launches the Node and all its components and services.
