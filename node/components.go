@@ -9,9 +9,6 @@ import (
 	"github.com/raulk/go-watchdog"
 	"go.uber.org/fx"
 
-	"github.com/celestiaorg/celestia-node/fraud"
-	"github.com/celestiaorg/celestia-node/header"
-	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	"github.com/celestiaorg/celestia-node/node/node"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/rpc"
@@ -29,7 +26,6 @@ func lightComponents(cfg *Config, store Store) fx.Option {
 		fx.Supply(node.Light),
 		baseComponents(cfg, store),
 		fx.Provide(services.DASer),
-		fx.Provide(services.HeaderExchangeP2P(cfg.Services)),
 		fx.Provide(services.LightAvailability(cfg.Services)),
 		fx.Provide(services.CacheAvailability[*share.LightAvailability]),
 		fx.Invoke(rpc.Handler),
@@ -41,7 +37,6 @@ func bridgeComponents(cfg *Config, store Store) fx.Option {
 	return fx.Options(
 		fx.Supply(node.Bridge),
 		baseComponents(cfg, store),
-		fx.Supply(header.MakeExtendedHeader),
 		fx.Provide(services.FullAvailability(cfg.Services)),
 		fx.Provide(services.CacheAvailability[*share.FullAvailability]),
 		fx.Invoke(func(
@@ -61,7 +56,6 @@ func fullComponents(cfg *Config, store Store) fx.Option {
 		fx.Supply(node.Full),
 		baseComponents(cfg, store),
 		fx.Provide(services.DASer),
-		fx.Provide(services.HeaderExchangeP2P(cfg.Services)),
 		fx.Provide(services.FullAvailability(cfg.Services)),
 		fx.Provide(services.CacheAvailability[*share.FullAvailability]),
 		fx.Invoke(rpc.Handler),
@@ -81,14 +75,6 @@ func baseComponents(cfg *Config, store Store) fx.Option {
 		// share components
 		fx.Invoke(share.EnsureEmptySquareExists),
 		fx.Provide(services.ShareService),
-		// header components
-		fx.Provide(services.HeaderService),
-		fx.Provide(services.HeaderStore),
-		fx.Invoke(services.HeaderStoreInit(&cfg.Services)),
-		fxutil.ProvideAs(services.FraudService, new(fraud.Service), new(fraud.Subscriber)),
-		fx.Provide(services.HeaderSyncer),
-		fxutil.ProvideAs(services.P2PSubscriber, new(header.Broadcaster), new(header.Subscriber)),
-		fx.Provide(services.HeaderP2PExchangeServer),
 		// p2p components
 		fx.Invoke(invokeWatchdog(store.Path())),
 		p2p.Components(cfg.P2P),

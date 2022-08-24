@@ -3,6 +3,7 @@ package swamp
 import (
 	"context"
 	"fmt"
+	"github.com/celestiaorg/celestia-node/node/header"
 	"math/rand"
 	"net"
 	"testing"
@@ -253,7 +254,7 @@ func (s *Swamp) newNode(t node.Type, store nodebldr.Store, options ...nodebldr.O
 	// default that are set here
 	options = append(options,
 		nodebldr.WithHost(s.createPeer(ks)),
-		nodebldr.WithTrustedHash(s.trustedHash),
+		nodebldr.WithHeaderOption(header.WithTrustedHash(s.trustedHash)),
 		nodebldr.WithNetwork(params.Private),
 		nodebldr.WithRPCPort("0"),
 	)

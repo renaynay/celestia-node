@@ -12,6 +12,7 @@ import (
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/header"
 	nodebuilder "github.com/celestiaorg/celestia-node/node"
+	headerconf "github.com/celestiaorg/celestia-node/node/header"
 	"github.com/celestiaorg/celestia-node/node/node"
 	"github.com/celestiaorg/celestia-node/node/tests/swamp"
 )
@@ -43,7 +44,7 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	require.NoError(t, err)
 
 	store := nodebuilder.MockStore(t, nodebuilder.DefaultConfig(node.Full))
-	full := sw.NewNodeWithStore(node.Full, store, nodebuilder.WithTrustedPeers(addrs[0].String()))
+	full := sw.NewNodeWithStore(node.Full, store, nodebuilder.WithHeaderOption(headerconf.WithTrustedPeers(addrs[0].String())))
 
 	// subscribe to fraud proof before node starts helps
 	// to prevent flakiness when fraud proof is propagating before subscribing on it
@@ -68,7 +69,7 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	require.NoError(t, full.Stop(ctx))
 	require.NoError(t, sw.RemoveNode(full, node.Full))
 
-	full = sw.NewNodeWithStore(node.Full, store, nodebuilder.WithTrustedPeers(addrs[0].String()))
+	full = sw.NewNodeWithStore(node.Full, store, nodebuilder.WithHeaderOption(headerconf.WithTrustedPeers(addrs[0].String())))
 	require.Error(t, full.Start(ctx))
 	proofs, err := full.FraudServ.Get(ctx, fraud.BadEncoding)
 	require.NoError(t, err)

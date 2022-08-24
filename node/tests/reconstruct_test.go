@@ -7,6 +7,7 @@ package tests
 
 import (
 	"context"
+	"github.com/celestiaorg/celestia-node/node/header"
 	"testing"
 	"time"
 
@@ -54,7 +55,7 @@ func TestFullReconstructFromBridge(t *testing.T) {
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
 
-	full := sw.NewFullNode(nodebuilder.WithTrustedPeers(getMultiAddr(t, bridge.Host)))
+	full := sw.NewFullNode(nodebuilder.WithHeaderOption(header.WithTrustedPeers(getMultiAddr(t, bridge.Host))))
 	err = full.Start(ctx)
 	require.NoError(t, err)
 
@@ -128,7 +129,7 @@ func TestFullReconstructFromLights(t *testing.T) {
 
 	nodesConfig := append(
 		[]nodebuilder.Option{
-			nodebuilder.WithTrustedPeers(addrsBridge[0].String()),
+			nodebuilder.WithHeaderOption(header.WithTrustedPeers(addrsBridge[0].String())),
 			nodebuilder.WithBootstrappers([]peer.AddrInfo{*addrBootstrapNode})},
 		defaultOptions...,
 	)
@@ -141,7 +142,7 @@ func TestFullReconstructFromLights(t *testing.T) {
 		errg.Go(func() error {
 			lnConfig := append(
 				[]nodebuilder.Option{
-					nodebuilder.WithTrustedPeers(addrsBridge[0].String())},
+					nodebuilder.WithHeaderOption(header.WithTrustedPeers(addrsBridge[0].String()))},
 				nodesConfig...,
 			)
 			light := sw.NewLightNode(lnConfig...)

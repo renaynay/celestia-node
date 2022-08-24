@@ -42,20 +42,6 @@ func WithRPCAddress(addr string) Option {
 	}
 }
 
-// WithTrustedHash sets TrustedHash to the Config.
-func WithTrustedHash(hash string) Option {
-	return func(sets *settings) {
-		sets.cfg.Services.TrustedHash = hash
-	}
-}
-
-// WithTrustedPeers appends new "trusted peers" to the Config.
-func WithTrustedPeers(addr ...string) Option {
-	return func(sets *settings) {
-		sets.cfg.Services.TrustedPeers = append(sets.cfg.Services.TrustedPeers, addr...)
-	}
-}
-
 // WithPeersLimit overrides default peer limit for peers found during discovery.
 func WithPeersLimit(limit uint) Option {
 	return func(sets *settings) {

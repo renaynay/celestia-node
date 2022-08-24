@@ -8,6 +8,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"go.uber.org/fx"
 
+	headermodule "github.com/celestiaorg/celestia-node/node/header"
 	statemodule "github.com/celestiaorg/celestia-node/node/state"
 
 	"github.com/celestiaorg/celestia-node/node/services"
@@ -25,7 +26,8 @@ type settings struct {
 	cfg  *Config
 	opts []fx.Option
 
-	stateOpts []statemodule.Option
+	stateOpts  []statemodule.Option
+	headerOpts []headermodule.Option
 }
 
 // WithStateOption is a top level option which allows customization for state module.
@@ -34,6 +36,14 @@ type settings struct {
 func WithStateOption(option statemodule.Option) Option {
 	return func(s *settings) {
 		s.stateOpts = append(s.stateOpts, option)
+	}
+}
+
+// WithHeaderOption is a top level option which allows customization for state module.
+// NOTE: See WithStateOption
+func WithHeaderOption(option headermodule.Option) Option {
+	return func(s *settings) {
+		s.headerOpts = append(s.headerOpts, option)
 	}
 }
 

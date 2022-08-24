@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/celestiaorg/celestia-node/node/header"
 	"io"
 	"os"
 
@@ -26,6 +27,7 @@ type Config struct {
 	P2P      p2p.Config
 	RPC      rpc.Config
 	Services services.Config
+	Header   header.Config
 }
 
 // DefaultConfig provides a default Config for a given Node Type 'tp'.
@@ -39,6 +41,7 @@ func DefaultConfig(tp node.Type) *Config {
 			P2P:      p2p.DefaultConfig(),
 			RPC:      rpc.DefaultConfig(),
 			Services: services.DefaultConfig(),
+			Header:   header.DefaultConfig(),
 		}
 	case node.Light:
 		return &Config{
@@ -46,6 +49,7 @@ func DefaultConfig(tp node.Type) *Config {
 			RPC:      rpc.DefaultConfig(),
 			P2P:      p2p.DefaultConfig(),
 			Services: services.DefaultConfig(),
+			Header:   header.DefaultConfig(),
 		}
 	case node.Full:
 		return &Config{
@@ -53,6 +57,7 @@ func DefaultConfig(tp node.Type) *Config {
 			RPC:      rpc.DefaultConfig(),
 			P2P:      p2p.DefaultConfig(),
 			Services: services.DefaultConfig(),
+			Header:   header.DefaultConfig(),
 		}
 	default:
 		panic("node: unknown Node Type")

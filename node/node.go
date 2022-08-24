@@ -3,6 +3,7 @@ package node
 import (
 	"context"
 	"fmt"
+	headermodule "github.com/celestiaorg/celestia-node/node/header"
 	"strings"
 	"time"
 
@@ -87,6 +88,7 @@ func New(tp node.Type, store Store, options ...Option) (*Node, error) {
 	// and access modules elsewhere, like here
 	modules := fx.Options(
 		statemodule.Module(tp, cfg.State, s.stateOpts...),
+		headermodule.Module(tp, cfg.Header, s.headerOpts...),
 		coremodule.Module(tp, cfg.Core),
 	)
 
