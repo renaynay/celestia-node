@@ -23,8 +23,8 @@ import (
 	headerservice "github.com/celestiaorg/celestia-node/service/header"
 )
 
-// HeaderService creates a new header.Service.
-func HeaderService(
+// Service creates a new header.Service.
+func Service(
 	syncer *sync.Syncer,
 	sub header.Subscriber,
 	p2pServer *p2p.ExchangeServer,
@@ -34,8 +34,8 @@ func HeaderService(
 	return headerservice.NewHeaderService(syncer, sub, p2pServer, ex, store)
 }
 
-// HeaderExchangeP2P constructs new Exchange for headers.
-func HeaderExchangeP2P(cfg Config) func(params.Bootstrappers, host.Host) (header.Exchange, error) {
+// P2PExchange constructs new Exchange for headers.
+func P2PExchange(cfg Config) func(params.Bootstrappers, host.Host) (header.Exchange, error) {
 	return func(bpeers params.Bootstrappers, host host.Host) (header.Exchange, error) {
 		peers, err := cfg.trustedPeers(bpeers)
 		if err != nil {
@@ -50,8 +50,8 @@ func HeaderExchangeP2P(cfg Config) func(params.Bootstrappers, host.Host) (header
 	}
 }
 
-// HeaderP2PExchangeServer creates a new header/p2p.ExchangeServer.
-func HeaderP2PExchangeServer(lc fx.Lifecycle, host host.Host, store header.Store) *p2p.ExchangeServer {
+// P2PExchangeServer creates a new header/p2p.ExchangeServer.
+func P2PExchangeServer(lc fx.Lifecycle, host host.Host, store header.Store) *p2p.ExchangeServer {
 	p2pServ := p2p.NewExchangeServer(host, store)
 	lc.Append(fx.Hook{
 		OnStart: p2pServ.Start,
@@ -61,8 +61,8 @@ func HeaderP2PExchangeServer(lc fx.Lifecycle, host host.Host, store header.Store
 	return p2pServ
 }
 
-// HeaderStore creates and initializes new header.Store.
-func HeaderStore(lc fx.Lifecycle, ds datastore.Batching) (header.Store, error) {
+// Store creates and initializes new header.Store.
+func Store(lc fx.Lifecycle, ds datastore.Batching) (header.Store, error) {
 	store, err := store.NewStore(ds)
 	if err != nil {
 		return nil, err
@@ -74,8 +74,8 @@ func HeaderStore(lc fx.Lifecycle, ds datastore.Batching) (header.Store, error) {
 	return store, nil
 }
 
-// HeaderStoreInit initializes the store.
-func HeaderStoreInit(cfg *Config) func(context.Context, params.Network, header.Store, header.Exchange) error {
+// InitStore initializes the store.
+func InitStore(cfg *Config) func(context.Context, params.Network, header.Store, header.Exchange) error {
 	return func(ctx context.Context, net params.Network, s header.Store, ex header.Exchange) error {
 		trustedHash, err := cfg.trustedHash(net)
 		if err != nil {
@@ -96,8 +96,8 @@ func HeaderStoreInit(cfg *Config) func(context.Context, params.Network, header.S
 	}
 }
 
-// HeaderSyncer creates a new Syncer.
-func HeaderSyncer(
+// Syncer creates a new Syncer.
+func Syncer(
 	ctx context.Context,
 	lc fx.Lifecycle,
 	ex header.Exchange,

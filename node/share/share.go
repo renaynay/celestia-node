@@ -11,8 +11,8 @@ import (
 	"github.com/celestiaorg/celestia-node/service/share"
 )
 
-// ShareService constructs new share.Service.
-func ShareService(lc fx.Lifecycle, bServ blockservice.BlockService, avail share.Availability) *share.Service {
+// Service constructs a new share.Service.
+func Service(lc fx.Lifecycle, bServ blockservice.BlockService, avail share.Availability) *share.Service {
 	service := share.NewService(bServ, avail)
 	lc.Append(fx.Hook{
 		OnStart: service.Start,

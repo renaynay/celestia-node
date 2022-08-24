@@ -19,7 +19,7 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 			fx.Supply(cfg),
 			fx.Options(sets.opts...),
 			fx.Invoke(share.EnsureEmptySquareExists),
-			fx.Provide(ShareService),
+			fx.Provide(Service),
 			fx.Provide(LightAvailability(cfg)),
 			fx.Provide(CacheAvailability[*share.LightAvailability]),
 		)
@@ -29,7 +29,7 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 			fx.Supply(cfg),
 			fx.Options(sets.opts...),
 			fx.Invoke(share.EnsureEmptySquareExists),
-			fx.Provide(ShareService),
+			fx.Provide(Service),
 			fx.Provide(FullAvailability(cfg)),
 			fx.Provide(CacheAvailability[*share.FullAvailability]),
 		)

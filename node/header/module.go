@@ -20,20 +20,20 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 	baseOptions := fx.Options(
 		fx.Supply(cfg),
 		fx.Options(sets.opts...),
-		fx.Provide(HeaderService),
-		fx.Provide(HeaderStore),
-		fx.Invoke(HeaderStoreInit(&cfg)),
+		fx.Provide(Service),
+		fx.Provide(Store),
+		fx.Invoke(InitStore(&cfg)),
 		fxutil.ProvideAs(FraudService, new(fraud.Service), new(fraud.Subscriber)),
-		fx.Provide(HeaderSyncer),
+		fx.Provide(Syncer),
 		fxutil.ProvideAs(P2PSubscriber, new(header.Broadcaster), new(header.Subscriber)),
-		fx.Provide(HeaderP2PExchangeServer),
+		fx.Provide(P2PExchangeServer),
 	)
 	switch tp {
 	case node.Light, node.Full:
 		return fx.Module(
 			"header",
 			baseOptions,
-			fx.Provide(HeaderExchangeP2P(cfg)),
+			fx.Provide(P2PExchange(cfg)),
 		)
 	case node.Bridge:
 		return fx.Module(
