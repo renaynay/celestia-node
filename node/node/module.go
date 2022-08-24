@@ -2,63 +2,29 @@ package node
 
 import (
 	"context"
-	"sync"
-	"time"
-
-	logging "github.com/ipfs/go-log/v2"
-	"github.com/raulk/go-watchdog"
-	"go.uber.org/fx"
-
-	"github.com/celestiaorg/celestia-node/node/node"
+	"github.com/celestiaorg/celestia-node/node"
+	"github.com/celestiaorg/celestia-node/node/core"
+	"github.com/celestiaorg/celestia-node/node/header"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/rpc"
 	"github.com/celestiaorg/celestia-node/node/services"
+	"github.com/celestiaorg/celestia-node/node/share"
+	"github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
 	headerServ "github.com/celestiaorg/celestia-node/service/header"
 	rpcServ "github.com/celestiaorg/celestia-node/service/rpc"
-	"github.com/celestiaorg/celestia-node/service/share"
-	"github.com/celestiaorg/celestia-node/service/state"
+	shareServ "github.com/celestiaorg/celestia-node/service/share"
+	stateServ "github.com/celestiaorg/celestia-node/service/state"
+	logging "github.com/ipfs/go-log/v2"
+	"github.com/raulk/go-watchdog"
+	"go.uber.org/fx"
+	"sync"
+	"time"
 )
 
-// lightComponents keeps all the components as DI options required to build a Light Node.
-func lightComponents(cfg *Config, store Store) fx.Option {
-	return fx.Options(
-		fx.Supply(node.Light),
-		baseComponents(cfg, store),
-		fx.Provide(services.DASer),
-		fx.Invoke(rpc.Handler),
-	)
-}
+func Module(tp Type, cfg *node.Config, store node.Store, stateOpts []state.Option, headerOpts []header.Option, shareOpts []share.Option) fx.Option {
 
-// bridgeComponents keeps all the components as DI options required to build a Bridge Node.
-func bridgeComponents(cfg *Config, store Store) fx.Option {
-	return fx.Options(
-		fx.Supply(node.Bridge),
-		baseComponents(cfg, store),
-		fx.Invoke(func(
-			state *state.Service,
-			share *share.Service,
-			header *headerServ.Service,
-			rpcSrv *rpcServ.Server,
-		) {
-			rpc.Handler(state, share, header, rpcSrv, nil)
-		}),
-	)
-}
-
-// fullComponents keeps all the components as DI options required to build a Full Node.
-func fullComponents(cfg *Config, store Store) fx.Option {
-	return fx.Options(
-		fx.Supply(node.Full),
-		baseComponents(cfg, store),
-		fx.Provide(services.DASer),
-		fx.Invoke(rpc.Handler),
-	)
-}
-
-// baseComponents keeps all the common components shared between different Node types.
-func baseComponents(cfg *Config, store Store) fx.Option {
-	return fx.Options(
+	baseComponents := fx.Options(
 		fx.Provide(params.DefaultNetwork),
 		fx.Provide(params.BootstrappersFor),
 		fx.Provide(context.Background),
@@ -71,7 +37,47 @@ func baseComponents(cfg *Config, store Store) fx.Option {
 		p2p.Components(cfg.P2P),
 		// RPC components
 		fx.Provide(rpc.Server(cfg.RPC)),
+		// refactored node modules
+		state.Module(tp, cfg.State, stateOpts...),
+		header.Module(tp, cfg.Header, headerOpts...),
+		share.Module(tp, cfg.Share, shareOpts...),
+		core.Module(tp, cfg.Core),
 	)
+
+	switch tp {
+	case Light:
+		return fx.Module(
+			"node",
+			fx.Supply(Light),
+			baseComponents,
+			fx.Provide(services.DASer),
+			fx.Invoke(rpc.Handler),
+		)
+	case Bridge:
+		return fx.Module(
+			"node",
+			fx.Supply(Bridge),
+			baseComponents,
+			fx.Invoke(func(
+				state *stateServ.Service,
+				share *shareServ.Service,
+				header *headerServ.Service,
+				rpcSrv *rpcServ.Server,
+			) {
+				rpc.Handler(state, share, header, rpcSrv, nil)
+			}),
+		)
+	case Full:
+		return fx.Module(
+			"node",
+			fx.Supply(Full),
+			baseComponents,
+			fx.Provide(services.DASer),
+			fx.Invoke(rpc.Handler),
+		)
+	default:
+		panic("wrong node type")
+	}
 }
 
 // invokeWatchdog starts the memory watchdog that helps to prevent some of OOMs by forcing GCing

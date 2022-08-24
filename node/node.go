@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	headermodule "github.com/celestiaorg/celestia-node/node/header"
-
 	"github.com/ipfs/go-blockservice"
 	exchange "github.com/ipfs/go-ipfs-exchange-interface"
 	logging "github.com/ipfs/go-log/v2"
@@ -21,10 +19,7 @@ import (
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/das"
 	"github.com/celestiaorg/celestia-node/fraud"
-	coremodule "github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/node"
-	sharemodule "github.com/celestiaorg/celestia-node/node/share"
-	statemodule "github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
 	"github.com/celestiaorg/celestia-node/service/header"
 	"github.com/celestiaorg/celestia-node/service/rpc"
@@ -86,27 +81,7 @@ func New(tp node.Type, store Store, options ...Option) (*Node, error) {
 		option(s)
 	}
 
-	// NOTE: As we are going against current components patter, we should stop using it
-	// and access modules elsewhere, like here
-	modules := fx.Options(
-		statemodule.Module(tp, cfg.State, s.stateOpts...),
-		headermodule.Module(tp, cfg.Header, s.headerOpts...),
-		sharemodule.Module(tp, cfg.Share, s.shareOpts...),
-		coremodule.Module(tp, cfg.Core),
-	)
-
-	// NOTE: Until the whole refactoring is done, we will continue using components here
-	// and pass modules as an option.
-	switch tp {
-	case node.Bridge:
-		return newNode(bridgeComponents(s.cfg, store), fx.Options(s.opts...), modules)
-	case node.Light:
-		return newNode(lightComponents(s.cfg, store), fx.Options(s.opts...), modules)
-	case node.Full:
-		return newNode(fullComponents(s.cfg, store), fx.Options(s.opts...), modules)
-	default:
-		panic("node: unknown Node Type")
-	}
+	return newNode(node.Module(tp, s.cfg, store, s.stateOpts, s.headerOpts, s.shareOpts), fx.Options(s.opts...))
 }
 
 // Start launches the Node and all its components and services.
