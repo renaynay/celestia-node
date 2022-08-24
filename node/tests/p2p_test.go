@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"github.com/celestiaorg/celestia-node/node/share"
 	"testing"
 	"time"
 
@@ -96,8 +97,8 @@ func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	const defaultTimeInterval = time.Second * 10
 	var defaultOptions = []nodebuilder.Option{
 		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		nodebuilder.WithDiscoveryInterval(defaultTimeInterval),
-		nodebuilder.WithAdvertiseInterval(defaultTimeInterval),
+		nodebuilder.WithShareOption(share.WithDiscoveryInterval(defaultTimeInterval)),
+		nodebuilder.WithShareOption(share.WithAdvertiseInterval(defaultTimeInterval)),
 	}
 
 	bridgeConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
@@ -170,10 +171,10 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	const defaultTimeInterval = time.Second * 2
 	const fullNodes = 2
 	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithPeersLimit(fullNodes),
+		nodebuilder.WithShareOption(share.WithPeersLimit(fullNodes)),
 		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		nodebuilder.WithDiscoveryInterval(defaultTimeInterval),
-		nodebuilder.WithAdvertiseInterval(defaultTimeInterval),
+		nodebuilder.WithShareOption(share.WithDiscoveryInterval(defaultTimeInterval)),
+		nodebuilder.WithShareOption(share.WithAdvertiseInterval(defaultTimeInterval)),
 	}
 	bridgeConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
 	bridge := sw.NewBridgeNode(bridgeConfig...)
@@ -210,7 +211,7 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	require.True(t, nodes[0].Host.Network().Connectedness(id) == network.Connected)
 
 	// create one more node with disabled discovery
-	nodesConfig[1] = nodebuilder.WithPeersLimit(0)
+	nodesConfig[1] = nodebuilder.WithShareOption(share.WithPeersLimit(0))
 	node := sw.NewFullNode(nodesConfig...)
 	connectSub, err := nodes[0].Host.EventBus().Subscribe(&event.EvtPeerConnectednessChanged{})
 	require.NoError(t, err)

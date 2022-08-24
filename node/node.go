@@ -22,6 +22,7 @@ import (
 	"github.com/celestiaorg/celestia-node/fraud"
 	coremodule "github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/node"
+	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 	statemodule "github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
 	"github.com/celestiaorg/celestia-node/service/header"
@@ -89,6 +90,7 @@ func New(tp node.Type, store Store, options ...Option) (*Node, error) {
 	modules := fx.Options(
 		statemodule.Module(tp, cfg.State, s.stateOpts...),
 		headermodule.Module(tp, cfg.Header, s.headerOpts...),
+		sharemodule.Module(tp, cfg.Share, s.shareOpts...),
 		coremodule.Module(tp, cfg.Core),
 	)
 

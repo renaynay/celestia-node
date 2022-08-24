@@ -2,6 +2,7 @@ package node
 
 import (
 	"encoding/hex"
+	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
@@ -28,6 +29,7 @@ type settings struct {
 
 	stateOpts  []statemodule.Option
 	headerOpts []headermodule.Option
+	shareOpts  []sharemodule.Option
 }
 
 // WithStateOption is a top level option which allows customization for state module.
@@ -44,6 +46,14 @@ func WithStateOption(option statemodule.Option) Option {
 func WithHeaderOption(option headermodule.Option) Option {
 	return func(s *settings) {
 		s.headerOpts = append(s.headerOpts, option)
+	}
+}
+
+// WithShareOption is a top level option which allows customization for state module.
+// NOTE: See WithStateOption
+func WithShareOption(option sharemodule.Option) Option {
+	return func(s *settings) {
+		s.shareOpts = append(s.shareOpts, option)
 	}
 }
 

@@ -1,15 +1,10 @@
-package services
+package share
 
 import (
 	"time"
-
-	logging "github.com/ipfs/go-log/v2"
 )
 
-var log = logging.Logger("node/services")
-
 type Config struct {
-	// NOTE: All further fields related to share/discovery.
 	// PeersLimit defines how many peers will be added during discovery.
 	PeersLimit uint
 	// DiscoveryInterval is an interval between discovery sessions.

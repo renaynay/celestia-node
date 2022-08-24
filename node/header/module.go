@@ -1,12 +1,13 @@
 package header
 
 import (
+	logging "github.com/ipfs/go-log/v2"
+	"go.uber.org/fx"
+
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	"github.com/celestiaorg/celestia-node/node/node"
-	logging "github.com/ipfs/go-log/v2"
-	"go.uber.org/fx"
 )
 
 var log = logging.Logger("header-module")

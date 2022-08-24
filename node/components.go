@@ -26,8 +26,6 @@ func lightComponents(cfg *Config, store Store) fx.Option {
 		fx.Supply(node.Light),
 		baseComponents(cfg, store),
 		fx.Provide(services.DASer),
-		fx.Provide(services.LightAvailability(cfg.Services)),
-		fx.Provide(services.CacheAvailability[*share.LightAvailability]),
 		fx.Invoke(rpc.Handler),
 	)
 }
@@ -37,8 +35,6 @@ func bridgeComponents(cfg *Config, store Store) fx.Option {
 	return fx.Options(
 		fx.Supply(node.Bridge),
 		baseComponents(cfg, store),
-		fx.Provide(services.FullAvailability(cfg.Services)),
-		fx.Provide(services.CacheAvailability[*share.FullAvailability]),
 		fx.Invoke(func(
 			state *state.Service,
 			share *share.Service,
@@ -56,8 +52,6 @@ func fullComponents(cfg *Config, store Store) fx.Option {
 		fx.Supply(node.Full),
 		baseComponents(cfg, store),
 		fx.Provide(services.DASer),
-		fx.Provide(services.FullAvailability(cfg.Services)),
-		fx.Provide(services.CacheAvailability[*share.FullAvailability]),
 		fx.Invoke(rpc.Handler),
 	)
 }
@@ -72,9 +66,6 @@ func baseComponents(cfg *Config, store Store) fx.Option {
 		fx.Supply(store.Config),
 		fx.Provide(store.Datastore),
 		fx.Provide(store.Keystore),
-		// share components
-		fx.Invoke(share.EnsureEmptySquareExists),
-		fx.Provide(services.ShareService),
 		// p2p components
 		fx.Invoke(invokeWatchdog(store.Path())),
 		p2p.Components(cfg.P2P),

@@ -8,6 +8,7 @@ package tests
 import (
 	"context"
 	"github.com/celestiaorg/celestia-node/node/header"
+	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 	"testing"
 	"time"
 
@@ -112,8 +113,8 @@ func TestFullReconstructFromLights(t *testing.T) {
 	const defaultTimeInterval = time.Second * 5
 	var defaultOptions = []nodebuilder.Option{
 		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
-		nodebuilder.WithDiscoveryInterval(defaultTimeInterval),
-		nodebuilder.WithAdvertiseInterval(defaultTimeInterval),
+		nodebuilder.WithShareOption(sharemodule.WithDiscoveryInterval(defaultTimeInterval)),
+		nodebuilder.WithShareOption(sharemodule.WithAdvertiseInterval(defaultTimeInterval)),
 	}
 
 	cfg := nodebuilder.DefaultConfig(node.Full)

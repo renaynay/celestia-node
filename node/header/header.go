@@ -3,14 +3,7 @@ package header
 import (
 	"context"
 	"encoding/hex"
-	"github.com/celestiaorg/celestia-node/fraud"
-	"github.com/celestiaorg/celestia-node/header"
-	"github.com/celestiaorg/celestia-node/header/p2p"
-	"github.com/celestiaorg/celestia-node/header/store"
-	"github.com/celestiaorg/celestia-node/header/sync"
-	"github.com/celestiaorg/celestia-node/libs/fxutil"
-	"github.com/celestiaorg/celestia-node/params"
-	headerservice "github.com/celestiaorg/celestia-node/service/header"
+
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -19,6 +12,15 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"go.uber.org/fx"
+
+	"github.com/celestiaorg/celestia-node/fraud"
+	"github.com/celestiaorg/celestia-node/header"
+	"github.com/celestiaorg/celestia-node/header/p2p"
+	"github.com/celestiaorg/celestia-node/header/store"
+	"github.com/celestiaorg/celestia-node/header/sync"
+	"github.com/celestiaorg/celestia-node/libs/fxutil"
+	"github.com/celestiaorg/celestia-node/params"
+	headerservice "github.com/celestiaorg/celestia-node/service/header"
 )
 
 // HeaderService creates a new header.Service.

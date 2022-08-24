@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/celestiaorg/celestia-node/node/header"
+	"github.com/celestiaorg/celestia-node/node/share"
 	"io"
 	"os"
 
@@ -11,7 +12,6 @@ import (
 
 	"github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/p2p"
-	"github.com/celestiaorg/celestia-node/node/services"
 	"github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/service/rpc"
 )
@@ -22,12 +22,12 @@ type Loader func() (*Config, error)
 // Config is main configuration structure for a Node.
 // It combines configuration units for all Node subsystems.
 type Config struct {
-	Core     core.Config
-	State    state.Config
-	P2P      p2p.Config
-	RPC      rpc.Config
-	Services services.Config
-	Header   header.Config
+	Core   core.Config
+	State  state.Config
+	P2P    p2p.Config
+	RPC    rpc.Config
+	Share  share.Config
+	Header header.Config
 }
 
 // DefaultConfig provides a default Config for a given Node Type 'tp'.
@@ -36,28 +36,28 @@ func DefaultConfig(tp node.Type) *Config {
 	switch tp {
 	case node.Bridge:
 		return &Config{
-			Core:     core.DefaultConfig(),
-			State:    state.DefaultConfig(),
-			P2P:      p2p.DefaultConfig(),
-			RPC:      rpc.DefaultConfig(),
-			Services: services.DefaultConfig(),
-			Header:   header.DefaultConfig(),
+			Core:   core.DefaultConfig(),
+			State:  state.DefaultConfig(),
+			P2P:    p2p.DefaultConfig(),
+			RPC:    rpc.DefaultConfig(),
+			Share:  share.DefaultConfig(),
+			Header: header.DefaultConfig(),
 		}
 	case node.Light:
 		return &Config{
-			State:    state.DefaultConfig(),
-			RPC:      rpc.DefaultConfig(),
-			P2P:      p2p.DefaultConfig(),
-			Services: services.DefaultConfig(),
-			Header:   header.DefaultConfig(),
+			State:  state.DefaultConfig(),
+			RPC:    rpc.DefaultConfig(),
+			P2P:    p2p.DefaultConfig(),
+			Share:  share.DefaultConfig(),
+			Header: header.DefaultConfig(),
 		}
 	case node.Full:
 		return &Config{
-			State:    state.DefaultConfig(),
-			RPC:      rpc.DefaultConfig(),
-			P2P:      p2p.DefaultConfig(),
-			Services: services.DefaultConfig(),
-			Header:   header.DefaultConfig(),
+			State:  state.DefaultConfig(),
+			RPC:    rpc.DefaultConfig(),
+			P2P:    p2p.DefaultConfig(),
+			Share:  share.DefaultConfig(),
+			Header: header.DefaultConfig(),
 		}
 	default:
 		panic("node: unknown Node Type")

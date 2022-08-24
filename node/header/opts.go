@@ -1,8 +1,6 @@
 package header
 
-import (
-	"go.uber.org/fx"
-)
+import "go.uber.org/fx"
 
 type Option func(*settings)
 
