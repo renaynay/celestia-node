@@ -1,13 +1,11 @@
 package share
 
 import (
+	"go.uber.org/fx"
+
 	"github.com/celestiaorg/celestia-node/node/node"
 	"github.com/celestiaorg/celestia-node/service/share"
-	logging "github.com/ipfs/go-log/v2"
-	"go.uber.org/fx"
 )
-
-var log = logging.Logger("share-module")
 
 func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 	sets := &settings{cfg: &cfg}

@@ -3,10 +3,11 @@ package swamp
 import (
 	"context"
 	"fmt"
-	"github.com/celestiaorg/celestia-node/node/header"
 	"math/rand"
 	"net"
 	"testing"
+
+	"github.com/celestiaorg/celestia-node/node/header"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"

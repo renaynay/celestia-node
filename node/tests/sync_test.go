@@ -2,9 +2,10 @@ package tests
 
 import (
 	"context"
-	"github.com/celestiaorg/celestia-node/node/header"
 	"testing"
 	"time"
+
+	"github.com/celestiaorg/celestia-node/node/header"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -99,7 +100,11 @@ func TestSyncStartStopLightWithBridge(t *testing.T) {
 	require.NoError(t, err)
 
 	store := nodebuilder.MockStore(t, nodebuilder.DefaultConfig(node.Light))
-	light := sw.NewNodeWithStore(node.Light, store, nodebuilder.WithHeaderOption(header.WithTrustedPeers(addrs[0].String())))
+	light := sw.NewNodeWithStore(
+		node.Light,
+		store,
+		nodebuilder.WithHeaderOption(header.WithTrustedPeers(addrs[0].String())),
+	)
 	require.NoError(t, light.Start(ctx))
 
 	h, err = light.HeaderServ.GetByHeight(ctx, 30)
@@ -110,7 +115,11 @@ func TestSyncStartStopLightWithBridge(t *testing.T) {
 	require.NoError(t, light.Stop(ctx))
 	require.NoError(t, sw.RemoveNode(light, node.Light))
 
-	light = sw.NewNodeWithStore(node.Light, store, nodebuilder.WithHeaderOption(header.WithTrustedPeers(addrs[0].String())))
+	light = sw.NewNodeWithStore(
+		node.Light,
+		store,
+		nodebuilder.WithHeaderOption(header.WithTrustedPeers(addrs[0].String())),
+	)
 	require.NoError(t, light.Start(ctx))
 
 	h, err = light.HeaderServ.GetByHeight(ctx, 40)

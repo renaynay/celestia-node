@@ -1,13 +1,14 @@
 package share
 
 import (
-	"github.com/celestiaorg/celestia-node/service/share"
 	"github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/routing"
 	routingdisc "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	"go.uber.org/fx"
+
+	"github.com/celestiaorg/celestia-node/service/share"
 )
 
 // ShareService constructs new share.Service.

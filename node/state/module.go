@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+
 	"github.com/celestiaorg/celestia-node/node/header"
 
 	logging "github.com/ipfs/go-log/v2"

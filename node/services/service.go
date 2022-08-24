@@ -2,7 +2,10 @@ package services
 
 import (
 	"context"
+
 	"go.uber.org/fx"
+
+	"github.com/ipfs/go-datastore"
 
 	"github.com/celestiaorg/celestia-node/das"
 	"github.com/celestiaorg/celestia-node/fraud"
@@ -10,7 +13,6 @@ import (
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	nodeheader "github.com/celestiaorg/celestia-node/node/header"
 	"github.com/celestiaorg/celestia-node/service/share"
-	"github.com/ipfs/go-datastore"
 )
 
 // DASer constructs a new Data Availability Sampler.

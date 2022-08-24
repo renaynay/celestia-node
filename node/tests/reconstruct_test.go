@@ -7,10 +7,11 @@ package tests
 
 import (
 	"context"
-	"github.com/celestiaorg/celestia-node/node/header"
-	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 	"testing"
 	"time"
+
+	"github.com/celestiaorg/celestia-node/node/header"
+	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 
 	"github.com/libp2p/go-libp2p-core/event"
 	"github.com/libp2p/go-libp2p-core/host"

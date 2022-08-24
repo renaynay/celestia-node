@@ -1,8 +1,9 @@
 package share
 
 import (
-	"go.uber.org/fx"
 	"time"
+
+	"go.uber.org/fx"
 )
 
 type Option func(*settings)

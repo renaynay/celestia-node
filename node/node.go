@@ -3,9 +3,10 @@ package node
 import (
 	"context"
 	"fmt"
-	headermodule "github.com/celestiaorg/celestia-node/node/header"
 	"strings"
 	"time"
+
+	headermodule "github.com/celestiaorg/celestia-node/node/header"
 
 	"github.com/ipfs/go-blockservice"
 	exchange "github.com/ipfs/go-ipfs-exchange-interface"

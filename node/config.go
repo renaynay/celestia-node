@@ -1,10 +1,11 @@
 package node
 
 import (
-	"github.com/celestiaorg/celestia-node/node/header"
-	"github.com/celestiaorg/celestia-node/node/share"
 	"io"
 	"os"
+
+	"github.com/celestiaorg/celestia-node/node/header"
+	"github.com/celestiaorg/celestia-node/node/share"
 
 	"github.com/BurntSushi/toml"
 

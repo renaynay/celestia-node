@@ -2,8 +2,9 @@ package node
 
 import (
 	"encoding/hex"
-	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 	"time"
+
+	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
