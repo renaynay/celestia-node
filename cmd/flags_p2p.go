@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	p2pmodule "github.com/celestiaorg/celestia-node/node/p2p"
+
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -46,7 +48,7 @@ func ParseP2PFlags(ctx context.Context, cmd *cobra.Command) (context.Context, er
 	}
 
 	if len(mutualPeers) != 0 {
-		ctx = WithNodeOptions(ctx, node.WithMutualPeers(mutualPeers))
+		ctx = WithNodeOptions(ctx, node.WithP2POption(p2pmodule.WithMutualPeers(mutualPeers)))
 	}
 	return ctx, nil
 }

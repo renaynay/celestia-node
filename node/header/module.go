@@ -12,8 +12,8 @@ import (
 
 var log = logging.Logger("header-module")
 
-func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
-	sets := &settings{cfg: &cfg}
+func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
+	sets := &settings{cfg: cfg}
 	for _, option := range options {
 		option(sets)
 	}
@@ -22,7 +22,7 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 		fx.Options(sets.opts...),
 		fx.Provide(Service),
 		fx.Provide(Store),
-		fx.Invoke(InitStore(&cfg)),
+		fx.Invoke(InitStore(cfg)),
 		fxutil.ProvideAs(FraudService, new(fraud.Service), new(fraud.Subscriber)),
 		fx.Provide(Syncer),
 		fxutil.ProvideAs(P2PSubscriber, new(header.Broadcaster), new(header.Subscriber)),
@@ -34,7 +34,7 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 		return fx.Module(
 			"header",
 			baseOptions,
-			fx.Provide(P2PExchange(cfg)),
+			fx.Provide(P2PExchange(*cfg)),
 		)
 	case node.Bridge:
 		return fx.Module(

@@ -6,7 +6,6 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	ma "github.com/multiformats/go-multiaddr"
-	"go.uber.org/fx"
 )
 
 const defaultRoutingRefreshPeriod = time.Minute
@@ -59,26 +58,6 @@ func DefaultConfig() Config {
 		ConnManager:               DefaultConnManagerConfig(),
 		RoutingTableRefreshPeriod: defaultRoutingRefreshPeriod,
 	}
-}
-
-// Components collects all the components and services related to p2p.
-func Components(cfg Config) fx.Option {
-	return fx.Options(
-		fx.Provide(Key),
-		fx.Provide(ID),
-		fx.Provide(PeerStore),
-		fx.Provide(ConnectionManager(cfg)),
-		fx.Provide(ConnectionGater),
-		fx.Provide(Host(cfg)),
-		fx.Provide(RoutedHost),
-		fx.Provide(PubSub(cfg)),
-		fx.Provide(DataExchange(cfg)),
-		fx.Provide(BlockService),
-		fx.Provide(PeerRouting(cfg)),
-		fx.Provide(ContentRouting),
-		fx.Provide(AddrsFactory(cfg.AnnounceAddresses, cfg.NoAnnounceAddresses)),
-		fx.Invoke(Listen(cfg.ListenAddresses)),
-	)
 }
 
 func (cfg *Config) mutualPeers() (_ []peer.AddrInfo, err error) {

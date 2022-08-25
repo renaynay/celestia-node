@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/celestiaorg/celestia-node/node/p2p"
+
 	"github.com/celestiaorg/celestia-node/node/header"
 	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 
@@ -113,7 +115,7 @@ func TestFullReconstructFromLights(t *testing.T) {
 
 	const defaultTimeInterval = time.Second * 5
 	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		nodebuilder.WithP2POption(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
 		nodebuilder.WithShareOption(sharemodule.WithDiscoveryInterval(defaultTimeInterval)),
 		nodebuilder.WithShareOption(sharemodule.WithAdvertiseInterval(defaultTimeInterval)),
 	}

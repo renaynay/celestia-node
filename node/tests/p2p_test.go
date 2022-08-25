@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/celestiaorg/celestia-node/node/p2p"
+
 	"github.com/celestiaorg/celestia-node/node/share"
 
 	"github.com/stretchr/testify/assert"
@@ -97,7 +99,7 @@ func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 10
 	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		nodebuilder.WithP2POption(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
 		nodebuilder.WithShareOption(share.WithDiscoveryInterval(defaultTimeInterval)),
 		nodebuilder.WithShareOption(share.WithAdvertiseInterval(defaultTimeInterval)),
 	}
@@ -173,7 +175,7 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	const fullNodes = 2
 	var defaultOptions = []nodebuilder.Option{
 		nodebuilder.WithShareOption(share.WithPeersLimit(fullNodes)),
-		nodebuilder.WithRefreshRoutingTablePeriod(defaultTimeInterval),
+		nodebuilder.WithP2POption(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
 		nodebuilder.WithShareOption(share.WithDiscoveryInterval(defaultTimeInterval)),
 		nodebuilder.WithShareOption(share.WithAdvertiseInterval(defaultTimeInterval)),
 	}

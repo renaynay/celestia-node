@@ -11,8 +11,8 @@ import (
 	shareServ "github.com/celestiaorg/celestia-node/service/share"
 )
 
-func Module(tp node.Type, cfg rpcServ.Config, options ...Option) fx.Option {
-	sets := &settings{cfg: &cfg}
+func Module(tp node.Type, cfg *rpcServ.Config, options ...Option) fx.Option {
+	sets := &settings{cfg: cfg}
 	for _, option := range options {
 		option(sets)
 	}
@@ -20,13 +20,13 @@ func Module(tp node.Type, cfg rpcServ.Config, options ...Option) fx.Option {
 	case node.Light, node.Full:
 		return fx.Module(
 			"rpc",
-			fx.Provide(Server(cfg)),
+			fx.Provide(Server(*cfg)),
 			fx.Invoke(Handler),
 		)
 	case node.Bridge:
 		return fx.Module(
 			"rpc",
-			fx.Provide(Server(cfg)),
+			fx.Provide(Server(*cfg)),
 			fx.Invoke(func(
 				state *stateServ.Service,
 				share *shareServ.Service,

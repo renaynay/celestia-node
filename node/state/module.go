@@ -19,8 +19,8 @@ var log = logging.Logger("state-module")
 
 // Module provides all components necessary to construct the
 // state service.
-func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
-	sets := &settings{cfg: &cfg}
+func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
+	sets := &settings{cfg: cfg}
 	for _, option := range options {
 		option(sets)
 	}

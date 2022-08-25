@@ -256,7 +256,7 @@ func (s *Swamp) newNode(t node.Type, store nodebldr.Store, options ...nodebldr.O
 	// like <core, host, hash> from the test case, we need to check them and not use
 	// default that are set here
 	options = append(options,
-		nodebldr.WithHost(s.createPeer(ks)),
+		nodebldr.WithP2POption(p2p.WithHost(s.createPeer(ks))),
 		nodebldr.WithHeaderOption(header.WithTrustedHash(s.trustedHash)),
 		nodebldr.WithNetwork(params.Private),
 		nodebldr.WithRPCOption(rpcmodule.WithRPCPort("0")),

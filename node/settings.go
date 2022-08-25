@@ -1,11 +1,6 @@
 package node
 
 import (
-	"encoding/hex"
-	"time"
-
-	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/host"
 	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/core"
@@ -13,7 +8,7 @@ import (
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	coremodule "github.com/celestiaorg/celestia-node/node/core"
 	headermodule "github.com/celestiaorg/celestia-node/node/header"
-	"github.com/celestiaorg/celestia-node/node/p2p"
+	p2pmodule "github.com/celestiaorg/celestia-node/node/p2p"
 	rpcmodule "github.com/celestiaorg/celestia-node/node/rpc"
 	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 	statemodule "github.com/celestiaorg/celestia-node/node/state"
@@ -35,6 +30,7 @@ type ModuleOpts struct {
 	Header []headermodule.Option
 	Share  []sharemodule.Option
 	RPC    []rpcmodule.Option
+	P2P    []p2pmodule.Option
 	Core   []coremodule.Option
 }
 
@@ -47,7 +43,7 @@ func WithStateOption(option statemodule.Option) Option {
 	}
 }
 
-// WithHeaderOption is a top level option which allows customization for state module.
+// WithHeaderOption is a top level option which allows customization for header module.
 // NOTE: See WithStateOption
 func WithHeaderOption(option headermodule.Option) Option {
 	return func(s *settings) {
@@ -55,7 +51,7 @@ func WithHeaderOption(option headermodule.Option) Option {
 	}
 }
 
-// WithShareOption is a top level option which allows customization for state module.
+// WithShareOption is a top level option which allows customization for share module.
 // NOTE: See WithStateOption
 func WithShareOption(option sharemodule.Option) Option {
 	return func(s *settings) {
@@ -63,7 +59,7 @@ func WithShareOption(option sharemodule.Option) Option {
 	}
 }
 
-// WithRPCOption is a top level option which allows customization for state module.
+// WithRPCOption is a top level option which allows customization for rpc module.
 // NOTE: See WithStateOption
 func WithRPCOption(option rpcmodule.Option) Option {
 	return func(s *settings) {
@@ -71,7 +67,7 @@ func WithRPCOption(option rpcmodule.Option) Option {
 	}
 }
 
-// WithCoreOption is a top level option which allows customization for state module.
+// WithCoreOption is a top level option which allows customization for core module.
 // NOTE: See WithStateOption
 func WithCoreOption(option coremodule.Option) Option {
 	return func(s *settings) {
@@ -79,55 +75,29 @@ func WithCoreOption(option coremodule.Option) Option {
 	}
 }
 
+// WithP2POption is a top level option which allows customization for P2P module.
+// NOTE: See WithStateOption
+func WithP2POption(option p2pmodule.Option) Option {
+	return func(s *settings) {
+		s.moduleOpts.P2P = append(s.moduleOpts.P2P, option)
+	}
+}
+
 // Option for Node's Config.
 type Option func(*settings)
+
+// WithCoreClient sets custom client for core process
+func WithCoreClient(client core.Client) Option {
+	return func(sets *settings) {
+		sets.opts = append(sets.opts, fxutil.ReplaceAs(client, new(core.Client)))
+	}
+}
 
 // WithNetwork specifies the Network to which the Node should connect to.
 // WARNING: Use this option with caution and never run the Node with different networks over the same persisted Store.
 func WithNetwork(net params.Network) Option {
 	return func(sets *settings) {
 		sets.opts = append(sets.opts, fx.Replace(net))
-	}
-}
-
-// WithP2PKey sets custom Ed25519 private key for p2p networking.
-func WithP2PKey(key crypto.PrivKey) Option {
-	return func(sets *settings) {
-		sets.opts = append(sets.opts, fxutil.ReplaceAs(key, new(crypto.PrivKey)))
-	}
-}
-
-// WithP2PKeyStr sets custom hex encoded Ed25519 private key for p2p networking.
-func WithP2PKeyStr(key string) Option {
-	return func(sets *settings) {
-		decKey, err := hex.DecodeString(key)
-		if err != nil {
-			sets.opts = append(sets.opts, fx.Error(err))
-			return
-		}
-
-		key, err := crypto.UnmarshalEd25519PrivateKey(decKey)
-		if err != nil {
-			sets.opts = append(sets.opts, fx.Error(err))
-			return
-		}
-
-		sets.opts = append(sets.opts, fxutil.ReplaceAs(key, new(crypto.PrivKey)))
-	}
-
-}
-
-// WithHost sets custom Host's data for p2p networking.
-func WithHost(hst host.Host) Option {
-	return func(sets *settings) {
-		sets.opts = append(sets.opts, fxutil.ReplaceAs(hst, new(p2p.HostBase)))
-	}
-}
-
-// WithCoreClient sets custom client for core process
-func WithCoreClient(client core.Client) Option {
-	return func(sets *settings) {
-		sets.opts = append(sets.opts, fxutil.ReplaceAs(client, new(core.Client)))
 	}
 }
 
@@ -150,14 +120,6 @@ func WithKeyringSigner(signer *apptypes.KeyringSigner) Option {
 func WithBootstrappers(peers params.Bootstrappers) Option {
 	return func(sets *settings) {
 		sets.opts = append(sets.opts, fx.Replace(peers))
-	}
-}
-
-// WithRefreshRoutingTablePeriod sets custom refresh period for dht.
-// Currently, it is used to speed up tests.
-func WithRefreshRoutingTablePeriod(interval time.Duration) Option {
-	return func(sets *settings) {
-		sets.cfg.P2P.RoutingTableRefreshPeriod = interval
 	}
 }
 

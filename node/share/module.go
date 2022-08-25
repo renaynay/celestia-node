@@ -7,8 +7,8 @@ import (
 	"github.com/celestiaorg/celestia-node/service/share"
 )
 
-func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
-	sets := &settings{cfg: &cfg}
+func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
+	sets := &settings{cfg: cfg}
 	for _, option := range options {
 		option(sets)
 	}
@@ -21,7 +21,7 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 			fx.Options(sets.opts...),
 			fx.Invoke(share.EnsureEmptySquareExists),
 			fx.Provide(Service),
-			fx.Provide(LightAvailability(cfg)),
+			fx.Provide(LightAvailability(*cfg)),
 			fx.Provide(CacheAvailability[*share.LightAvailability]),
 		)
 	case node.Bridge, node.Full:
@@ -31,7 +31,7 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 			fx.Options(sets.opts...),
 			fx.Invoke(share.EnsureEmptySquareExists),
 			fx.Provide(Service),
-			fx.Provide(FullAvailability(cfg)),
+			fx.Provide(FullAvailability(*cfg)),
 			fx.Provide(CacheAvailability[*share.FullAvailability]),
 		)
 	default:

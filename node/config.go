@@ -89,6 +89,13 @@ func LoadConfig(path string) (*Config, error) {
 	return &cfg, cfg.Decode(f)
 }
 
+// WithConfig sets the entire custom config.
+func WithConfig(custom *Config) Option {
+	return func(sets *settings) {
+		sets.cfg = custom
+	}
+}
+
 // Encode encodes a given Config into w.
 // TODO(@Wondertan): We should have a description for each field written into w,
 //  so users can instantly understand purpose of each field. Ideally, we should have a utility program to parse comments

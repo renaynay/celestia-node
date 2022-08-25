@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/celestiaorg/celestia-node/node/p2p"
+
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/raulk/go-watchdog"
 	"go.uber.org/fx"
@@ -13,7 +15,6 @@ import (
 	"github.com/celestiaorg/celestia-node/node/daser"
 	"github.com/celestiaorg/celestia-node/node/header"
 	"github.com/celestiaorg/celestia-node/node/node"
-	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/rpc"
 	"github.com/celestiaorg/celestia-node/node/share"
 	"github.com/celestiaorg/celestia-node/node/state"
@@ -30,15 +31,14 @@ func Module(tp node.Type, cfg *Config, store Store, moduleOpts ModuleOpts) fx.Op
 		fx.Supply(store.Config),
 		fx.Provide(store.Datastore),
 		fx.Provide(store.Keystore),
-		// p2p components
 		fx.Invoke(invokeWatchdog(store.Path())),
-		p2p.Components(cfg.P2P),
 		// refactored node modules
-		state.Module(tp, cfg.State, moduleOpts.State...),
-		header.Module(tp, cfg.Header, moduleOpts.Header...),
-		share.Module(tp, cfg.Share, moduleOpts.Share...),
-		rpc.Module(tp, cfg.RPC, moduleOpts.RPC...),
-		core.Module(tp, cfg.Core, moduleOpts.Core...),
+		p2p.Module(&cfg.P2P, moduleOpts.P2P...),
+		state.Module(tp, &cfg.State, moduleOpts.State...),
+		header.Module(tp, &cfg.Header, moduleOpts.Header...),
+		share.Module(tp, &cfg.Share, moduleOpts.Share...),
+		rpc.Module(tp, &cfg.RPC, moduleOpts.RPC...),
+		core.Module(tp, &cfg.Core, moduleOpts.Core...),
 		daser.Module(tp),
 	)
 
