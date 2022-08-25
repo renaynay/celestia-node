@@ -2,27 +2,25 @@ package node
 
 import (
 	"context"
-	"github.com/celestiaorg/celestia-node/node"
+	"sync"
+	"time"
+
+	logging "github.com/ipfs/go-log/v2"
+	"github.com/raulk/go-watchdog"
+	"go.uber.org/fx"
+
 	"github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/header"
+	"github.com/celestiaorg/celestia-node/node/node"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/rpc"
 	"github.com/celestiaorg/celestia-node/node/services"
 	"github.com/celestiaorg/celestia-node/node/share"
 	"github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
-	headerServ "github.com/celestiaorg/celestia-node/service/header"
-	rpcServ "github.com/celestiaorg/celestia-node/service/rpc"
-	shareServ "github.com/celestiaorg/celestia-node/service/share"
-	stateServ "github.com/celestiaorg/celestia-node/service/state"
-	logging "github.com/ipfs/go-log/v2"
-	"github.com/raulk/go-watchdog"
-	"go.uber.org/fx"
-	"sync"
-	"time"
 )
 
-func Module(tp Type, cfg *node.Config, store node.Store, moduleOpts node.ModuleOpts) fx.Option {
+func Module(tp node.Type, cfg *Config, store Store, moduleOpts ModuleOpts) fx.Option {
 
 	baseComponents := fx.Options(
 		fx.Provide(params.DefaultNetwork),
@@ -44,35 +42,25 @@ func Module(tp Type, cfg *node.Config, store node.Store, moduleOpts node.ModuleO
 	)
 
 	switch tp {
-	case Light:
+	case node.Light:
 		return fx.Module(
 			"node",
-			fx.Supply(Light),
+			fx.Supply(node.Light),
 			baseComponents,
 			fx.Provide(services.DASer),
-			fx.Invoke(rpc.Handler),
 		)
-	case Bridge:
+	case node.Bridge:
 		return fx.Module(
 			"node",
-			fx.Supply(Bridge),
+			fx.Supply(node.Bridge),
 			baseComponents,
-			fx.Invoke(func(
-				state *stateServ.Service,
-				share *shareServ.Service,
-				header *headerServ.Service,
-				rpcSrv *rpcServ.Server,
-			) {
-				rpc.Handler(state, share, header, rpcSrv, nil)
-			}),
 		)
-	case Full:
+	case node.Full:
 		return fx.Module(
 			"node",
-			fx.Supply(Full),
+			fx.Supply(node.Full),
 			baseComponents,
 			fx.Provide(services.DASer),
-			fx.Invoke(rpc.Handler),
 		)
 	default:
 		panic("wrong node type")

@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/celestiaorg/celestia-node/node/rpc"
+
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/stretchr/testify/require"
@@ -15,6 +17,7 @@ import (
 	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
 
 	"github.com/celestiaorg/celestia-node/core"
+	coremodule "github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/node"
 	"github.com/celestiaorg/celestia-node/params"
 )
@@ -39,10 +42,10 @@ func TestNode(t *testing.T, tp node.Type, opts ...Option) *Node {
 	ip, port, err := net.SplitHostPort(endpoint)
 	require.NoError(t, err)
 	opts = append(opts,
-		WithRemoteCoreIP(ip),
-		WithRemoteCorePort(port),
+		WithCoreOption(coremodule.WithRemoteCoreIP(ip)),
+		WithCoreOption(coremodule.WithRemoteCorePort(port)),
 		WithNetwork(params.Private),
-		WithRPCPort("0"),
+		WithRPCOption(rpc.WithRPCPort("0")),
 		WithKeyringSigner(TestKeyringSigner(t)),
 	)
 	nd, err := New(tp, store, opts...)

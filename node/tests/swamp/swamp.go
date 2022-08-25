@@ -7,6 +7,8 @@ import (
 	"net"
 	"testing"
 
+	rpcmodule "github.com/celestiaorg/celestia-node/node/rpc"
+
 	"github.com/celestiaorg/celestia-node/node/header"
 
 	"github.com/libp2p/go-libp2p-core/host"
@@ -257,7 +259,7 @@ func (s *Swamp) newNode(t node.Type, store nodebldr.Store, options ...nodebldr.O
 		nodebldr.WithHost(s.createPeer(ks)),
 		nodebldr.WithHeaderOption(header.WithTrustedHash(s.trustedHash)),
 		nodebldr.WithNetwork(params.Private),
-		nodebldr.WithRPCPort("0"),
+		nodebldr.WithRPCOption(rpcmodule.WithRPCPort("0")),
 	)
 
 	node, err := nodebldr.New(t, store, options...)

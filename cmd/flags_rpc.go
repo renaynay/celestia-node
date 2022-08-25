@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 
+	rpcmodule "github.com/celestiaorg/celestia-node/node/rpc"
+
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
@@ -36,11 +38,11 @@ func RPCFlags() *flag.FlagSet {
 func ParseRPCFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
 	addr := cmd.Flag(addrFlag).Value.String()
 	if addr != "" {
-		ctx = WithNodeOptions(ctx, node.WithRPCAddress(addr))
+		ctx = WithNodeOptions(ctx, node.WithRPCOption(rpcmodule.WithRPCAddress(addr)))
 	}
 	port := cmd.Flag(portFlag).Value.String()
 	if port != "" {
-		ctx = WithNodeOptions(ctx, node.WithRPCPort(port))
+		ctx = WithNodeOptions(ctx, node.WithRPCOption(rpcmodule.WithRPCPort(port)))
 	}
 	return ctx, nil
 }

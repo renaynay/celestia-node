@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	coremodule "github.com/celestiaorg/celestia-node/node/core"
+
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
@@ -63,7 +65,11 @@ func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, e
 	if err != nil {
 		return ctx, err
 	}
-	ctx = WithNodeOptions(ctx, node.WithRemoteCoreIP(ip), node.WithRemoteCorePort(rpc))
+	ctx = WithNodeOptions(
+		ctx,
+		node.WithCoreOption(coremodule.WithRemoteCoreIP(ip)),
+		node.WithCoreOption(coremodule.WithRemoteCorePort(rpc)),
+	)
 
 	grpc := cmd.Flag(coreGRPCFlag).Value.String()
 	// sanity check gRPC endpoint
@@ -71,7 +77,7 @@ func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, e
 	if err != nil {
 		return ctx, err
 	}
-	ctx = WithNodeOptions(ctx, node.WithGRPCPort(grpc))
+	ctx = WithNodeOptions(ctx, node.WithCoreOption(coremodule.WithGRPCPort(grpc)))
 	return ctx, nil
 }
 

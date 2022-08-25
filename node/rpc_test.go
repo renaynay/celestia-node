@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 
+	rpcmodule "github.com/celestiaorg/celestia-node/node/rpc"
+
 	"github.com/ipfs/go-datastore"
 	ds_sync "github.com/ipfs/go-datastore/sync"
 	"github.com/stretchr/testify/assert"
@@ -217,12 +219,11 @@ func setupNodeWithModifiedRPC(t *testing.T) *Node {
 			}
 		}))
 	}
-	overrideRPCHandler := func(sets *settings) {
-		sets.opts = append(sets.opts, fx.Invoke(func(srv *rpc.Server) {
+	overrideRPCHandler := WithRPCOption(
+		rpcmodule.WithOption(fx.Invoke(func(srv *rpc.Server) {
 			handler := rpc.NewHandler(nil, nil, hServ, daser)
 			handler.RegisterEndpoints(srv)
-		}))
-	}
+		})))
 	nd := TestNode(t, node.Full, overrideHeaderServ, overrideDASer, overrideRPCHandler)
 	// start node
 	err := nd.Start(ctx)

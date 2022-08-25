@@ -4,6 +4,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/celestiaorg/celestia-node/service/rpc"
+
 	"github.com/celestiaorg/celestia-node/node/header"
 	"github.com/celestiaorg/celestia-node/node/share"
 
@@ -13,7 +15,6 @@ import (
 
 	"github.com/celestiaorg/celestia-node/node/core"
 	"github.com/celestiaorg/celestia-node/node/p2p"
-	"github.com/celestiaorg/celestia-node/node/rpc"
 	"github.com/celestiaorg/celestia-node/node/state"
 )
 

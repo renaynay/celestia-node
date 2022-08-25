@@ -1,16 +1,17 @@
 package rpc
 
 import (
+	"go.uber.org/fx"
+
 	headerServ "github.com/celestiaorg/celestia-node/service/header"
 	rpcServ "github.com/celestiaorg/celestia-node/service/rpc"
 	stateServ "github.com/celestiaorg/celestia-node/service/state"
-	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/node/node"
 	shareServ "github.com/celestiaorg/celestia-node/service/share"
 )
 
-func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
+func Module(tp node.Type, cfg rpcServ.Config, options ...Option) fx.Option {
 	sets := &settings{cfg: &cfg}
 	for _, option := range options {
 		option(sets)
@@ -19,13 +20,13 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 	case node.Light, node.Full:
 		return fx.Module(
 			"rpc",
-			fx.Provide(Server),
+			fx.Provide(Server(cfg)),
 			fx.Invoke(Handler),
 		)
 	case node.Bridge:
 		return fx.Module(
 			"rpc",
-			fx.Provide(Server),
+			fx.Provide(Server(cfg)),
 			fx.Invoke(func(
 				state *stateServ.Service,
 				share *shareServ.Service,

@@ -28,6 +28,7 @@ func Module(tp node.Type, cfg Config, options ...Option) fx.Option {
 		fxutil.ProvideAs(P2PSubscriber, new(header.Broadcaster), new(header.Subscriber)),
 		fx.Provide(P2PExchangeServer),
 	)
+
 	switch tp {
 	case node.Light, node.Full:
 		return fx.Module(
