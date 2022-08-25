@@ -4,25 +4,22 @@ import (
 	"encoding/hex"
 	"time"
 
-	sharemodule "github.com/celestiaorg/celestia-node/node/share"
-
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"go.uber.org/fx"
 
-	coremodule "github.com/celestiaorg/celestia-node/node/core"
-	headermodule "github.com/celestiaorg/celestia-node/node/header"
-	rpcmodule "github.com/celestiaorg/celestia-node/node/rpc"
-	statemodule "github.com/celestiaorg/celestia-node/node/state"
-
-	"github.com/celestiaorg/celestia-node/node/services"
-
-	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
+	coremodule "github.com/celestiaorg/celestia-node/node/core"
+	headermodule "github.com/celestiaorg/celestia-node/node/header"
 	"github.com/celestiaorg/celestia-node/node/p2p"
+	rpcmodule "github.com/celestiaorg/celestia-node/node/rpc"
+	sharemodule "github.com/celestiaorg/celestia-node/node/share"
+	statemodule "github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
+
+	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
 )
 
 // settings store values that can be augmented or changed for Node with Options.
@@ -170,6 +167,11 @@ func WithMetrics(enable bool) Option {
 		if !enable {
 			return
 		}
-		sets.opts = append(sets.opts, services.Metrics())
+		sets.opts = append(sets.opts,
+			fx.Options(
+				fx.Invoke(header.MonitorHead),
+				// add more monitoring here
+			),
+		)
 	}
 }

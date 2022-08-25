@@ -1,4 +1,4 @@
-package services
+package daser
 
 import (
 	"context"
@@ -35,12 +35,4 @@ func DASer(
 	})
 
 	return das
-}
-
-// Metrics enables metrics for services.
-func Metrics() fx.Option {
-	return fx.Options(
-		fx.Invoke(header.MonitorHead),
-		// add more monitoring here
-	)
 }

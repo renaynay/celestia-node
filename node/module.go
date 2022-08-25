@@ -10,11 +10,11 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/node/core"
+	"github.com/celestiaorg/celestia-node/node/daser"
 	"github.com/celestiaorg/celestia-node/node/header"
 	"github.com/celestiaorg/celestia-node/node/node"
 	"github.com/celestiaorg/celestia-node/node/p2p"
 	"github.com/celestiaorg/celestia-node/node/rpc"
-	"github.com/celestiaorg/celestia-node/node/services"
 	"github.com/celestiaorg/celestia-node/node/share"
 	"github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
@@ -39,32 +39,14 @@ func Module(tp node.Type, cfg *Config, store Store, moduleOpts ModuleOpts) fx.Op
 		share.Module(tp, cfg.Share, moduleOpts.Share...),
 		rpc.Module(tp, cfg.RPC, moduleOpts.RPC...),
 		core.Module(tp, cfg.Core, moduleOpts.Core...),
+		daser.Module(tp),
 	)
 
-	switch tp {
-	case node.Light:
-		return fx.Module(
-			"node",
-			fx.Supply(node.Light),
-			baseComponents,
-			fx.Provide(services.DASer),
-		)
-	case node.Bridge:
-		return fx.Module(
-			"node",
-			fx.Supply(node.Bridge),
-			baseComponents,
-		)
-	case node.Full:
-		return fx.Module(
-			"node",
-			fx.Supply(node.Full),
-			baseComponents,
-			fx.Provide(services.DASer),
-		)
-	default:
-		panic("wrong node type")
-	}
+	return fx.Module(
+		"node",
+		fx.Supply(tp),
+		baseComponents,
+	)
 }
 
 // invokeWatchdog starts the memory watchdog that helps to prevent some of OOMs by forcing GCing
