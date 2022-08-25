@@ -1,6 +1,10 @@
 package header
 
-import "go.uber.org/fx"
+import (
+	"go.uber.org/fx"
+
+	"github.com/celestiaorg/celestia-node/header"
+)
 
 type Option func(*settings)
 
@@ -21,5 +25,15 @@ func WithTrustedHash(hash string) Option {
 func WithTrustedPeers(addr ...string) Option {
 	return func(sets *settings) {
 		sets.cfg.TrustedPeers = append(sets.cfg.TrustedPeers, addr...)
+	}
+}
+
+// WithMetrics enables metrics exporting for the node.
+func WithMetrics(enable bool) Option {
+	return func(sets *settings) {
+		if !enable {
+			return
+		}
+		sets.opts = append(sets.opts, fx.Options(fx.Invoke(header.MonitorHead)))
 	}
 }

@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	core2 "github.com/celestiaorg/celestia-node/node/core"
 
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/node/node"
@@ -20,12 +21,12 @@ func TestBridge_WithMockedCoreClient(t *testing.T) {
 	t.Cleanup(cancel)
 
 	_, client := core.StartTestClient(ctx, t)
-	node, err := New(node.Bridge, repo, WithCoreClient(client),
-		WithNetwork(params.Private))
+	node, err := New(node.Bridge, repo,
+		WithCoreOption(core2.WithClient(client)),
+		WithNetwork(params.Private),
+	)
 	require.NoError(t, err)
 	require.NotNil(t, node)
-	assert.True(t, node.CoreClient.IsRunning())
-
 	err = node.Start(ctx)
 	require.NoError(t, err)
 

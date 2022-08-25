@@ -7,7 +7,9 @@ import (
 	"net"
 	"testing"
 
+	coremodule "github.com/celestiaorg/celestia-node/node/core"
 	rpcmodule "github.com/celestiaorg/celestia-node/node/rpc"
+	"github.com/celestiaorg/celestia-node/node/state"
 
 	"github.com/celestiaorg/celestia-node/node/header"
 
@@ -228,12 +230,14 @@ func (s *Swamp) NewLightNode(options ...nodebldr.Option) *nodebldr.Node {
 func (s *Swamp) NewNodeWithStore(t node.Type, store nodebldr.Store, options ...nodebldr.Option) *nodebldr.Node {
 	var n *nodebldr.Node
 
-	options = append(options, nodebldr.WithKeyringSigner(nodebldr.TestKeyringSigner(s.t)))
+	options = append(options,
+		nodebldr.WithStateOption(state.WithKeyringSigner(nodebldr.TestKeyringSigner(s.t))),
+	)
 
 	switch t {
 	case node.Bridge:
 		options = append(options,
-			nodebldr.WithCoreClient(s.CoreClient),
+			nodebldr.WithCoreOption(coremodule.WithClient(s.CoreClient)),
 		)
 		n = s.newNode(node.Bridge, store, options...)
 		s.BridgeNodes = append(s.BridgeNodes, n)

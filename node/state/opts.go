@@ -2,6 +2,8 @@ package state
 
 import (
 	"go.uber.org/fx"
+
+	"github.com/celestiaorg/celestia-app/x/payment/types"
 )
 
 type Option func(*settings)
@@ -16,5 +18,13 @@ type settings struct {
 func WithKeyringAccName(name string) Option {
 	return func(sets *settings) {
 		sets.cfg.KeyringAccName = name
+	}
+}
+
+// WithKeyringSigner overrides the default keyring signer constructed
+// by the node.
+func WithKeyringSigner(signer *types.KeyringSigner) Option {
+	return func(sets *settings) {
+		sets.opts = append(sets.opts, fx.Replace(signer))
 	}
 }

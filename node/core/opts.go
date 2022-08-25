@@ -1,6 +1,13 @@
 package core
 
-import "go.uber.org/fx"
+import (
+	"go.uber.org/fx"
+
+	"github.com/celestiaorg/celestia-node/header"
+	"github.com/celestiaorg/celestia-node/libs/fxutil"
+
+	"github.com/celestiaorg/celestia-node/core"
+)
 
 type Option func(*settings)
 
@@ -29,5 +36,19 @@ func WithRemoteCorePort(port string) Option {
 func WithGRPCPort(port string) Option {
 	return func(sets *settings) {
 		sets.cfg.GRPCPort = port
+	}
+}
+
+// WithClient sets custom client for core process
+func WithClient(client core.Client) Option {
+	return func(sets *settings) {
+		sets.opts = append(sets.opts, fxutil.ReplaceAs(client, new(core.Client)))
+	}
+}
+
+// WithHeaderConstructFn sets custom func that creates extended header
+func WithHeaderConstructFn(construct header.ConstructFn) Option {
+	return func(sets *settings) {
+		sets.opts = append(sets.opts, fx.Replace(construct))
 	}
 }

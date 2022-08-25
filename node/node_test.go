@@ -15,7 +15,7 @@ func TestLifecycle(t *testing.T) {
 		tp           node.Type
 		coreExpected bool
 	}{
-		{tp: node.Bridge, coreExpected: true},
+		{tp: node.Bridge},
 		{tp: node.Full},
 		{tp: node.Light},
 	}
@@ -29,10 +29,6 @@ func TestLifecycle(t *testing.T) {
 			require.NotNil(t, node.HeaderServ)
 			require.NotNil(t, node.StateServ)
 			require.Equal(t, tt.tp, node.Type)
-
-			if tt.coreExpected {
-				require.NotNil(t, node.CoreClient)
-			}
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()

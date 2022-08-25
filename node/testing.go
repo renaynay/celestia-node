@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/celestiaorg/celestia-node/node/rpc"
+	"github.com/celestiaorg/celestia-node/node/state"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -46,7 +47,7 @@ func TestNode(t *testing.T, tp node.Type, opts ...Option) *Node {
 		WithCoreOption(coremodule.WithRemoteCorePort(port)),
 		WithNetwork(params.Private),
 		WithRPCOption(rpc.WithRPCPort("0")),
-		WithKeyringSigner(TestKeyringSigner(t)),
+		WithStateOption(state.WithKeyringSigner(TestKeyringSigner(t))),
 	)
 	nd, err := New(tp, store, opts...)
 	require.NoError(t, err)

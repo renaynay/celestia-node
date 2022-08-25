@@ -9,6 +9,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"
 
+	"github.com/celestiaorg/celestia-node/node/core"
+
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/header"
 	nodebuilder "github.com/celestiaorg/celestia-node/node"
@@ -33,7 +35,7 @@ import (
 func TestFraudProofBroadcasting(t *testing.T) {
 	sw := swamp.NewSwamp(t, swamp.WithBlockTime(time.Millisecond*100))
 
-	bridge := sw.NewBridgeNode(nodebuilder.WithHeaderConstructFn(header.FraudMaker(t, 10)))
+	bridge := sw.NewBridgeNode(nodebuilder.WithCoreOption(core.WithHeaderConstructFn(header.FraudMaker(t, 10))))
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	t.Cleanup(cancel)

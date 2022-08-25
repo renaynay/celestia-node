@@ -16,7 +16,6 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/net/conngater"
 	"go.uber.org/fx"
 
-	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/das"
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/node/node"
@@ -45,8 +44,8 @@ type Node struct {
 	Bootstrappers params.Bootstrappers
 	Config        *Config
 
-	// CoreClient provides access to a Core node process.
-	CoreClient core.Client `optional:"true"`
+	// // CoreClient provides access to a Core node process.
+	// CoreClient core.Client `optional:"true"`
 
 	// rpc components
 	RPCServer *rpc.Server `optional:"true"`

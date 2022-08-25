@@ -3,9 +3,6 @@ package node
 import (
 	"go.uber.org/fx"
 
-	"github.com/celestiaorg/celestia-node/core"
-	"github.com/celestiaorg/celestia-node/header"
-	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	coremodule "github.com/celestiaorg/celestia-node/node/core"
 	headermodule "github.com/celestiaorg/celestia-node/node/header"
 	p2pmodule "github.com/celestiaorg/celestia-node/node/p2p"
@@ -13,8 +10,6 @@ import (
 	sharemodule "github.com/celestiaorg/celestia-node/node/share"
 	statemodule "github.com/celestiaorg/celestia-node/node/state"
 	"github.com/celestiaorg/celestia-node/params"
-
-	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
 )
 
 // settings store values that can be augmented or changed for Node with Options.
@@ -86,33 +81,11 @@ func WithP2POption(option p2pmodule.Option) Option {
 // Option for Node's Config.
 type Option func(*settings)
 
-// WithCoreClient sets custom client for core process
-func WithCoreClient(client core.Client) Option {
-	return func(sets *settings) {
-		sets.opts = append(sets.opts, fxutil.ReplaceAs(client, new(core.Client)))
-	}
-}
-
 // WithNetwork specifies the Network to which the Node should connect to.
 // WARNING: Use this option with caution and never run the Node with different networks over the same persisted Store.
 func WithNetwork(net params.Network) Option {
 	return func(sets *settings) {
 		sets.opts = append(sets.opts, fx.Replace(net))
-	}
-}
-
-// WithHeaderConstructFn sets custom func that creates extended header
-func WithHeaderConstructFn(construct header.ConstructFn) Option {
-	return func(sets *settings) {
-		sets.opts = append(sets.opts, fx.Replace(construct))
-	}
-}
-
-// WithKeyringSigner overrides the default keyring signer constructed
-// by the node.
-func WithKeyringSigner(signer *apptypes.KeyringSigner) Option {
-	return func(sets *settings) {
-		sets.opts = append(sets.opts, fx.Replace(signer))
 	}
 }
 
@@ -129,11 +102,6 @@ func WithMetrics(enable bool) Option {
 		if !enable {
 			return
 		}
-		sets.opts = append(sets.opts,
-			fx.Options(
-				fx.Invoke(header.MonitorHead),
-				// add more monitoring here
-			),
-		)
+		sets.moduleOpts.Header = append(sets.moduleOpts.Header, headermodule.WithMetrics(enable))
 	}
 }
