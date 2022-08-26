@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 
-	node2 "github.com/celestiaorg/celestia-node/node"
-	"github.com/celestiaorg/celestia-node/node/node"
+	"github.com/celestiaorg/celestia-node/nodebuilder"
+	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
 // NodeType reads the node type from the context.
@@ -28,16 +28,16 @@ func WithStorePath(ctx context.Context, storePath string) context.Context {
 }
 
 // NodeOptions returns config options parsed from Environment(Flags, ENV vars, etc)
-func NodeOptions(ctx context.Context) []node2.Option {
-	options, ok := ctx.Value(optionsKey{}).([]node2.Option)
+func NodeOptions(ctx context.Context) []nodebuilder.Option {
+	options, ok := ctx.Value(optionsKey{}).([]nodebuilder.Option)
 	if !ok {
-		return []node2.Option{}
+		return []nodebuilder.Option{}
 	}
 	return options
 }
 
 // WithNodeOptions add new options to Env.
-func WithNodeOptions(ctx context.Context, opts ...node2.Option) context.Context {
+func WithNodeOptions(ctx context.Context, opts ...nodebuilder.Option) context.Context {
 	options := NodeOptions(ctx)
 	return context.WithValue(ctx, optionsKey{}, append(options, opts...))
 }

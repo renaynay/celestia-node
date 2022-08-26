@@ -1,14 +1,13 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
-	nodebuilder "github.com/celestiaorg/celestia-node/node"
-
-	"context"
-
-	"github.com/celestiaorg/celestia-node/node/state"
+	"github.com/celestiaorg/celestia-node/nodebuilder"
+	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 var keyringAccNameFlag = "keyring.accname"

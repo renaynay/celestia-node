@@ -8,9 +8,8 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
-	node2 "github.com/celestiaorg/celestia-node/node"
-
-	"github.com/celestiaorg/celestia-node/node/node"
+	"github.com/celestiaorg/celestia-node/nodebuilder"
+	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
 var (
@@ -42,12 +41,12 @@ func ParseNodeFlags(ctx context.Context, cmd *cobra.Command) (context.Context, e
 
 	nodeConfig := cmd.Flag(nodeConfigFlag).Value.String()
 	if nodeConfig != "" {
-		cfg, err := node2.LoadConfig(nodeConfig)
+		cfg, err := nodebuilder.LoadConfig(nodeConfig)
 		if err != nil {
 			return ctx, fmt.Errorf("cmd: while parsing '%s': %w", nodeConfigFlag, err)
 		}
 
-		ctx = WithNodeOptions(ctx, node2.WithConfig(cfg))
+		ctx = WithNodeOptions(ctx, nodebuilder.WithConfig(cfg))
 	}
 
 	return ctx, nil
