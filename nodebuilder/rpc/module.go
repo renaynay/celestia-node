@@ -5,12 +5,11 @@ import (
 
 	"go.uber.org/fx"
 
+	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	headerServ "github.com/celestiaorg/celestia-node/service/header"
 	rpcServ "github.com/celestiaorg/celestia-node/service/rpc"
-	stateServ "github.com/celestiaorg/celestia-node/service/state"
-
-	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	shareServ "github.com/celestiaorg/celestia-node/service/share"
+	stateServ "github.com/celestiaorg/celestia-node/service/state"
 )
 
 func Module(tp node.Type, cfg *rpcServ.Config, options ...Option) fx.Option {

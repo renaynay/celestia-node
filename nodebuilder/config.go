@@ -51,6 +51,7 @@ func DefaultConfig(tp node.Type) *Config {
 			RPC:    rpc.DefaultConfig(),
 			P2P:    p2p.DefaultConfig(),
 			Share:  share.DefaultConfig(),
+			Core:   core.DefaultConfig(),
 			Header: header.DefaultConfig(),
 		}
 	case node.Full:
@@ -59,6 +60,7 @@ func DefaultConfig(tp node.Type) *Config {
 			RPC:    rpc.DefaultConfig(),
 			P2P:    p2p.DefaultConfig(),
 			Share:  share.DefaultConfig(),
+			Core:   core.DefaultConfig(),
 			Header: header.DefaultConfig(),
 		}
 	default:

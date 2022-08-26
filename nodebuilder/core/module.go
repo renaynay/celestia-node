@@ -6,12 +6,11 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/celestiaorg/celestia-node/libs/fxutil"
-	"github.com/celestiaorg/celestia-node/nodebuilder/node"
-
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/header"
 	headercore "github.com/celestiaorg/celestia-node/header/core"
+	"github.com/celestiaorg/celestia-node/libs/fxutil"
+	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
 // Module collects all the components and services related to managing the relationship with the Core node.
@@ -20,6 +19,7 @@ func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
 	for _, option := range options {
 		option(sets)
 	}
+
 	switch tp {
 	case node.Light, node.Full:
 		return fx.Module("core", fx.Supply(*cfg), fx.Options(sets.opts...))

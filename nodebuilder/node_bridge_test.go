@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	core2 "github.com/celestiaorg/celestia-node/nodebuilder/core"
+	coremodule "github.com/celestiaorg/celestia-node/nodebuilder/core"
 
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
@@ -22,7 +22,7 @@ func TestBridge_WithMockedCoreClient(t *testing.T) {
 
 	_, client := core.StartTestClient(ctx, t)
 	node, err := New(node.Bridge, repo,
-		WithCoreOptions(core2.WithClient(client)),
+		WithCoreOptions(coremodule.WithClient(client)),
 		WithNetwork(params.Private),
 	)
 	require.NoError(t, err)

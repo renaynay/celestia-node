@@ -23,9 +23,8 @@ import (
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 
-	"github.com/celestiaorg/celestia-node/nodebuilder"
-
 	"github.com/celestiaorg/celestia-node/logs"
+	"github.com/celestiaorg/celestia-node/nodebuilder"
 )
 
 var (

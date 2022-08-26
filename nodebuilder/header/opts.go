@@ -28,6 +28,7 @@ func WithTrustedPeers(addr ...string) Option {
 	}
 }
 
+// TODO: Eventually we should have a per-module metrics option.
 // WithMetrics enables metrics exporting for the node.
 func WithMetrics(enable bool) Option {
 	return func(sets *settings) {

@@ -30,7 +30,7 @@ func Module(tp node.Type) fx.Option {
 			)),
 		)
 	case node.Bridge:
-		return fx.Module("daser")
+		return fx.Options()
 	default:
 		panic("wrong node type")
 	}

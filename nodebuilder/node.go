@@ -44,9 +44,6 @@ type Node struct {
 	Bootstrappers params.Bootstrappers
 	Config        *Config
 
-	// // CoreClient provides access to a Core node process.
-	// CoreClient core.Client `optional:"true"`
-
 	// rpc components
 	RPCServer *rpc.Server `optional:"true"`
 	// p2p components

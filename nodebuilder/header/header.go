@@ -133,7 +133,6 @@ func (cfg *Config) trustedPeers(bpeers params.Bootstrappers) (infos []peer.AddrI
 		}
 		infos[i] = *p
 	}
-
 	return
 }
 
