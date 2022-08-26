@@ -29,12 +29,20 @@ func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
 			fx.Options(sets.opts...),
 			fx.Provide(core.NewBlockFetcher),
 			fxutil.ProvideAs(headercore.NewExchange, new(header.Exchange)),
-			fx.Invoke(HeaderListener),
+			fx.Invoke(fx.Annotate(
+				headercore.NewListener,
+				fx.OnStart(func(ctx context.Context, listener *headercore.Listener) error {
+					return listener.Start(ctx)
+				}),
+				fx.OnStop(func(ctx context.Context, listener *headercore.Listener) error {
+					return listener.Stop(ctx)
+				}),
+			)),
 			fx.Provide(func(lc fx.Lifecycle) (core.Client, error) {
 				if cfg.IP == "" {
 					return nil, fmt.Errorf("no celestia-core endpoint given")
 				}
-				client, err := RemoteClient(*cfg)
+				client, err := core.NewRemote(cfg.IP, cfg.RPCPort)
 				if err != nil {
 					return nil, err
 				}

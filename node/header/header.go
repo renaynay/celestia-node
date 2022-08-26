@@ -3,7 +3,13 @@ package header
 import (
 	"context"
 	"encoding/hex"
-
+	"github.com/celestiaorg/celestia-node/fraud"
+	"github.com/celestiaorg/celestia-node/header"
+	"github.com/celestiaorg/celestia-node/header/p2p"
+	"github.com/celestiaorg/celestia-node/header/store"
+	"github.com/celestiaorg/celestia-node/header/sync"
+	"github.com/celestiaorg/celestia-node/params"
+	headerservice "github.com/celestiaorg/celestia-node/service/header"
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -11,16 +17,6 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/multiformats/go-multiaddr"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	"go.uber.org/fx"
-
-	"github.com/celestiaorg/celestia-node/fraud"
-	"github.com/celestiaorg/celestia-node/header"
-	"github.com/celestiaorg/celestia-node/header/p2p"
-	"github.com/celestiaorg/celestia-node/header/store"
-	"github.com/celestiaorg/celestia-node/header/sync"
-	"github.com/celestiaorg/celestia-node/libs/fxutil"
-	"github.com/celestiaorg/celestia-node/params"
-	headerservice "github.com/celestiaorg/celestia-node/service/header"
 )
 
 // Service creates a new header.Service.
@@ -50,30 +46,6 @@ func P2PExchange(cfg Config) func(params.Bootstrappers, host.Host) (header.Excha
 	}
 }
 
-// P2PExchangeServer creates a new header/p2p.ExchangeServer.
-func P2PExchangeServer(lc fx.Lifecycle, host host.Host, store header.Store) *p2p.ExchangeServer {
-	p2pServ := p2p.NewExchangeServer(host, store)
-	lc.Append(fx.Hook{
-		OnStart: p2pServ.Start,
-		OnStop:  p2pServ.Stop,
-	})
-
-	return p2pServ
-}
-
-// Store creates and initializes new header.Store.
-func Store(lc fx.Lifecycle, ds datastore.Batching) (header.Store, error) {
-	store, err := store.NewStore(ds)
-	if err != nil {
-		return nil, err
-	}
-	lc.Append(fx.Hook{
-		OnStart: store.Start,
-		OnStop:  store.Stop,
-	})
-	return store, nil
-}
-
 // InitStore initializes the store.
 func InitStore(cfg *Config) func(context.Context, params.Network, header.Store, header.Exchange) error {
 	return func(ctx context.Context, net params.Network, s header.Store, ex header.Exchange) error {
@@ -96,35 +68,10 @@ func InitStore(cfg *Config) func(context.Context, params.Network, header.Store, 
 	}
 }
 
-// Syncer creates a new Syncer.
-func Syncer(
-	ctx context.Context,
-	lc fx.Lifecycle,
-	ex header.Exchange,
-	store header.Store,
-	sub header.Subscriber,
-	fservice fraud.Service,
-) (*sync.Syncer, error) {
-	syncer := sync.NewSyncer(ex, store, sub)
-	lifecycleCtx := fxutil.WithLifecycle(ctx, lc)
-	lc.Append(fx.Hook{
-		OnStart: func(startCtx context.Context) error {
-			return FraudLifecycle(startCtx, lifecycleCtx, fraud.BadEncoding, fservice, syncer.Start, syncer.Stop)
-		},
-		OnStop: syncer.Stop,
-	})
-
-	return syncer, nil
-}
-
 // P2PSubscriber creates a new p2p.Subscriber.
-func P2PSubscriber(lc fx.Lifecycle, sub *pubsub.PubSub) (*p2p.Subscriber, *p2p.Subscriber) {
+func P2PSubscriber(sub *pubsub.PubSub) (header.Broadcaster, header.Subscriber, *p2p.Subscriber) {
 	p2pSub := p2p.NewSubscriber(sub)
-	lc.Append(fx.Hook{
-		OnStart: p2pSub.Start,
-		OnStop:  p2pSub.Stop,
-	})
-	return p2pSub, p2pSub
+	return p2pSub, p2pSub, p2pSub
 }
 
 // FraudService constructs fraud proof service.
