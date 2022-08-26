@@ -21,7 +21,7 @@ import (
 	"github.com/celestiaorg/celestia-node/params"
 )
 
-func Module(tp node.Type, cfg *Config, store Store, moduleOpts ModuleOpts) fx.Option {
+func Module(tp node.Type, cfg *Config, store Store, moduleOpts moduleOpts) fx.Option {
 
 	baseComponents := fx.Options(
 		fx.Provide(params.DefaultNetwork),
@@ -33,12 +33,12 @@ func Module(tp node.Type, cfg *Config, store Store, moduleOpts ModuleOpts) fx.Op
 		fx.Provide(store.Keystore),
 		fx.Invoke(invokeWatchdog(store.Path())),
 		// refactored node modules
-		p2p.Module(&cfg.P2P, moduleOpts.P2P...),
-		state.Module(tp, &cfg.State, moduleOpts.State...),
-		header.Module(tp, &cfg.Header, moduleOpts.Header...),
-		share.Module(tp, &cfg.Share, moduleOpts.Share...),
-		rpc.Module(tp, &cfg.RPC, moduleOpts.RPC...),
-		core.Module(tp, &cfg.Core, moduleOpts.Core...),
+		p2p.Module(&cfg.P2P, moduleOpts.p2p...),
+		state.Module(tp, &cfg.State, moduleOpts.state...),
+		header.Module(tp, &cfg.Header, moduleOpts.header...),
+		share.Module(tp, &cfg.Share, moduleOpts.share...),
+		rpc.Module(tp, &cfg.RPC, moduleOpts.rpc...),
+		core.Module(tp, &cfg.Core, moduleOpts.core...),
 		daser.Module(tp),
 	)
 

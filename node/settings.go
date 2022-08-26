@@ -17,16 +17,16 @@ type settings struct {
 	cfg  *Config
 	opts []fx.Option
 
-	moduleOpts ModuleOpts
+	moduleOpts moduleOpts
 }
 
-type ModuleOpts struct {
-	State  []statemodule.Option
-	Header []headermodule.Option
-	Share  []sharemodule.Option
-	RPC    []rpcmodule.Option
-	P2P    []p2pmodule.Option
-	Core   []coremodule.Option
+type moduleOpts struct {
+	state  []statemodule.Option
+	header []headermodule.Option
+	share  []sharemodule.Option
+	rpc    []rpcmodule.Option
+	p2p    []p2pmodule.Option
+	core   []coremodule.Option
 }
 
 // WithStateOption is a top level option which allows customization for state module.
@@ -34,7 +34,7 @@ type ModuleOpts struct {
 // there are other ways of making this work via another level of indirection.
 func WithStateOption(option statemodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.State = append(s.moduleOpts.State, option)
+		s.moduleOpts.state = append(s.moduleOpts.state, option)
 	}
 }
 
@@ -42,7 +42,7 @@ func WithStateOption(option statemodule.Option) Option {
 // NOTE: See WithStateOption
 func WithHeaderOption(option headermodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.Header = append(s.moduleOpts.Header, option)
+		s.moduleOpts.header = append(s.moduleOpts.header, option)
 	}
 }
 
@@ -50,7 +50,7 @@ func WithHeaderOption(option headermodule.Option) Option {
 // NOTE: See WithStateOption
 func WithShareOption(option sharemodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.Share = append(s.moduleOpts.Share, option)
+		s.moduleOpts.share = append(s.moduleOpts.share, option)
 	}
 }
 
@@ -58,7 +58,7 @@ func WithShareOption(option sharemodule.Option) Option {
 // NOTE: See WithStateOption
 func WithRPCOption(option rpcmodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.RPC = append(s.moduleOpts.RPC, option)
+		s.moduleOpts.rpc = append(s.moduleOpts.rpc, option)
 	}
 }
 
@@ -66,7 +66,7 @@ func WithRPCOption(option rpcmodule.Option) Option {
 // NOTE: See WithStateOption
 func WithCoreOption(option coremodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.Core = append(s.moduleOpts.Core, option)
+		s.moduleOpts.core = append(s.moduleOpts.core, option)
 	}
 }
 
@@ -74,7 +74,7 @@ func WithCoreOption(option coremodule.Option) Option {
 // NOTE: See WithStateOption
 func WithP2POption(option p2pmodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.P2P = append(s.moduleOpts.P2P, option)
+		s.moduleOpts.p2p = append(s.moduleOpts.p2p, option)
 	}
 }
 
@@ -102,6 +102,6 @@ func WithMetrics(enable bool) Option {
 		if !enable {
 			return
 		}
-		sets.moduleOpts.Header = append(sets.moduleOpts.Header, headermodule.WithMetrics(enable))
+		sets.moduleOpts.header = append(sets.moduleOpts.header, headermodule.WithMetrics(enable))
 	}
 }
