@@ -48,7 +48,7 @@ func ParseP2PFlags(ctx context.Context, cmd *cobra.Command) (context.Context, er
 	}
 
 	if len(mutualPeers) != 0 {
-		ctx = WithNodeOptions(ctx, node.WithP2POption(p2pmodule.WithMutualPeers(mutualPeers)))
+		ctx = WithNodeOptions(ctx, node.WithP2pOptions(p2pmodule.WithMutualPeers(mutualPeers)))
 	}
 	return ctx, nil
 }

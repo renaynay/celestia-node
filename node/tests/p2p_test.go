@@ -99,9 +99,11 @@ func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 10
 	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithP2POption(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
-		nodebuilder.WithShareOption(share.WithDiscoveryInterval(defaultTimeInterval)),
-		nodebuilder.WithShareOption(share.WithAdvertiseInterval(defaultTimeInterval)),
+		nodebuilder.WithP2pOptions(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
+		nodebuilder.WithShareOptions(
+			share.WithDiscoveryInterval(defaultTimeInterval),
+			share.WithAdvertiseInterval(defaultTimeInterval),
+		),
 	}
 
 	bridgeConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
@@ -174,10 +176,12 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	const defaultTimeInterval = time.Second * 2
 	const fullNodes = 2
 	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithShareOption(share.WithPeersLimit(fullNodes)),
-		nodebuilder.WithP2POption(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
-		nodebuilder.WithShareOption(share.WithDiscoveryInterval(defaultTimeInterval)),
-		nodebuilder.WithShareOption(share.WithAdvertiseInterval(defaultTimeInterval)),
+		nodebuilder.WithP2pOptions(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
+		nodebuilder.WithShareOptions(
+			share.WithPeersLimit(fullNodes),
+			share.WithDiscoveryInterval(defaultTimeInterval),
+			share.WithAdvertiseInterval(defaultTimeInterval),
+		),
 	}
 	bridgeConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
 	bridge := sw.NewBridgeNode(bridgeConfig...)
@@ -214,7 +218,7 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	require.True(t, nodes[0].Host.Network().Connectedness(id) == network.Connected)
 
 	// create one more node with disabled discovery
-	nodesConfig[1] = nodebuilder.WithShareOption(share.WithPeersLimit(0))
+	nodesConfig[1] = nodebuilder.WithShareOptions(share.WithPeersLimit(0))
 	node := sw.NewFullNode(nodesConfig...)
 	connectSub, err := nodes[0].Host.EventBus().Subscribe(&event.EvtPeerConnectednessChanged{})
 	require.NoError(t, err)

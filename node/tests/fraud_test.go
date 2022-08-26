@@ -35,7 +35,7 @@ import (
 func TestFraudProofBroadcasting(t *testing.T) {
 	sw := swamp.NewSwamp(t, swamp.WithBlockTime(time.Millisecond*100))
 
-	bridge := sw.NewBridgeNode(nodebuilder.WithCoreOption(core.WithHeaderConstructFn(header.FraudMaker(t, 10))))
+	bridge := sw.NewBridgeNode(nodebuilder.WithCoreOptions(core.WithHeaderConstructFn(header.FraudMaker(t, 10))))
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	t.Cleanup(cancel)
@@ -49,7 +49,7 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	full := sw.NewNodeWithStore(
 		node.Full,
 		store,
-		nodebuilder.WithHeaderOption(headerconf.WithTrustedPeers(addrs[0].String())),
+		nodebuilder.WithHeaderOptions(headerconf.WithTrustedPeers(addrs[0].String())),
 	)
 
 	// subscribe to fraud proof before node starts helps
@@ -78,7 +78,7 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	full = sw.NewNodeWithStore(
 		node.Full,
 		store,
-		nodebuilder.WithHeaderOption(headerconf.WithTrustedPeers(addrs[0].String())),
+		nodebuilder.WithHeaderOptions(headerconf.WithTrustedPeers(addrs[0].String())),
 	)
 	require.Error(t, full.Start(ctx))
 	proofs, err := full.FraudServ.Get(ctx, fraud.BadEncoding)

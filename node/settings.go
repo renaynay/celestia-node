@@ -29,52 +29,52 @@ type moduleOpts struct {
 	core   []coremodule.Option
 }
 
-// WithStateOption is a top level option which allows customization for state module.
+// WithStateOptions is a top level option which allows customization for state module.
 // NOTE: We have to make an option for each module for now as it is simple, though
 // there are other ways of making this work via another level of indirection.
-func WithStateOption(option statemodule.Option) Option {
+func WithStateOptions(options ...statemodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.state = append(s.moduleOpts.state, option)
+		s.moduleOpts.state = append(s.moduleOpts.state, options...)
 	}
 }
 
-// WithHeaderOption is a top level option which allows customization for header module.
-// NOTE: See WithStateOption
-func WithHeaderOption(option headermodule.Option) Option {
+// WithHeaderOptions is a top level option which allows customization for header module.
+// NOTE: See WithStateOptions
+func WithHeaderOptions(options ...headermodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.header = append(s.moduleOpts.header, option)
+		s.moduleOpts.header = append(s.moduleOpts.header, options...)
 	}
 }
 
-// WithShareOption is a top level option which allows customization for share module.
-// NOTE: See WithStateOption
-func WithShareOption(option sharemodule.Option) Option {
+// WithShareOptions is a top level option which allows customization for share module.
+// NOTE: See WithStateOptions
+func WithShareOptions(options ...sharemodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.share = append(s.moduleOpts.share, option)
+		s.moduleOpts.share = append(s.moduleOpts.share, options...)
 	}
 }
 
-// WithRPCOption is a top level option which allows customization for rpc module.
-// NOTE: See WithStateOption
-func WithRPCOption(option rpcmodule.Option) Option {
+// WithRPCOptions is a top level option which allows customization for rpc module.
+// NOTE: See WithStateOptions
+func WithRPCOptions(options ...rpcmodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.rpc = append(s.moduleOpts.rpc, option)
+		s.moduleOpts.rpc = append(s.moduleOpts.rpc, options...)
 	}
 }
 
-// WithCoreOption is a top level option which allows customization for core module.
-// NOTE: See WithStateOption
-func WithCoreOption(option coremodule.Option) Option {
+// WithCoreOptions is a top level option which allows customization for core module.
+// NOTE: See WithStateOptions
+func WithCoreOptions(options ...coremodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.core = append(s.moduleOpts.core, option)
+		s.moduleOpts.core = append(s.moduleOpts.core, options...)
 	}
 }
 
-// WithP2POption is a top level option which allows customization for P2P module.
-// NOTE: See WithStateOption
-func WithP2POption(option p2pmodule.Option) Option {
+// WithP2pOptions is a top level option which allows customization for P2P module.
+// NOTE: See WithStateOptions
+func WithP2pOptions(options ...p2pmodule.Option) Option {
 	return func(s *settings) {
-		s.moduleOpts.p2p = append(s.moduleOpts.p2p, option)
+		s.moduleOpts.p2p = append(s.moduleOpts.p2p, options...)
 	}
 }
 

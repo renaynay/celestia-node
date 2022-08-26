@@ -59,7 +59,7 @@ func TestFullReconstructFromBridge(t *testing.T) {
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
 
-	full := sw.NewFullNode(nodebuilder.WithHeaderOption(header.WithTrustedPeers(getMultiAddr(t, bridge.Host))))
+	full := sw.NewFullNode(nodebuilder.WithHeaderOptions(header.WithTrustedPeers(getMultiAddr(t, bridge.Host))))
 	err = full.Start(ctx)
 	require.NoError(t, err)
 
@@ -115,9 +115,11 @@ func TestFullReconstructFromLights(t *testing.T) {
 
 	const defaultTimeInterval = time.Second * 5
 	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithP2POption(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
-		nodebuilder.WithShareOption(sharemodule.WithDiscoveryInterval(defaultTimeInterval)),
-		nodebuilder.WithShareOption(sharemodule.WithAdvertiseInterval(defaultTimeInterval)),
+		nodebuilder.WithP2pOptions(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
+		nodebuilder.WithShareOptions(
+			sharemodule.WithDiscoveryInterval(defaultTimeInterval),
+			sharemodule.WithAdvertiseInterval(defaultTimeInterval),
+		),
 	}
 
 	cfg := nodebuilder.DefaultConfig(node.Full)
@@ -133,7 +135,7 @@ func TestFullReconstructFromLights(t *testing.T) {
 
 	nodesConfig := append(
 		[]nodebuilder.Option{
-			nodebuilder.WithHeaderOption(header.WithTrustedPeers(addrsBridge[0].String())),
+			nodebuilder.WithHeaderOptions(header.WithTrustedPeers(addrsBridge[0].String())),
 			nodebuilder.WithBootstrappers([]peer.AddrInfo{*addrBootstrapNode})},
 		defaultOptions...,
 	)
@@ -146,7 +148,7 @@ func TestFullReconstructFromLights(t *testing.T) {
 		errg.Go(func() error {
 			lnConfig := append(
 				[]nodebuilder.Option{
-					nodebuilder.WithHeaderOption(header.WithTrustedPeers(addrsBridge[0].String()))},
+					nodebuilder.WithHeaderOptions(header.WithTrustedPeers(addrsBridge[0].String()))},
 				nodesConfig...,
 			)
 			light := sw.NewLightNode(lnConfig...)

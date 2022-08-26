@@ -219,7 +219,7 @@ func setupNodeWithModifiedRPC(t *testing.T) *Node {
 			}
 		}))
 	}
-	overrideRPCHandler := WithRPCOption(
+	overrideRPCHandler := WithRPCOptions(
 		rpcmodule.WithOption(fx.Invoke(func(srv *rpc.Server) {
 			handler := rpc.NewHandler(nil, nil, hServ, daser)
 			handler.RegisterEndpoints(srv)

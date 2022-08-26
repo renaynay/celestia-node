@@ -22,7 +22,7 @@ func TestBridge_WithMockedCoreClient(t *testing.T) {
 
 	_, client := core.StartTestClient(ctx, t)
 	node, err := New(node.Bridge, repo,
-		WithCoreOption(core2.WithClient(client)),
+		WithCoreOptions(core2.WithClient(client)),
 		WithNetwork(params.Private),
 	)
 	require.NoError(t, err)

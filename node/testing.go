@@ -43,11 +43,10 @@ func TestNode(t *testing.T, tp node.Type, opts ...Option) *Node {
 	ip, port, err := net.SplitHostPort(endpoint)
 	require.NoError(t, err)
 	opts = append(opts,
-		WithCoreOption(coremodule.WithRemoteCoreIP(ip)),
-		WithCoreOption(coremodule.WithRemoteCorePort(port)),
+		WithCoreOptions(coremodule.WithRemoteCoreIP(ip), coremodule.WithRemoteCorePort(port)),
 		WithNetwork(params.Private),
-		WithRPCOption(rpc.WithRPCPort("0")),
-		WithStateOption(state.WithKeyringSigner(TestKeyringSigner(t))),
+		WithRPCOptions(rpc.WithRPCPort("0")),
+		WithStateOptions(state.WithKeyringSigner(TestKeyringSigner(t))),
 	)
 	nd, err := New(tp, store, opts...)
 	require.NoError(t, err)

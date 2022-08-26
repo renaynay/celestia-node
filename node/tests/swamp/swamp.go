@@ -231,13 +231,13 @@ func (s *Swamp) NewNodeWithStore(t node.Type, store nodebldr.Store, options ...n
 	var n *nodebldr.Node
 
 	options = append(options,
-		nodebldr.WithStateOption(state.WithKeyringSigner(nodebldr.TestKeyringSigner(s.t))),
+		nodebldr.WithStateOptions(state.WithKeyringSigner(nodebldr.TestKeyringSigner(s.t))),
 	)
 
 	switch t {
 	case node.Bridge:
 		options = append(options,
-			nodebldr.WithCoreOption(coremodule.WithClient(s.CoreClient)),
+			nodebldr.WithCoreOptions(coremodule.WithClient(s.CoreClient)),
 		)
 		n = s.newNode(node.Bridge, store, options...)
 		s.BridgeNodes = append(s.BridgeNodes, n)
@@ -260,10 +260,10 @@ func (s *Swamp) newNode(t node.Type, store nodebldr.Store, options ...nodebldr.O
 	// like <core, host, hash> from the test case, we need to check them and not use
 	// default that are set here
 	options = append(options,
-		nodebldr.WithP2POption(p2p.WithHost(s.createPeer(ks))),
-		nodebldr.WithHeaderOption(header.WithTrustedHash(s.trustedHash)),
+		nodebldr.WithP2pOptions(p2p.WithHost(s.createPeer(ks))),
+		nodebldr.WithHeaderOptions(header.WithTrustedHash(s.trustedHash)),
 		nodebldr.WithNetwork(params.Private),
-		nodebldr.WithRPCOption(rpcmodule.WithRPCPort("0")),
+		nodebldr.WithRPCOptions(rpcmodule.WithRPCPort("0")),
 	)
 
 	node, err := nodebldr.New(t, store, options...)
