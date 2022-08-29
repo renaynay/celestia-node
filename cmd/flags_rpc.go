@@ -35,14 +35,16 @@ func RPCFlags() *flag.FlagSet {
 }
 
 // ParseRPCFlags parses RPC flags from the given cmd and applies values to Env.
-func ParseRPCFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+func ParseRPCFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (context.Context, error) {
 	addr := cmd.Flag(addrFlag).Value.String()
 	if addr != "" {
-		ctx = WithNodeOptions(ctx, nodebuilder.WithRPCOptions(rpcmodule.WithRPCAddress(addr)))
+		rpcmodule.SetRPCAddress(&cfg.RPC, addr)
+		ctx = WithNodeConfig(ctx, cfg)
 	}
 	port := cmd.Flag(portFlag).Value.String()
 	if port != "" {
-		ctx = WithNodeOptions(ctx, nodebuilder.WithRPCOptions(rpcmodule.WithRPCPort(port)))
+		rpcmodule.SetRPCPort(&cfg.RPC, port)
+		ctx = WithNodeConfig(ctx, cfg)
 	}
 	return ctx, nil
 }

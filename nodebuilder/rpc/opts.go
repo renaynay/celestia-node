@@ -1,37 +1,19 @@
 package rpc
 
 import (
-	"go.uber.org/fx"
-
 	"github.com/celestiaorg/celestia-node/service/rpc"
 )
 
-type Option func(*settings)
-
-// settings store values that can be augmented or changed for Node with Options.
-type settings struct {
-	cfg  *rpc.Config
-	opts []fx.Option
-}
-
-// WithRPCPort configures Node to expose the given port for RPC
+// SetRPCPort configures Node to expose the given port for RPC
 // queries.
-func WithRPCPort(port string) Option {
-	return func(sets *settings) {
-		sets.cfg.Port = port
-	}
+// TODO(distractedm1nd): Once the config migrates to this package, define as a method
+func SetRPCPort(cfg *rpc.Config, port string) {
+	cfg.Port = port
 }
 
-// WithRPCAddress configures Node to listen on the given address for RPC
+// SetRPCAddress configures Node to listen on the given address for RPC
 // queries.
-func WithRPCAddress(addr string) Option {
-	return func(sets *settings) {
-		sets.cfg.Address = addr
-	}
-}
-
-func WithOption(option fx.Option) Option {
-	return func(sets *settings) {
-		sets.opts = append(sets.opts, option)
-	}
+// TODO(distractedm1nd): Once the config migrates to this package, define as a method
+func SetRPCAddress(cfg *rpc.Config, addr string) {
+	cfg.Address = addr
 }

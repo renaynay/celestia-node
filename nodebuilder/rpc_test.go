@@ -9,15 +9,10 @@ import (
 	"strconv"
 	"testing"
 
-	rpcmodule "github.com/celestiaorg/celestia-node/nodebuilder/rpc"
-
-	"github.com/ipfs/go-datastore"
-	ds_sync "github.com/ipfs/go-datastore/sync"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 
-	"github.com/celestiaorg/celestia-node/das"
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/header/local"
 	"github.com/celestiaorg/celestia-node/header/store"
@@ -25,7 +20,6 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	service "github.com/celestiaorg/celestia-node/service/header"
 	"github.com/celestiaorg/celestia-node/service/rpc"
-	"github.com/celestiaorg/celestia-node/service/share"
 )
 
 // NOTE: The following tests are against common RPC endpoints provided by
@@ -201,30 +195,10 @@ func setupNodeWithModifiedRPC(t *testing.T) *Node {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 	// create test node with a dummy header service, manually add a dummy header
-	// service and register it with rpc handler/server
 	hServ := setupHeaderService(ctx, t)
-	daser := setupDASer()
 	// create overrides
-	overrideHeaderServ := func(sets *settings) {
-		sets.opts = append(sets.opts, fx.Replace(hServ))
-	}
-	overrideDASer := func(sets *settings) {
-		sets.opts = append(sets.opts, fx.Replace(func() func(lc fx.Lifecycle) *das.DASer {
-			return func(lc fx.Lifecycle) *das.DASer {
-				lc.Append(fx.Hook{
-					OnStart: daser.Start,
-					OnStop:  daser.Stop,
-				})
-				return daser
-			}
-		}))
-	}
-	overrideRPCHandler := WithRPCOptions(
-		rpcmodule.WithOption(fx.Invoke(func(srv *rpc.Server) {
-			handler := rpc.NewHandler(nil, nil, hServ, daser)
-			handler.RegisterEndpoints(srv)
-		})))
-	nd := TestNode(t, node.Full, overrideHeaderServ, overrideDASer, overrideRPCHandler)
+	overrideHeaderServ := fx.Replace(hServ)
+	nd := TestNode(t, node.Full, overrideHeaderServ)
 	// start node
 	err := nd.Start(ctx)
 	require.NoError(t, err)
@@ -247,10 +221,4 @@ func setupHeaderService(ctx context.Context, t *testing.T) *service.Service {
 	syncer := sync.NewSyncer(local.NewExchange(remoteStore), localStore, &header.DummySubscriber{})
 
 	return service.NewHeaderService(syncer, nil, nil, nil, localStore)
-}
-
-func setupDASer() *das.DASer {
-	ds := ds_sync.MutexWrap(datastore.NewMapDatastore())
-	sub := &header.DummySubscriber{Headers: make([]*header.ExtendedHeader, 10)}
-	return das.NewDASer(share.NewTestSuccessfulAvailability(), sub, nil, ds, nil)
 }

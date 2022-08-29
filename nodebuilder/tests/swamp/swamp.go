@@ -7,6 +7,8 @@ import (
 	"net"
 	"testing"
 
+	"go.uber.org/fx"
+
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
@@ -20,7 +22,6 @@ import (
 	"github.com/celestiaorg/celestia-node/logs"
 	"github.com/celestiaorg/celestia-node/nodebuilder"
 	coremodule "github.com/celestiaorg/celestia-node/nodebuilder/core"
-	"github.com/celestiaorg/celestia-node/nodebuilder/header"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
 	rpcmodule "github.com/celestiaorg/celestia-node/nodebuilder/rpc"
@@ -197,7 +198,7 @@ func (s *Swamp) getTrustedHash(ctx context.Context) (string, error) {
 
 // NewBridgeNode creates a new instance of a BridgeNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewBridgeNode(options ...nodebuilder.Option) *nodebuilder.Node {
+func (s *Swamp) NewBridgeNode(options ...fx.Option) *nodebuilder.Node {
 	cfg := nodebuilder.DefaultConfig(node.Bridge)
 	store := nodebuilder.MockStore(s.t, cfg)
 
@@ -206,7 +207,7 @@ func (s *Swamp) NewBridgeNode(options ...nodebuilder.Option) *nodebuilder.Node {
 
 // NewFullNode creates a new instance of a FullNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewFullNode(options ...nodebuilder.Option) *nodebuilder.Node {
+func (s *Swamp) NewFullNode(options ...fx.Option) *nodebuilder.Node {
 	cfg := nodebuilder.DefaultConfig(node.Full)
 	store := nodebuilder.MockStore(s.t, cfg)
 
@@ -215,11 +216,16 @@ func (s *Swamp) NewFullNode(options ...nodebuilder.Option) *nodebuilder.Node {
 
 // NewLightNode creates a new instance of a LightNode providing a default config
 // and a mockstore to the NewNodeWithStore method
-func (s *Swamp) NewLightNode(options ...nodebuilder.Option) *nodebuilder.Node {
+func (s *Swamp) NewLightNode(options ...fx.Option) *nodebuilder.Node {
 	cfg := nodebuilder.DefaultConfig(node.Light)
 	store := nodebuilder.MockStore(s.t, cfg)
 
 	return s.NewNodeWithStore(node.Light, store, options...)
+}
+
+func (s *Swamp) NewNodeWithConfig(nodeType node.Type, cfg *nodebuilder.Config, options ...fx.Option) *nodebuilder.Node {
+	store := nodebuilder.MockStore(s.t, cfg)
+	return s.NewNodeWithStore(nodeType, store, options...)
 }
 
 // NewNodeWithStore creates a new instance of Node with predefined Store.
@@ -228,18 +234,18 @@ func (s *Swamp) NewLightNode(options ...nodebuilder.Option) *nodebuilder.Node {
 func (s *Swamp) NewNodeWithStore(
 	t node.Type,
 	store nodebuilder.Store,
-	options ...nodebuilder.Option,
+	options ...fx.Option,
 ) *nodebuilder.Node {
 	var n *nodebuilder.Node
 
 	options = append(options,
-		nodebuilder.WithStateOptions(state.WithKeyringSigner(nodebuilder.TestKeyringSigner(s.t))),
+		state.WithKeyringSigner(nodebuilder.TestKeyringSigner(s.t)),
 	)
 
 	switch t {
 	case node.Bridge:
 		options = append(options,
-			nodebuilder.WithCoreOptions(coremodule.WithClient(s.CoreClient)),
+			coremodule.WithClient(s.CoreClient),
 		)
 		n = s.newNode(node.Bridge, store, options...)
 		s.BridgeNodes = append(s.BridgeNodes, n)
@@ -254,18 +260,19 @@ func (s *Swamp) NewNodeWithStore(
 	return n
 }
 
-func (s *Swamp) newNode(t node.Type, store nodebuilder.Store, options ...nodebuilder.Option) *nodebuilder.Node {
+func (s *Swamp) newNode(t node.Type, store nodebuilder.Store, options ...fx.Option) *nodebuilder.Node {
 	ks, err := store.Keystore()
 	require.NoError(s.t, err)
 
 	// TODO(@Bidon15): If for some reason, we receive one of existing options
 	// like <core, host, hash> from the test case, we need to check them and not use
 	// default that are set here
+	cfg, _ := store.Config()
+	cfg.Header.SetTrustedHash(s.trustedHash)
+	rpcmodule.SetRPCPort(&cfg.RPC, "0")
 	options = append(options,
-		nodebuilder.WithP2pOptions(p2p.WithHost(s.createPeer(ks))),
-		nodebuilder.WithHeaderOptions(header.WithTrustedHash(s.trustedHash)),
+		p2p.WithHost(s.createPeer(ks)),
 		nodebuilder.WithNetwork(params.Private),
-		nodebuilder.WithRPCOptions(rpcmodule.WithRPCPort("0")),
 	)
 
 	node, err := nodebuilder.New(t, store, options...)

@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	coremodule "github.com/celestiaorg/celestia-node/nodebuilder/core"
-
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
@@ -45,7 +43,7 @@ func CoreFlags() *flag.FlagSet {
 }
 
 // ParseCoreFlags parses Core flags from the given cmd and applies values to Env.
-func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+func ParseCoreFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (context.Context, error) {
 	coreIP := cmd.Flag(coreFlag).Value.String()
 	if coreIP == "" {
 		if cmd.Flag(coreGRPCFlag).Changed || cmd.Flag(coreRPCFlag).Changed {
@@ -65,10 +63,9 @@ func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, e
 	if err != nil {
 		return ctx, err
 	}
-	ctx = WithNodeOptions(
-		ctx,
-		nodebuilder.WithCoreOptions(coremodule.WithRemoteCoreIP(ip), coremodule.WithRemoteCorePort(rpc)),
-	)
+	cfg.Core.SetRemoteCoreIP(ip)
+	cfg.Core.SetRemoteCorePort(rpc)
+	ctx = WithNodeConfig(ctx, cfg)
 
 	grpc := cmd.Flag(coreGRPCFlag).Value.String()
 	// sanity check gRPC endpoint
@@ -76,7 +73,8 @@ func ParseCoreFlags(ctx context.Context, cmd *cobra.Command) (context.Context, e
 	if err != nil {
 		return ctx, err
 	}
-	ctx = WithNodeOptions(ctx, nodebuilder.WithCoreOptions(coremodule.WithGRPCPort(grpc)))
+	cfg.Core.SetGRPCPort(grpc)
+	ctx = WithNodeConfig(ctx, cfg)
 	return ctx, nil
 }
 

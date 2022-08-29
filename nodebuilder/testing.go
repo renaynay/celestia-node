@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.uber.org/fx"
+
 	"github.com/celestiaorg/celestia-node/nodebuilder/rpc"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 
@@ -18,7 +20,6 @@ import (
 	apptypes "github.com/celestiaorg/celestia-app/x/payment/types"
 
 	"github.com/celestiaorg/celestia-node/core"
-	coremodule "github.com/celestiaorg/celestia-node/nodebuilder/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/params"
 )
@@ -32,21 +33,27 @@ func MockStore(t *testing.T, cfg *Config) Store {
 	return store
 }
 
-func TestNode(t *testing.T, tp node.Type, opts ...Option) *Node {
+func TestNode(t *testing.T, tp node.Type, opts ...fx.Option) *Node {
+	return TestNodeWithConfig(t, tp, DefaultConfig(tp), opts...)
+}
+
+func TestNodeWithConfig(t *testing.T, tp node.Type, cfg *Config, opts ...fx.Option) *Node {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	t.Cleanup(cancel)
 
-	store := MockStore(t, DefaultConfig(tp))
-	_, _, cfg := core.StartTestKVApp(ctx, t)
-	endpoint, err := core.GetEndpoint(cfg)
+	store := MockStore(t, cfg)
+	_, _, coreCfg := core.StartTestKVApp(ctx, t)
+	endpoint, err := core.GetEndpoint(coreCfg)
 	require.NoError(t, err)
 	ip, port, err := net.SplitHostPort(endpoint)
 	require.NoError(t, err)
+	cfg.Core.SetRemoteCoreIP(ip)
+	cfg.Core.SetRemoteCorePort(port)
+	rpc.SetRPCPort(&cfg.RPC, "0")
+
 	opts = append(opts,
-		WithCoreOptions(coremodule.WithRemoteCoreIP(ip), coremodule.WithRemoteCorePort(port)),
 		WithNetwork(params.Private),
-		WithRPCOptions(rpc.WithRPCPort("0")),
-		WithStateOptions(state.WithKeyringSigner(TestKeyringSigner(t))),
+		state.WithKeyringSigner(TestKeyringSigner(t)),
 	)
 	nd, err := New(tp, store, opts...)
 	require.NoError(t, err)

@@ -18,13 +18,13 @@ import (
 func TestNewLightWithP2PKey(t *testing.T) {
 	key, _, err := crypto.GenerateEd25519Key(rand.Reader)
 	require.NoError(t, err)
-	node := TestNode(t, nodebuilder.Light, WithP2pOptions(p2p.WithP2PKey(key)))
+	node := TestNode(t, nodebuilder.Light, p2p.WithP2PKey(key))
 	assert.True(t, node.Host.ID().MatchesPrivateKey(key))
 }
 
 func TestNewLightWithHost(t *testing.T) {
 	nw, _ := mocknet.WithNPeers(1)
-	node := TestNode(t, nodebuilder.Light, WithP2pOptions(p2p.WithHost(nw.Hosts()[0])))
+	node := TestNode(t, nodebuilder.Light, p2p.WithHost(nw.Hosts()[0]))
 	assert.Equal(t, nw.Peers()[0], node.Host.ID())
 }
 
@@ -33,7 +33,10 @@ func TestLight_WithMutualPeers(t *testing.T) {
 		"/ip6/100:0:114b:abc5:e13a:c32f:7a9e:f00a/tcp/2121/p2p/12D3KooWSRqDfpLsQxpyUhLC9oXHD2WuZ2y5FWzDri7LT4Dw9fSi",
 		"/ip4/192.168.1.10/tcp/2121/p2p/12D3KooWSRqDfpLsQxpyUhLC9oXHD2WuZ2y5FWzDri7LT4Dw9fSi",
 	}
-	node := TestNode(t, nodebuilder.Light, WithP2pOptions(p2p.WithMutualPeers(peers)))
+	cfg := DefaultConfig(nodebuilder.Light)
+	cfg.P2P.SetMutualPeers(peers)
+	node := TestNodeWithConfig(t, nodebuilder.Light, cfg)
+
 	require.NotNil(t, node)
 	assert.Equal(t, node.Config.P2P.MutualPeers, peers)
 }

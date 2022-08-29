@@ -2,41 +2,25 @@ package share
 
 import (
 	"time"
-
-	"go.uber.org/fx"
 )
 
-type Option func(*settings)
-
-// settings store values that can be augmented or changed for Node with Options.
-type settings struct {
-	cfg  *Config
-	opts []fx.Option
+// SetPeersLimit overrides default peer limit for peers found during discovery.
+func (cfg *Config) SetPeersLimit(limit uint) {
+	cfg.PeersLimit = limit
 }
 
-// WithPeersLimit overrides default peer limit for peers found during discovery.
-func WithPeersLimit(limit uint) Option {
-	return func(sets *settings) {
-		sets.cfg.PeersLimit = limit
+// SetDiscoveryInterval sets interval between discovery sessions.
+func (cfg *Config) SetDiscoveryInterval(interval time.Duration) {
+	if interval <= 0 {
+		return
 	}
+	cfg.DiscoveryInterval = interval
 }
 
-// WithDiscoveryInterval sets interval between discovery sessions.
-func WithDiscoveryInterval(interval time.Duration) Option {
-	return func(sets *settings) {
-		if interval <= 0 {
-			return
-		}
-		sets.cfg.DiscoveryInterval = interval
+// SetAdvertiseInterval sets interval between advertises.
+func (cfg *Config) SetAdvertiseInterval(interval time.Duration) {
+	if interval <= 0 {
+		return
 	}
-}
-
-// WithAdvertiseInterval sets interval between advertises.
-func WithAdvertiseInterval(interval time.Duration) Option {
-	return func(sets *settings) {
-		if interval <= 0 {
-			return
-		}
-		sets.cfg.AdvertiseInterval = interval
-	}
+	cfg.AdvertiseInterval = interval
 }

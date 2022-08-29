@@ -5,16 +5,11 @@ import (
 )
 
 // Module collects all the components and services related to p2p.
-func Module(cfg *Config, options ...Option) fx.Option {
-	sets := &settings{cfg: cfg}
-	for _, option := range options {
-		option(sets)
-	}
+func Module(cfg *Config) fx.Option {
 
 	return fx.Module(
 		"p2p",
 		fx.Supply(cfg),
-		fx.Options(sets.opts...),
 		fx.Provide(Key),
 		fx.Provide(ID),
 		fx.Provide(PeerStore),

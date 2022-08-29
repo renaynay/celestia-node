@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	p2pmodule "github.com/celestiaorg/celestia-node/nodebuilder/p2p"
-
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -34,7 +32,7 @@ Peers must bidirectionally point to each other. (Format: multiformats.io/multiad
 }
 
 // ParseP2PFlags parses P2P flags from the given cmd and applies values to Env.
-func ParseP2PFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+func ParseP2PFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (context.Context, error) {
 	mutualPeers, err := cmd.Flags().GetStringSlice(p2pMutualFlag)
 	if err != nil {
 		return ctx, err
@@ -48,7 +46,8 @@ func ParseP2PFlags(ctx context.Context, cmd *cobra.Command) (context.Context, er
 	}
 
 	if len(mutualPeers) != 0 {
-		ctx = WithNodeOptions(ctx, nodebuilder.WithP2pOptions(p2pmodule.WithMutualPeers(mutualPeers)))
+		cfg.P2P.SetMutualPeers(mutualPeers)
+		ctx = WithNodeConfig(ctx, cfg)
 	}
 	return ctx, nil
 }

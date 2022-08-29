@@ -14,19 +14,14 @@ import (
 )
 
 // Module collects all the components and services related to managing the relationship with the Core node.
-func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
-	sets := &settings{cfg: cfg}
-	for _, option := range options {
-		option(sets)
-	}
-
+func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 	switch tp {
 	case node.Light, node.Full:
-		return fx.Module("core", fx.Supply(*cfg), fx.Options(sets.opts...))
+		return fx.Module("core", fx.Supply(*cfg), fx.Options(options...))
 	case node.Bridge:
 		return fx.Module("core",
 			fx.Supply(*cfg),
-			fx.Options(sets.opts...),
+			fx.Options(options...),
 			fx.Provide(core.NewBlockFetcher),
 			fxutil.ProvideAs(headercore.NewExchange, new(header.Exchange)),
 			fx.Invoke(fx.Annotate(

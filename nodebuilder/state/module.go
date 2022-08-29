@@ -19,18 +19,13 @@ var log = logging.Logger("state-module")
 
 // Module provides all components necessary to construct the
 // state service.
-func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
-	sets := &settings{cfg: cfg}
-	for _, option := range options {
-		option(sets)
-	}
+func Module(tp node.Type, cfg *Config) fx.Option {
 	switch tp {
 	case node.Light, node.Full, node.Bridge:
 		return fx.Module(
 			"state",
 			fx.Supply(cfg),
-			fx.Options(sets.opts...),
-			fx.Provide(Keyring(sets.cfg)),
+			fx.Provide(Keyring(cfg)),
 			fx.Provide(fx.Annotate(CoreAccessor,
 				fx.OnStart(func(ctx context.Context, accessor state.Accessor) error {
 					return accessor.Start(ctx)

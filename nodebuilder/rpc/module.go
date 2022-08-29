@@ -12,11 +12,7 @@ import (
 	stateServ "github.com/celestiaorg/celestia-node/service/state"
 )
 
-func Module(tp node.Type, cfg *rpcServ.Config, options ...Option) fx.Option {
-	sets := &settings{cfg: cfg}
-	for _, option := range options {
-		option(sets)
-	}
+func Module(tp node.Type, cfg *rpcServ.Config) fx.Option {
 
 	baseComponents := fx.Options(
 		fx.Supply(*cfg),

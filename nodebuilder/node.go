@@ -66,18 +66,14 @@ type Node struct {
 }
 
 // New assembles a new Node with the given type 'tp' over Store 'store'.
-func New(tp node.Type, store Store, options ...Option) (*Node, error) {
+func New(tp node.Type, store Store, options ...fx.Option) (*Node, error) {
 	cfg, err := store.Config()
 	if err != nil {
 		return nil, err
 	}
 
-	s := &settings{cfg: cfg}
-	for _, option := range options {
-		option(s)
-	}
-
-	return newNode(Module(tp, s.cfg, store, s.moduleOpts), fx.Options(s.opts...))
+	opts := append([]fx.Option{Module(tp, cfg, store)}, options...)
+	return newNode(opts...)
 }
 
 // Start launches the Node and all its components and services.

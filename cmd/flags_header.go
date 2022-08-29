@@ -10,7 +10,6 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/celestiaorg/celestia-node/nodebuilder"
-	"github.com/celestiaorg/celestia-node/nodebuilder/header"
 )
 
 var (
@@ -29,11 +28,11 @@ func HeadersFlags() *flag.FlagSet {
 }
 
 // ParseHeadersFlags parses Header package flags from the given cmd and applies values to Env.
-func ParseHeadersFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
-	if ctx, err := ParseTrustedHashFlags(ctx, cmd); err != nil {
+func ParseHeadersFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (context.Context, error) {
+	if ctx, err := ParseTrustedHashFlags(ctx, cmd, cfg); err != nil {
 		return ctx, err
 	}
-	if ctx, err := ParseTrustedPeerFlags(ctx, cmd); err != nil {
+	if ctx, err := ParseTrustedPeerFlags(ctx, cmd, cfg); err != nil {
 		return ctx, err
 	}
 
@@ -53,7 +52,7 @@ func TrustedPeersFlags() *flag.FlagSet {
 }
 
 // ParseTrustedPeerFlags parses Header package flags from the given cmd and applies values to Env.
-func ParseTrustedPeerFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+func ParseTrustedPeerFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (context.Context, error) {
 	tpeers, err := cmd.Flags().GetStringSlice(headersTrustedPeersFlag)
 	if err != nil {
 		return ctx, err
@@ -66,7 +65,8 @@ func ParseTrustedPeerFlags(ctx context.Context, cmd *cobra.Command) (context.Con
 		}
 	}
 
-	ctx = WithNodeOptions(ctx, nodebuilder.WithHeaderOptions(header.WithTrustedPeers(tpeers...)))
+	cfg.Header.AddTrustedPeers(tpeers...)
+	ctx = WithNodeConfig(ctx, cfg)
 
 	return ctx, nil
 }
@@ -85,7 +85,7 @@ func TrustedHashFlags() *flag.FlagSet {
 }
 
 // ParseTrustedHashFlags parses Header package flags from the given cmd and applies values to Env.
-func ParseTrustedHashFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
+func ParseTrustedHashFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (context.Context, error) {
 	hash := cmd.Flag(headersTrustedHashFlag).Value.String()
 	if hash != "" {
 		_, err := hex.DecodeString(hash)
@@ -93,7 +93,8 @@ func ParseTrustedHashFlags(ctx context.Context, cmd *cobra.Command) (context.Con
 			return ctx, fmt.Errorf("cmd: while parsing '%s': %w", headersTrustedHashFlag, err)
 		}
 
-		ctx = WithNodeOptions(ctx, nodebuilder.WithHeaderOptions(header.WithTrustedHash(hash)))
+		cfg.Header.SetTrustedHash(hash)
+		ctx = WithNodeConfig(ctx, cfg)
 	}
 
 	return ctx, nil

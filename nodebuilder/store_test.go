@@ -24,7 +24,7 @@ func TestRepo(t *testing.T) {
 			_, err := OpenStore(dir)
 			assert.ErrorIs(t, err, ErrNotInited)
 
-			err = Init(dir, tt.tp)
+			err = Init(*DefaultConfig(tt.tp), dir, tt.tp)
 			require.NoError(t, err)
 
 			store, err := OpenStore(dir)

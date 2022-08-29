@@ -14,8 +14,6 @@ import (
 
 	"github.com/celestiaorg/celestia-node/nodebuilder"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
-	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
-	"github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/nodebuilder/tests/swamp"
 )
 
@@ -95,16 +93,9 @@ func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	cfg := nodebuilder.DefaultConfig(node.Bridge)
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 10
-	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithP2pOptions(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
-		nodebuilder.WithShareOptions(
-			share.WithDiscoveryInterval(defaultTimeInterval),
-			share.WithAdvertiseInterval(defaultTimeInterval),
-		),
-	}
+	setTimeInterval(cfg, defaultTimeInterval)
 
-	bridgeConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
-	bridge := sw.NewBridgeNode(bridgeConfig...)
+	bridge := sw.NewNodeWithConfig(node.Bridge, cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	t.Cleanup(cancel)
@@ -113,10 +104,21 @@ func TestBootstrapNodesFromBridgeNode(t *testing.T) {
 	require.NoError(t, err)
 	addr := host.InfoFromHost(bridge.Host)
 
-	nodesConfig := append([]nodebuilder.Option{nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr})},
-		defaultOptions...)
-	full := sw.NewFullNode(nodesConfig...)
-	light := sw.NewLightNode(nodesConfig...)
+	cfg = nodebuilder.DefaultConfig(node.Full)
+	setTimeInterval(cfg, defaultTimeInterval)
+	full := sw.NewNodeWithConfig(
+		node.Full,
+		cfg,
+		nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr}),
+	)
+
+	cfg = nodebuilder.DefaultConfig(node.Light)
+	setTimeInterval(cfg, defaultTimeInterval)
+	light := sw.NewNodeWithConfig(
+		node.Light,
+		cfg,
+		nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr}),
+	)
 	nodes := []*nodebuilder.Node{full, light}
 	ch := make(chan struct{})
 	sub, err := light.Host.EventBus().Subscribe(&event.EvtPeerConnectednessChanged{})
@@ -172,16 +174,10 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	cfg.P2P.Bootstrapper = true
 	const defaultTimeInterval = time.Second * 2
 	const fullNodes = 2
-	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithP2pOptions(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
-		nodebuilder.WithShareOptions(
-			share.WithPeersLimit(fullNodes),
-			share.WithDiscoveryInterval(defaultTimeInterval),
-			share.WithAdvertiseInterval(defaultTimeInterval),
-		),
-	}
-	bridgeConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
-	bridge := sw.NewBridgeNode(bridgeConfig...)
+
+	setTimeInterval(cfg, defaultTimeInterval)
+	cfg.Share.SetPeersLimit(fullNodes)
+	bridge := sw.NewNodeWithConfig(node.Bridge, cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	t.Cleanup(cancel)
@@ -190,10 +186,12 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	require.NoError(t, err)
 	addr := host.InfoFromHost(bridge.Host)
 	nodes := make([]*nodebuilder.Node, fullNodes)
-	nodesConfig := append([]nodebuilder.Option{nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr})},
-		defaultOptions...)
+	cfg = nodebuilder.DefaultConfig(node.Full)
+	setTimeInterval(cfg, defaultTimeInterval)
+	cfg.Share.SetPeersLimit(fullNodes)
+	nodesConfig := nodebuilder.WithBootstrappers([]peer.AddrInfo{*addr})
 	for index := 0; index < fullNodes; index++ {
-		nodes[index] = sw.NewFullNode(nodesConfig...)
+		nodes[index] = sw.NewNodeWithConfig(node.Full, cfg, nodesConfig)
 	}
 
 	identitySub, err := nodes[0].Host.EventBus().Subscribe(&event.EvtPeerIdentificationCompleted{})
@@ -215,8 +213,10 @@ func TestRestartNodeDiscovery(t *testing.T) {
 	require.True(t, nodes[0].Host.Network().Connectedness(id) == network.Connected)
 
 	// create one more node with disabled discovery
-	nodesConfig[1] = nodebuilder.WithShareOptions(share.WithPeersLimit(0))
-	node := sw.NewFullNode(nodesConfig...)
+	cfg = nodebuilder.DefaultConfig(node.Full)
+	setTimeInterval(cfg, defaultTimeInterval)
+	cfg.Share.SetPeersLimit(0)
+	node := sw.NewNodeWithConfig(node.Full, cfg, nodesConfig)
 	connectSub, err := nodes[0].Host.EventBus().Subscribe(&event.EvtPeerConnectednessChanged{})
 	require.NoError(t, err)
 	defer connectSub.Close()
@@ -235,4 +235,10 @@ func TestRestartNodeDiscovery(t *testing.T) {
 			return
 		}
 	}
+}
+
+func setTimeInterval(cfg *nodebuilder.Config, interval time.Duration) {
+	cfg.P2P.SetRefreshRoutingTablePeriod(interval)
+	cfg.Share.SetDiscoveryInterval(interval)
+	cfg.Share.SetAdvertiseInterval(interval)
 }

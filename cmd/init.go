@@ -16,7 +16,7 @@ func Init(fsets ...*flag.FlagSet) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			return nodebuilder.Init(StorePath(ctx), NodeType(ctx), NodeOptions(ctx)...)
+			return nodebuilder.Init(NodeConfig(ctx), StorePath(ctx), NodeType(ctx))
 		},
 	}
 	for _, set := range fsets {

@@ -6,35 +6,21 @@ import (
 	"github.com/celestiaorg/celestia-node/header"
 )
 
-type Option func(*settings)
-
-// settings store values that can be augmented or changed for Node with Options.
-type settings struct {
-	cfg  *Config
-	opts []fx.Option
+// SetTrustedHash sets TrustedHash to the Config.
+func (cfg *Config) SetTrustedHash(hash string) {
+	cfg.TrustedHash = hash
 }
 
-// WithTrustedHash sets TrustedHash to the Config.
-func WithTrustedHash(hash string) Option {
-	return func(sets *settings) {
-		sets.cfg.TrustedHash = hash
-	}
-}
-
-// WithTrustedPeers appends new "trusted peers" to the Config.
-func WithTrustedPeers(addr ...string) Option {
-	return func(sets *settings) {
-		sets.cfg.TrustedPeers = append(sets.cfg.TrustedPeers, addr...)
-	}
+// AddTrustedPeers appends new "trusted peers" to the Config.
+func (cfg *Config) AddTrustedPeers(addr ...string) {
+	cfg.TrustedPeers = append(cfg.TrustedPeers, addr...)
 }
 
 // TODO: Eventually we should have a per-module metrics option.
 // WithMetrics enables metrics exporting for the node.
-func WithMetrics(enable bool) Option {
-	return func(sets *settings) {
-		if !enable {
-			return
-		}
-		sets.opts = append(sets.opts, fx.Options(fx.Invoke(header.MonitorHead)))
+func WithMetrics(enable bool) fx.Option {
+	if !enable {
+		return fx.Options()
 	}
+	return fx.Options(fx.Invoke(header.MonitorHead))
 }

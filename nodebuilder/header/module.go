@@ -18,14 +18,9 @@ import (
 
 var log = logging.Logger("header-module")
 
-func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
-	sets := &settings{cfg: cfg}
-	for _, option := range options {
-		option(sets)
-	}
+func Module(tp node.Type, cfg *Config) fx.Option {
 	baseOptions := fx.Options(
 		fx.Supply(cfg),
-		fx.Options(sets.opts...),
 		fx.Provide(Service),
 		fx.Provide(fx.Annotate(
 			store.NewStore,

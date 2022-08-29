@@ -18,10 +18,7 @@ import (
 
 	"github.com/celestiaorg/celestia-node/ipld"
 	"github.com/celestiaorg/celestia-node/nodebuilder"
-	"github.com/celestiaorg/celestia-node/nodebuilder/header"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
-	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
-	sharemodule "github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/nodebuilder/tests/swamp"
 	"github.com/celestiaorg/celestia-node/service/share"
 )
@@ -57,7 +54,9 @@ func TestFullReconstructFromBridge(t *testing.T) {
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
 
-	full := sw.NewFullNode(nodebuilder.WithHeaderOptions(header.WithTrustedPeers(getMultiAddr(t, bridge.Host))))
+	cfg := nodebuilder.DefaultConfig(node.Full)
+	cfg.Header.AddTrustedPeers(getMultiAddr(t, bridge.Host))
+	full := sw.NewNodeWithConfig(node.Full, cfg)
 	err = full.Start(ctx)
 	require.NoError(t, err)
 
@@ -85,13 +84,13 @@ Pre-Reqs:
 Steps:
 1. Create a Bridge Node(BN)
 2. Start a BN
-3. Create a Full Node(FN) that will act as a bootstraper
-4. Create 69 Light Nodes(LNs) with BN as a trusted peer and a bootstaper
+3. Create a Full Node(FN) that will act as a bootstrapper
+4. Create 69 Light Nodes(LNs) with BN as a trusted peer and a bootstrapper
 5. Start 69 LNs
-6. Create a Full Node(FN) with a bootstraper
+6. Create a Full Node(FN) with a bootstrapper
 7. Unlink FN connection to BN
 8. Start a FN
-9. Check that a FN can retrieve shares from 1 to 20 blocks
+9. Check that the FN can retrieve shares from 1 to 20 blocks
 */
 func TestFullReconstructFromLights(t *testing.T) {
 	ipld.RetrieveQuadrantTimeout = time.Millisecond * 100
@@ -112,44 +111,34 @@ func TestFullReconstructFromLights(t *testing.T) {
 	}()
 
 	const defaultTimeInterval = time.Second * 5
-	var defaultOptions = []nodebuilder.Option{
-		nodebuilder.WithP2pOptions(p2p.WithRefreshRoutingTablePeriod(defaultTimeInterval)),
-		nodebuilder.WithShareOptions(
-			sharemodule.WithDiscoveryInterval(defaultTimeInterval),
-			sharemodule.WithAdvertiseInterval(defaultTimeInterval),
-		),
-	}
-
 	cfg := nodebuilder.DefaultConfig(node.Full)
 	cfg.P2P.Bootstrapper = true
+	setTimeInterval(cfg, defaultTimeInterval)
+
 	bridge := sw.NewBridgeNode()
 	addrsBridge, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
 	require.NoError(t, err)
-	bootstrapConfig := append([]nodebuilder.Option{nodebuilder.WithConfig(cfg)}, defaultOptions...)
-	bootstapFN := sw.NewFullNode(bootstrapConfig...)
-	require.NoError(t, bootstapFN.Start(ctx))
+	bootstrapper := sw.NewNodeWithConfig(node.Full, cfg)
+	require.NoError(t, bootstrapper.Start(ctx))
 	require.NoError(t, bridge.Start(ctx))
-	addrBootstrapNode := host.InfoFromHost(bootstapFN.Host)
+	bootstrapperAddr := host.InfoFromHost(bootstrapper.Host)
 
-	nodesConfig := append(
-		[]nodebuilder.Option{
-			nodebuilder.WithHeaderOptions(header.WithTrustedPeers(addrsBridge[0].String())),
-			nodebuilder.WithBootstrappers([]peer.AddrInfo{*addrBootstrapNode})},
-		defaultOptions...,
-	)
-	full := sw.NewFullNode(nodesConfig...)
+	cfg = nodebuilder.DefaultConfig(node.Full)
+	setTimeInterval(cfg, defaultTimeInterval)
+	cfg.Header.AddTrustedPeers(addrsBridge[0].String())
+	nodesConfig := nodebuilder.WithBootstrappers([]peer.AddrInfo{*bootstrapperAddr})
+	full := sw.NewNodeWithConfig(node.Full, cfg, nodesConfig)
+
 	lights := make([]*nodebuilder.Node, lnodes)
 	subs := make([]event.Subscription, lnodes)
 	errg, errCtx := errgroup.WithContext(ctx)
 	for i := 0; i < lnodes; i++ {
 		i := i
 		errg.Go(func() error {
-			lnConfig := append(
-				[]nodebuilder.Option{
-					nodebuilder.WithHeaderOptions(header.WithTrustedPeers(addrsBridge[0].String()))},
-				nodesConfig...,
-			)
-			light := sw.NewLightNode(lnConfig...)
+			lnConfig := nodebuilder.DefaultConfig(node.Light)
+			setTimeInterval(lnConfig, defaultTimeInterval)
+			lnConfig.Header.AddTrustedPeers(addrsBridge[0].String())
+			light := sw.NewNodeWithConfig(node.Light, lnConfig, nodesConfig)
 			sub, err := light.Host.EventBus().Subscribe(&event.EvtPeerIdentificationCompleted{})
 			if err != nil {
 				return err

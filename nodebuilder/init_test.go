@@ -16,7 +16,8 @@ func TestInit(t *testing.T) {
 	nodes := []node.Type{node.Light, node.Bridge}
 
 	for _, node := range nodes {
-		require.NoError(t, Init(dir, node))
+		cfg := DefaultConfig(node)
+		require.NoError(t, Init(*cfg, dir, node))
 		assert.True(t, IsInit(dir))
 	}
 }
@@ -26,7 +27,8 @@ func TestInitErrForInvalidPath(t *testing.T) {
 	nodes := []node.Type{node.Light, node.Bridge}
 
 	for _, node := range nodes {
-		require.Error(t, Init(path, node))
+		cfg := DefaultConfig(node)
+		require.Error(t, Init(*cfg, path, node))
 	}
 }
 
@@ -56,6 +58,7 @@ func TestInitErrForLockedDir(t *testing.T) {
 	nodes := []node.Type{node.Light, node.Bridge}
 
 	for _, node := range nodes {
-		require.Error(t, Init(dir, node))
+		cfg := DefaultConfig(node)
+		require.Error(t, Init(*cfg, dir, node))
 	}
 }

@@ -1,7 +1,6 @@
 package nodebuilder
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,13 +11,9 @@ import (
 	"github.com/celestiaorg/celestia-node/params"
 )
 
-// Init initializes the Node FileSystem Store for the given Node Type 'tp' in the directory under 'path' with
-// default Config. Options are applied over default Config and persisted on disk.
-func Init(path string, tp node.Type, options ...Option) error {
-	sets := &settings{cfg: DefaultConfig(tp)}
-	for _, option := range options {
-		option(sets)
-	}
+// Init initializes the Node FileSystem Store for the given Node Type 'tp' in the directory under 'path' from
+// the default config with parsed flags applied. Options are applied over default Config and persisted on disk.
+func Init(cfg Config, path string, tp node.Type) error {
 
 	path, err := storePath(path)
 	if err != nil {
@@ -50,13 +45,9 @@ func Init(path string, tp node.Type, options ...Option) error {
 		return err
 	}
 
-	if sets.cfg == nil {
-		return errors.New("configuration is missing for the node's initialisation")
-	}
-
 	cfgPath := configPath(path)
 	if !utils.Exists(cfgPath) {
-		err = SaveConfig(cfgPath, sets.cfg)
+		err = SaveConfig(cfgPath, &cfg)
 		if err != nil {
 			return err
 		}

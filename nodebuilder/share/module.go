@@ -9,15 +9,10 @@ import (
 	"github.com/celestiaorg/celestia-node/service/share"
 )
 
-func Module(tp node.Type, cfg *Config, options ...Option) fx.Option {
-	sets := &settings{cfg: cfg}
-	for _, option := range options {
-		option(sets)
-	}
-
+func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 	baseComponents := fx.Options(
 		fx.Supply(cfg),
-		fx.Options(sets.opts...),
+		fx.Options(options...),
 		fx.Invoke(share.EnsureEmptySquareExists),
 		fx.Provide(fx.Annotate(
 			share.NewService,
