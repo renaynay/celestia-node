@@ -3,12 +3,11 @@ package cmd
 import (
 	"context"
 
-	rpcmodule "github.com/celestiaorg/celestia-node/nodebuilder/rpc"
-
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
 	"github.com/celestiaorg/celestia-node/nodebuilder"
+	rpcmodule "github.com/celestiaorg/celestia-node/nodebuilder/rpc"
 )
 
 var (

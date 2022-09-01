@@ -2,7 +2,6 @@ package header
 
 import (
 	"context"
-	headerservice "github.com/celestiaorg/celestia-node/service/header"
 
 	logging "github.com/ipfs/go-log/v2"
 	"go.uber.org/fx"
@@ -14,6 +13,7 @@ import (
 	"github.com/celestiaorg/celestia-node/header/sync"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
+	headerservice "github.com/celestiaorg/celestia-node/service/header"
 )
 
 var log = logging.Logger("header-module")

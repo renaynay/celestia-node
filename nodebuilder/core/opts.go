@@ -3,10 +3,9 @@ package core
 import (
 	"go.uber.org/fx"
 
+	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
-
-	"github.com/celestiaorg/celestia-node/core"
 )
 
 // SetRemoteCoreIP configures Node to connect to the given remote Core IP.

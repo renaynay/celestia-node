@@ -3,15 +3,13 @@ package state
 import (
 	"context"
 
-	"github.com/celestiaorg/celestia-node/nodebuilder/header"
-
 	logging "github.com/ipfs/go-log/v2"
 	"go.uber.org/fx"
 
-	"github.com/celestiaorg/celestia-node/nodebuilder/node"
-
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
+	"github.com/celestiaorg/celestia-node/nodebuilder/header"
+	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/service/state"
 )
 

@@ -45,7 +45,7 @@ func NewDiscovery(
 	peersLimit uint,
 	discInterval,
 	advertiseInterval time.Duration,
-) *Discovery { //nolint:revive
+) *Discovery {
 	return &Discovery{
 		newLimitedSet(peersLimit),
 		h,

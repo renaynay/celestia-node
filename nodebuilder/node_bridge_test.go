@@ -6,9 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	coremodule "github.com/celestiaorg/celestia-node/nodebuilder/core"
-
 	"github.com/celestiaorg/celestia-node/core"
+	coremodule "github.com/celestiaorg/celestia-node/nodebuilder/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/params"
 )
