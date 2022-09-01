@@ -47,12 +47,18 @@ func TrustedPeersFlags() *flag.FlagSet {
 		nil,
 		"Multiaddresses of a reliable peers to fetch headers from. (Format: multiformats.io/multiaddr)",
 	)
-
 	return flags
 }
 
 // ParseTrustedPeerFlags parses Header package flags from the given cmd and applies values to Env.
-func ParseTrustedPeerFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (context.Context, error) {
+func ParseTrustedPeerFlags(
+	ctx context.Context,
+	cmd *cobra.Command,
+	cfg *nodebuilder.Config,
+) (setCtx context.Context, err error) {
+	defer func() {
+		setCtx = WithNodeConfig(ctx, cfg)
+	}()
 	tpeers, err := cmd.Flags().GetStringSlice(headersTrustedPeersFlag)
 	if err != nil {
 		return ctx, err
@@ -64,11 +70,8 @@ func ParseTrustedPeerFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebui
 			return ctx, fmt.Errorf("cmd: while parsing '%s' with peer addr '%s': %w", headersTrustedPeersFlag, tpeer, err)
 		}
 	}
-
 	cfg.Header.AddTrustedPeers(tpeers...)
-	ctx = WithNodeConfig(ctx, cfg)
-
-	return ctx, nil
+	return
 }
 
 // TrustedHashFlags returns a set of flags related to configuring a `TrustedHash`.
@@ -80,12 +83,18 @@ func TrustedHashFlags() *flag.FlagSet {
 		"",
 		"Hex encoded header hash. Used to subjectively initialize header synchronization",
 	)
-
 	return flags
 }
 
 // ParseTrustedHashFlags parses Header package flags from the given cmd and applies values to Env.
-func ParseTrustedHashFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (context.Context, error) {
+func ParseTrustedHashFlags(
+	ctx context.Context,
+	cmd *cobra.Command,
+	cfg *nodebuilder.Config,
+) (setCtx context.Context, err error) {
+	defer func() {
+		setCtx = WithNodeConfig(ctx, cfg)
+	}()
 	hash := cmd.Flag(headersTrustedHashFlag).Value.String()
 	if hash != "" {
 		_, err := hex.DecodeString(hash)
@@ -94,8 +103,6 @@ func ParseTrustedHashFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebui
 		}
 
 		cfg.Header.SetTrustedHash(hash)
-		ctx = WithNodeConfig(ctx, cfg)
 	}
-
-	return ctx, nil
+	return
 }

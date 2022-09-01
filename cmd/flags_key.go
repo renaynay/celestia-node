@@ -19,11 +19,13 @@ func KeyFlags() *flag.FlagSet {
 	return flags
 }
 
-func ParseKeyFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) context.Context {
+func ParseKeyFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Config) (setCtx context.Context) {
+	defer func() {
+		setCtx = WithNodeConfig(ctx, cfg)
+	}()
 	keyringAccName := cmd.Flag(keyringAccNameFlag).Value.String()
 	if keyringAccName != "" {
 		cfg.State.SetKeyringAccName(keyringAccName)
-		return WithNodeConfig(ctx, cfg)
 	}
-	return ctx
+	return
 }
