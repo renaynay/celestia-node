@@ -9,26 +9,12 @@ import (
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 
-	headerservice "github.com/celestiaorg/celestia-node/service/header"
-
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/header/p2p"
 	"github.com/celestiaorg/celestia-node/header/store"
-	"github.com/celestiaorg/celestia-node/header/sync"
 	"github.com/celestiaorg/celestia-node/params"
 )
-
-// Service creates a new header.Service.
-func Service(
-	syncer *sync.Syncer,
-	sub header.Subscriber,
-	p2pServer *p2p.ExchangeServer,
-	ex header.Exchange,
-	store header.Store,
-) *headerservice.Service {
-	return headerservice.NewHeaderService(syncer, sub, p2pServer, ex, store)
-}
 
 // P2PExchange constructs new Exchange for headers.
 func P2PExchange(cfg Config) func(params.Bootstrappers, host.Host) (header.Exchange, error) {

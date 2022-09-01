@@ -2,6 +2,7 @@ package header
 
 import (
 	"context"
+	headerservice "github.com/celestiaorg/celestia-node/service/header"
 
 	logging "github.com/ipfs/go-log/v2"
 	"go.uber.org/fx"
@@ -20,7 +21,7 @@ var log = logging.Logger("header-module")
 func Module(tp node.Type, cfg *Config) fx.Option {
 	baseOptions := fx.Options(
 		fx.Supply(cfg),
-		fx.Provide(Service),
+		fx.Provide(headerservice.NewHeaderService),
 		fx.Provide(fx.Annotate(
 			store.NewStore,
 			fx.OnStart(func(ctx context.Context, store header.Store) error {
