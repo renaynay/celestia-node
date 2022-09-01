@@ -51,12 +51,6 @@ func InitStore(ctx context.Context, cfg *Config, net params.Network, s header.St
 	return nil
 }
 
-// P2PSubscriber creates a new p2p.Subscriber.
-func P2PSubscriber(sub *pubsub.PubSub) (header.Broadcaster, header.Subscriber, *p2p.Subscriber) {
-	p2pSub := p2p.NewSubscriber(sub)
-	return p2pSub, p2pSub, p2pSub
-}
-
 // FraudService constructs fraud proof service.
 func FraudService(
 	sub *pubsub.PubSub,
