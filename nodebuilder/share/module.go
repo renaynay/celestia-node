@@ -61,6 +61,6 @@ func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 			fx.Provide(CacheAvailability[*share.FullAvailability]),
 		)
 	default:
-		panic("wrong node type")
+		panic("invalid node type")
 	}
 }

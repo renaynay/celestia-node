@@ -45,6 +45,6 @@ func Module(tp node.Type, cfg *Config) fx.Option {
 			)),
 		)
 	default:
-		panic("wrong node type")
+		panic("invalid node type")
 	}
 }

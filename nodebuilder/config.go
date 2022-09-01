@@ -4,18 +4,15 @@ import (
 	"io"
 	"os"
 
-	"github.com/celestiaorg/celestia-node/service/rpc"
-
-	"github.com/celestiaorg/celestia-node/nodebuilder/header"
-	"github.com/celestiaorg/celestia-node/nodebuilder/share"
-
 	"github.com/BurntSushi/toml"
 
-	"github.com/celestiaorg/celestia-node/nodebuilder/node"
-
 	"github.com/celestiaorg/celestia-node/nodebuilder/core"
+	"github.com/celestiaorg/celestia-node/nodebuilder/header"
+	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
+	"github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
+	"github.com/celestiaorg/celestia-node/service/rpc"
 )
 
 // Loader defines a function that loads a config from any source.

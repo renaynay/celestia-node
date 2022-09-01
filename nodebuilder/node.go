@@ -116,9 +116,9 @@ func (n *Node) Run(ctx context.Context) error {
 	return ctx.Err()
 }
 
-// Stop shuts down the Node, all its running Module/Services and returns.
+// Stop shuts down the Node, all its running Modules/Services and returns.
 // Canceling the given context earlier 'ctx' unblocks the Stop and aborts graceful shutdown forcing remaining
-// Module/Services to close immediately.
+// Modules/Services to close immediately.
 func (n *Node) Stop(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, Timeout)
 	defer cancel()

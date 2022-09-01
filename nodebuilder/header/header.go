@@ -2,15 +2,14 @@ package header
 
 import (
 	"context"
-	"encoding/hex"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	"github.com/multiformats/go-multiaddr"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+
+	headerservice "github.com/celestiaorg/celestia-node/service/header"
 
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/header"
@@ -18,7 +17,6 @@ import (
 	"github.com/celestiaorg/celestia-node/header/store"
 	"github.com/celestiaorg/celestia-node/header/sync"
 	"github.com/celestiaorg/celestia-node/params"
-	headerservice "github.com/celestiaorg/celestia-node/service/header"
 )
 
 // Service creates a new header.Service.
@@ -113,36 +111,4 @@ func FraudLifecycle(
 		}
 	})
 	return nil
-}
-
-func (cfg *Config) trustedPeers(bpeers params.Bootstrappers) (infos []peer.AddrInfo, err error) {
-	if len(cfg.TrustedPeers) == 0 {
-		log.Infof("No trusted peers in config, initializing with default bootstrappers as trusted peers")
-		return bpeers, nil
-	}
-
-	infos = make([]peer.AddrInfo, len(cfg.TrustedPeers))
-	for i, tpeer := range cfg.TrustedPeers {
-		ma, err := multiaddr.NewMultiaddr(tpeer)
-		if err != nil {
-			return nil, err
-		}
-		p, err := peer.AddrInfoFromP2pAddr(ma)
-		if err != nil {
-			return nil, err
-		}
-		infos[i] = *p
-	}
-	return
-}
-
-func (cfg *Config) trustedHash(net params.Network) (tmbytes.HexBytes, error) {
-	if cfg.TrustedHash == "" {
-		gen, err := params.GenesisFor(net)
-		if err != nil {
-			return nil, err
-		}
-		return hex.DecodeString(gen)
-	}
-	return hex.DecodeString(cfg.TrustedHash)
 }

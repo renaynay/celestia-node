@@ -8,8 +8,7 @@ import (
 	"github.com/celestiaorg/celestia-node/das"
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
-	header "github.com/celestiaorg/celestia-node/nodebuilder/header"
-
+	"github.com/celestiaorg/celestia-node/nodebuilder/header"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
@@ -32,6 +31,6 @@ func Module(tp node.Type) fx.Option {
 	case node.Bridge:
 		return fx.Options()
 	default:
-		panic("wrong node type")
+		panic("invalid node type")
 	}
 }

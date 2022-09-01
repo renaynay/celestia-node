@@ -11,10 +11,8 @@ import (
 	"github.com/celestiaorg/celestia-node/params"
 )
 
-// Init initializes the Node FileSystem Store for the given Node Type 'tp' in the directory under 'path' from
-// the default config with parsed flags applied. Options are applied over default Config and persisted on disk.
+// Init initializes the Node FileSystem Store for the given Node Type 'tp' in the directory under 'path'.
 func Init(cfg Config, path string, tp node.Type) error {
-
 	path, err := storePath(path)
 	if err != nil {
 		return err

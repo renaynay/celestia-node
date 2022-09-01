@@ -4,9 +4,8 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/celestiaorg/celestia-node/nodebuilder"
-
 	cmdnode "github.com/celestiaorg/celestia-node/cmd"
+	"github.com/celestiaorg/celestia-node/nodebuilder"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 

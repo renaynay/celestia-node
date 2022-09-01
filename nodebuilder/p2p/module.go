@@ -6,7 +6,6 @@ import (
 
 // Module collects all the components and services related to p2p.
 func Module(cfg *Config) fx.Option {
-
 	return fx.Module(
 		"p2p",
 		fx.Supply(cfg),

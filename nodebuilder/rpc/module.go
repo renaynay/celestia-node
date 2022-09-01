@@ -13,7 +13,6 @@ import (
 )
 
 func Module(tp node.Type, cfg *rpcServ.Config) fx.Option {
-
 	baseComponents := fx.Options(
 		fx.Supply(*cfg),
 		fx.Provide(fx.Annotate(
@@ -48,6 +47,6 @@ func Module(tp node.Type, cfg *rpcServ.Config) fx.Option {
 			}),
 		)
 	default:
-		panic("wrong node type")
+		panic("invalid node type")
 	}
 }
