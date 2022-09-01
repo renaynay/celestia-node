@@ -44,16 +44,11 @@ func Init(cfg Config, path string, tp node.Type) error {
 	}
 
 	cfgPath := configPath(path)
-	if !utils.Exists(cfgPath) {
-		err = SaveConfig(cfgPath, &cfg)
-		if err != nil {
-			return err
-		}
-		log.Infow("Saving config", "path", cfgPath)
-	} else {
-		log.Infow("Config already exists", "path", cfgPath)
+	err = SaveConfig(cfgPath, &cfg)
+	if err != nil {
+		return err
 	}
-
+	log.Infow("Saving config", "path", cfgPath)
 	log.Info("Node Store initialized")
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/cobra"
 
 	cmdnode "github.com/celestiaorg/celestia-node/cmd"
-	"github.com/celestiaorg/celestia-node/nodebuilder"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
@@ -49,7 +48,6 @@ var fullCmd = &cobra.Command{
 			err error
 		)
 
-		cfg := nodebuilder.DefaultConfig(node.Full)
 		ctx = cmdnode.WithNodeType(ctx, node.Full)
 
 		ctx, err = cmdnode.ParseNodeFlags(ctx, cmd)
@@ -57,17 +55,19 @@ var fullCmd = &cobra.Command{
 			return err
 		}
 
-		ctx, err = cmdnode.ParseP2PFlags(ctx, cmd, cfg)
+		cfg := cmdnode.NodeConfig(ctx)
+
+		ctx, err = cmdnode.ParseP2PFlags(ctx, cmd, &cfg)
 		if err != nil {
 			return err
 		}
 
-		ctx, err = cmdnode.ParseCoreFlags(ctx, cmd, cfg)
+		ctx, err = cmdnode.ParseCoreFlags(ctx, cmd, &cfg)
 		if err != nil {
 			return err
 		}
 
-		ctx, err = cmdnode.ParseHeadersFlags(ctx, cmd, cfg)
+		ctx, err = cmdnode.ParseHeadersFlags(ctx, cmd, &cfg)
 		if err != nil {
 			return err
 		}
@@ -77,12 +77,12 @@ var fullCmd = &cobra.Command{
 			return err
 		}
 
-		ctx, err = cmdnode.ParseRPCFlags(ctx, cmd, cfg)
+		ctx, err = cmdnode.ParseRPCFlags(ctx, cmd, &cfg)
 		if err != nil {
 			return err
 		}
 
-		ctx = cmdnode.ParseKeyFlags(ctx, cmd, cfg)
+		ctx = cmdnode.ParseKeyFlags(ctx, cmd, &cfg)
 
 		cmd.SetContext(ctx)
 		return nil

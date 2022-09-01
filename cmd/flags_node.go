@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/mitchellh/go-homedir"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -37,17 +39,28 @@ func NodeFlags(tp node.Type) *flag.FlagSet {
 
 // ParseNodeFlags parses Node flags from the given cmd and applies values to Env.
 func ParseNodeFlags(ctx context.Context, cmd *cobra.Command) (context.Context, error) {
-	ctx = WithStorePath(ctx, cmd.Flag(nodeStoreFlag).Value.String())
+	path := cmd.Flag(nodeStoreFlag).Value.String()
+	ctx = WithStorePath(ctx, path)
 
 	nodeConfig := cmd.Flag(nodeConfigFlag).Value.String()
 	if nodeConfig != "" {
+		// try to load config from given path
 		cfg, err := nodebuilder.LoadConfig(nodeConfig)
 		if err != nil {
 			return ctx, fmt.Errorf("cmd: while parsing '%s': %w", nodeConfigFlag, err)
 		}
 
 		ctx = WithNodeConfig(ctx, cfg)
+	} else {
+		// check if config already exists at the store path and load it
+		expanded, err := homedir.Expand(filepath.Clean(path))
+		if err != nil {
+			return ctx, err
+		}
+		cfg, err := nodebuilder.LoadConfig(filepath.Join(expanded, "config.toml"))
+		if err == nil {
+			ctx = WithNodeConfig(ctx, cfg)
+		}
 	}
-
 	return ctx, nil
 }

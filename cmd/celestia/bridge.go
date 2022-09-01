@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 
 	cmdnode "github.com/celestiaorg/celestia-node/cmd"
-	"github.com/celestiaorg/celestia-node/nodebuilder"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
@@ -42,7 +41,6 @@ var bridgeCmd = &cobra.Command{
 			err error
 		)
 
-		cfg := nodebuilder.DefaultConfig(node.Bridge)
 		ctx = cmdnode.WithNodeType(ctx, node.Bridge)
 
 		ctx, err = cmdnode.ParseNodeFlags(ctx, cmd)
@@ -50,12 +48,14 @@ var bridgeCmd = &cobra.Command{
 			return err
 		}
 
-		ctx, err = cmdnode.ParseP2PFlags(ctx, cmd, cfg)
+		cfg := cmdnode.NodeConfig(ctx)
+
+		ctx, err = cmdnode.ParseP2PFlags(ctx, cmd, &cfg)
 		if err != nil {
 			return err
 		}
 
-		ctx, err = cmdnode.ParseCoreFlags(ctx, cmd, cfg)
+		ctx, err = cmdnode.ParseCoreFlags(ctx, cmd, &cfg)
 		if err != nil {
 			return err
 		}
@@ -65,12 +65,12 @@ var bridgeCmd = &cobra.Command{
 			return err
 		}
 
-		ctx, err = cmdnode.ParseRPCFlags(ctx, cmd, cfg)
+		ctx, err = cmdnode.ParseRPCFlags(ctx, cmd, &cfg)
 		if err != nil {
 			return err
 		}
 
-		ctx = cmdnode.ParseKeyFlags(ctx, cmd, cfg)
+		ctx = cmdnode.ParseKeyFlags(ctx, cmd, &cfg)
 
 		cmd.SetContext(ctx)
 		return nil
