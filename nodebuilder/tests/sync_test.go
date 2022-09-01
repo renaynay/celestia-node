@@ -268,8 +268,6 @@ func TestSyncLightWithTrustedPeers(t *testing.T) {
 	addrs, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
 	require.NoError(t, err)
 
-	trustedPeers := []string{addrs[0].String()}
-
 	cfg := nodebuilder.DefaultConfig(node.Full)
 	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	full := sw.NewNodeWithConfig(node.Full, cfg)
@@ -282,8 +280,6 @@ func TestSyncLightWithTrustedPeers(t *testing.T) {
 
 	addrs, err = peer.AddrInfoToP2pAddrs(host.InfoFromHost(full.Host))
 	require.NoError(t, err)
-
-	trustedPeers = append(trustedPeers, addrs[0].String())
 
 	cfg = nodebuilder.DefaultConfig(node.Light)
 	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())

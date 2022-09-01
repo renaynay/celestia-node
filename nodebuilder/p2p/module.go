@@ -9,6 +9,7 @@ func Module(cfg *Config) fx.Option {
 	return fx.Module(
 		"p2p",
 		fx.Supply(cfg),
+		fx.Invoke(cfg.ValidateBasic),
 		fx.Provide(Key),
 		fx.Provide(ID),
 		fx.Provide(PeerStore),

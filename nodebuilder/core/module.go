@@ -20,6 +20,7 @@ func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 	case node.Bridge:
 		return fx.Module("core",
 			fx.Supply(*cfg),
+			fx.Invoke(cfg.ValidateBasic),
 			fx.Options(options...),
 			fx.Provide(core.NewBlockFetcher),
 			fxutil.ProvideAs(headercore.NewExchange, new(header.Exchange)),

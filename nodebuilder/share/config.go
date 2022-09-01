@@ -1,7 +1,12 @@
 package share
 
 import (
+	"errors"
 	"time"
+)
+
+var (
+	ErrNegativeInterval = errors.New("interval must be positive")
 )
 
 type Config struct {
@@ -20,4 +25,12 @@ func DefaultConfig() Config {
 		DiscoveryInterval: time.Second * 30,
 		AdvertiseInterval: time.Second * 30,
 	}
+}
+
+// ValidateBasic performs basic validation of the config.
+func (cfg *Config) ValidateBasic() error {
+	if cfg.DiscoveryInterval <= 0 || cfg.AdvertiseInterval <= 0 {
+		return ErrNegativeInterval
+	}
+	return nil
 }

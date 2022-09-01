@@ -2,7 +2,6 @@ package share
 
 import (
 	"context"
-	"errors"
 
 	"go.uber.org/fx"
 
@@ -14,12 +13,7 @@ func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 	baseComponents := fx.Options(
 		fx.Supply(cfg),
 		fx.Options(options...),
-		fx.Invoke(func(cfg *Config) error {
-			if cfg.DiscoveryInterval <= 0 || cfg.AdvertiseInterval <= 0 {
-				return errors.New("discovery and advertise intervals must be positive")
-			}
-			return nil
-		}),
+		fx.Invoke(cfg.ValidateBasic),
 		fx.Invoke(share.EnsureEmptySquareExists),
 		fx.Provide(Discovery(*cfg)),
 		fx.Provide(fx.Annotate(

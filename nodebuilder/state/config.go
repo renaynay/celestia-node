@@ -11,3 +11,8 @@ func DefaultConfig() Config {
 		KeyringAccName: "",
 	}
 }
+
+// ValidateBasic performs basic validation of the config.
+func (cfg *Config) ValidateBasic() error {
+	return nil
+}

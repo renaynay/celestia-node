@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"encoding/hex"
+
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"go.uber.org/fx"

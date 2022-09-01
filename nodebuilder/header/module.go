@@ -21,6 +21,7 @@ var log = logging.Logger("header-module")
 func Module(tp node.Type, cfg *Config) fx.Option {
 	baseOptions := fx.Options(
 		fx.Supply(cfg),
+		fx.Invoke(cfg.ValidateBasic),
 		fx.Provide(headerservice.NewHeaderService),
 		fx.Provide(fx.Annotate(
 			store.NewStore,

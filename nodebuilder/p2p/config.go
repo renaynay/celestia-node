@@ -71,3 +71,8 @@ func (cfg *Config) mutualPeers() (_ []peer.AddrInfo, err error) {
 
 	return peer.AddrInfosFromP2pAddrs(maddrs...)
 }
+
+// ValidateBasic performs basic validation of the config.
+func (cfg *Config) ValidateBasic() error {
+	return nil
+}

@@ -23,6 +23,7 @@ func Module(tp node.Type, cfg *Config) fx.Option {
 		return fx.Module(
 			"state",
 			fx.Supply(cfg),
+			fx.Invoke(cfg.ValidateBasic),
 			fx.Provide(Keyring(cfg)),
 			fx.Provide(fx.Annotate(CoreAccessor,
 				fx.OnStart(func(ctx context.Context, accessor state.Accessor) error {

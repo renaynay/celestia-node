@@ -12,3 +12,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{}
 }
+
+// ValidateBasic performs basic validation of the config.
+func (cfg *Config) ValidateBasic() error {
+	return nil
+}
