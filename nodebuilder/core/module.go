@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"fmt"
 
 	"go.uber.org/fx"
 
@@ -33,25 +32,15 @@ func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 					return listener.Stop(ctx)
 				}),
 			)),
-			fx.Provide(func(lc fx.Lifecycle) (core.Client, error) {
-				if cfg.IP == "" {
-					return nil, fmt.Errorf("no celestia-core endpoint given")
-				}
-				client, err := core.NewRemote(cfg.IP, cfg.RPCPort)
-				if err != nil {
-					return nil, err
-				}
-				lc.Append(fx.Hook{
-					OnStart: func(context.Context) error {
-						return client.Start()
-					},
-					OnStop: func(context.Context) error {
-						return client.Stop()
-					},
-				})
-
-				return client, err
-			}),
+			fx.Provide(fx.Annotate(
+				Remote(*cfg),
+				fx.OnStart(func(ctx context.Context, client core.Client) error {
+					return client.Start()
+				}),
+				fx.OnStop(func(ctx context.Context, client core.Client) error {
+					return client.Stop()
+				}),
+			)),
 		)
 	default:
 		panic("invalid node type")
