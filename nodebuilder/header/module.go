@@ -31,7 +31,7 @@ func Module(tp node.Type, cfg *Config) fx.Option {
 				return store.Stop(ctx)
 			}),
 		)),
-		fx.Invoke(InitStore(cfg)),
+		fx.Invoke(InitStore),
 		fxutil.ProvideAs(FraudService, new(fraud.Service), new(fraud.Subscriber)),
 		fx.Provide(func(subscriber *p2p.Subscriber) header.Subscriber {
 			return subscriber
