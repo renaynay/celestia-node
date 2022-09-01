@@ -33,35 +33,17 @@ type Config struct {
 // NOTE: Currently, configs are identical, but this will change.
 func DefaultConfig(tp node.Type) *Config {
 	switch tp {
-	case node.Bridge:
+	case node.Bridge, node.Light, node.Full:
 		return &Config{
 			Core:   core.DefaultConfig(),
 			State:  state.DefaultConfig(),
 			P2P:    p2p.DefaultConfig(),
 			RPC:    rpc.DefaultConfig(),
 			Share:  share.DefaultConfig(),
-			Header: header.DefaultConfig(),
-		}
-	case node.Light:
-		return &Config{
-			State:  state.DefaultConfig(),
-			RPC:    rpc.DefaultConfig(),
-			P2P:    p2p.DefaultConfig(),
-			Share:  share.DefaultConfig(),
-			Core:   core.DefaultConfig(),
-			Header: header.DefaultConfig(),
-		}
-	case node.Full:
-		return &Config{
-			State:  state.DefaultConfig(),
-			RPC:    rpc.DefaultConfig(),
-			P2P:    p2p.DefaultConfig(),
-			Share:  share.DefaultConfig(),
-			Core:   core.DefaultConfig(),
 			Header: header.DefaultConfig(),
 		}
 	default:
-		panic("node: unknown Node Type")
+		panic("node: invalid node type")
 	}
 }
 
