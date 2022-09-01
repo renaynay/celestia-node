@@ -50,7 +50,7 @@ func TestSyncLightWithBridge(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := nodebuilder.DefaultConfig(node.Light)
-	cfg.Header.AddTrustedPeers(addrs[0].String())
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	light := sw.NewNodeWithConfig(node.Light, cfg)
 
 	err = light.Start(ctx)
@@ -100,7 +100,7 @@ func TestSyncStartStopLightWithBridge(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := nodebuilder.DefaultConfig(node.Light)
-	cfg.Header.AddTrustedPeers(addrs[0].String())
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	light := sw.NewNodeWithConfig(node.Light, cfg)
 	require.NoError(t, light.Start(ctx))
 
@@ -113,7 +113,7 @@ func TestSyncStartStopLightWithBridge(t *testing.T) {
 	require.NoError(t, sw.RemoveNode(light, node.Light))
 
 	cfg = nodebuilder.DefaultConfig(node.Light)
-	cfg.Header.AddTrustedPeers(addrs[0].String())
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	light = sw.NewNodeWithConfig(node.Light, cfg)
 	require.NoError(t, light.Start(ctx))
 
@@ -155,7 +155,7 @@ func TestSyncFullWithBridge(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := nodebuilder.DefaultConfig(node.Full)
-	cfg.Header.AddTrustedPeers(addrs[0].String())
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	full := sw.NewNodeWithConfig(node.Full, cfg)
 	require.NoError(t, full.Start(ctx))
 
@@ -203,7 +203,7 @@ func TestSyncLightWithFull(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := nodebuilder.DefaultConfig(node.Full)
-	cfg.Header.AddTrustedPeers(addrs[0].String())
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	full := sw.NewNodeWithConfig(node.Full, cfg)
 	require.NoError(t, full.Start(ctx))
 
@@ -216,7 +216,7 @@ func TestSyncLightWithFull(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg = nodebuilder.DefaultConfig(node.Light)
-	cfg.Header.AddTrustedPeers(addrs[0].String())
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	light := sw.NewNodeWithConfig(node.Light, cfg)
 
 	err = sw.Network.UnlinkPeers(bridge.Host.ID(), light.Host.ID())
@@ -271,7 +271,7 @@ func TestSyncLightWithTrustedPeers(t *testing.T) {
 	trustedPeers := []string{addrs[0].String()}
 
 	cfg := nodebuilder.DefaultConfig(node.Full)
-	cfg.Header.AddTrustedPeers(addrs[0].String())
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	full := sw.NewNodeWithConfig(node.Full, cfg)
 	require.NoError(t, full.Start(ctx))
 
@@ -286,7 +286,7 @@ func TestSyncLightWithTrustedPeers(t *testing.T) {
 	trustedPeers = append(trustedPeers, addrs[0].String())
 
 	cfg = nodebuilder.DefaultConfig(node.Light)
-	cfg.Header.AddTrustedPeers(trustedPeers...)
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	light := sw.NewNodeWithConfig(node.Light, cfg)
 
 	err = light.Start(ctx)

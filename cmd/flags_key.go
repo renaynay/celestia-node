@@ -25,7 +25,7 @@ func ParseKeyFlags(ctx context.Context, cmd *cobra.Command, cfg *nodebuilder.Con
 	}()
 	keyringAccName := cmd.Flag(keyringAccNameFlag).Value.String()
 	if keyringAccName != "" {
-		cfg.State.SetKeyringAccName(keyringAccName)
+		cfg.State.KeyringAccName = keyringAccName
 	}
 	return
 }

@@ -70,7 +70,7 @@ func ParseTrustedPeerFlags(
 			return ctx, fmt.Errorf("cmd: while parsing '%s' with peer addr '%s': %w", headersTrustedPeersFlag, tpeer, err)
 		}
 	}
-	cfg.Header.AddTrustedPeers(tpeers...)
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, tpeers...)
 	return
 }
 
@@ -102,7 +102,7 @@ func ParseTrustedHashFlags(
 			return ctx, fmt.Errorf("cmd: while parsing '%s': %w", headersTrustedHashFlag, err)
 		}
 
-		cfg.Header.SetTrustedHash(hash)
+		cfg.Header.TrustedHash = hash
 	}
 	return
 }

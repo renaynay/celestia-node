@@ -7,7 +7,6 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/celestiaorg/celestia-node/nodebuilder"
-	rpcmodule "github.com/celestiaorg/celestia-node/nodebuilder/rpc"
 )
 
 var (
@@ -44,11 +43,11 @@ func ParseRPCFlags(
 	}()
 	addr := cmd.Flag(addrFlag).Value.String()
 	if addr != "" {
-		rpcmodule.SetRPCAddress(&cfg.RPC, addr)
+		cfg.RPC.Address = addr
 	}
 	port := cmd.Flag(portFlag).Value.String()
 	if port != "" {
-		rpcmodule.SetRPCPort(&cfg.RPC, port)
+		cfg.RPC.Port = port
 	}
 	return
 }

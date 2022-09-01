@@ -44,7 +44,7 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := nodebuilder.DefaultConfig(node.Full)
-	cfg.Header.AddTrustedPeers(addrs[0].String())
+	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
 	store := nodebuilder.MockStore(t, cfg)
 	full := sw.NewNodeWithStore(node.Full, store)
 

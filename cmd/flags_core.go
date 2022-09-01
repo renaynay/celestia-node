@@ -70,8 +70,8 @@ func ParseCoreFlags(
 	if err != nil {
 		return ctx, err
 	}
-	cfg.Core.SetRemoteCoreIP(ip)
-	cfg.Core.SetRemoteCorePort(rpc)
+	cfg.Core.IP = ip
+	cfg.Core.RPCPort = rpc
 
 	grpc := cmd.Flag(coreGRPCFlag).Value.String()
 	// sanity check gRPC endpoint
@@ -79,7 +79,7 @@ func ParseCoreFlags(
 	if err != nil {
 		return
 	}
-	cfg.Core.SetGRPCPort(grpc)
+	cfg.Core.GRPCPort = grpc
 	return
 }
 

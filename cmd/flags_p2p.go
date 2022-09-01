@@ -54,7 +54,7 @@ func ParseP2PFlags(
 	}
 
 	if len(mutualPeers) != 0 {
-		cfg.P2P.SetMutualPeers(mutualPeers)
+		cfg.P2P.MutualPeers = mutualPeers
 	}
 	return
 }

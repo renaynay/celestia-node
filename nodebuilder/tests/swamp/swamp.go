@@ -23,7 +23,6 @@ import (
 	coremodule "github.com/celestiaorg/celestia-node/nodebuilder/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
-	rpcmodule "github.com/celestiaorg/celestia-node/nodebuilder/rpc"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 	"github.com/celestiaorg/celestia-node/params"
 )
@@ -267,8 +266,8 @@ func (s *Swamp) newNode(t node.Type, store nodebuilder.Store, options ...fx.Opti
 	// like <core, host, hash> from the test case, we need to check them and not use
 	// default that are set here
 	cfg, _ := store.Config()
-	cfg.Header.SetTrustedHash(s.trustedHash)
-	rpcmodule.SetRPCPort(&cfg.RPC, "0")
+	cfg.Header.TrustedHash = s.trustedHash
+	cfg.RPC.Port = "0"
 	options = append(options,
 		p2p.WithHost(s.createPeer(ks)),
 		nodebuilder.WithNetwork(params.Private),

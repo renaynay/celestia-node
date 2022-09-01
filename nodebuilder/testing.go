@@ -17,7 +17,6 @@ import (
 
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
-	"github.com/celestiaorg/celestia-node/nodebuilder/rpc"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 	"github.com/celestiaorg/celestia-node/params"
 )
@@ -45,9 +44,9 @@ func TestNodeWithConfig(t *testing.T, tp node.Type, cfg *Config, opts ...fx.Opti
 	require.NoError(t, err)
 	ip, port, err := net.SplitHostPort(endpoint)
 	require.NoError(t, err)
-	cfg.Core.SetRemoteCoreIP(ip)
-	cfg.Core.SetRemoteCorePort(port)
-	rpc.SetRPCPort(&cfg.RPC, "0")
+	cfg.Core.IP = ip
+	cfg.Core.RPCPort = port
+	cfg.RPC.Port = "0"
 
 	opts = append(opts,
 		WithNetwork(params.Private),

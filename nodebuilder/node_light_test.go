@@ -33,7 +33,7 @@ func TestLight_WithMutualPeers(t *testing.T) {
 		"/ip4/192.168.1.10/tcp/2121/p2p/12D3KooWSRqDfpLsQxpyUhLC9oXHD2WuZ2y5FWzDri7LT4Dw9fSi",
 	}
 	cfg := DefaultConfig(nodebuilder.Light)
-	cfg.P2P.SetMutualPeers(peers)
+	cfg.P2P.MutualPeers = peers
 	node := TestNodeWithConfig(t, nodebuilder.Light, cfg)
 
 	require.NotNil(t, node)
