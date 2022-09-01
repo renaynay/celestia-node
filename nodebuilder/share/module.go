@@ -14,6 +14,7 @@ func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 		fx.Supply(cfg),
 		fx.Options(options...),
 		fx.Invoke(share.EnsureEmptySquareExists),
+		fx.Provide(Discovery(*cfg)),
 		fx.Provide(fx.Annotate(
 			share.NewService,
 			fx.OnStart(func(ctx context.Context, service *share.Service) error {
@@ -31,7 +32,7 @@ func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 			"share",
 			baseComponents,
 			fx.Provide(fx.Annotate(
-				LightAvailability(*cfg),
+				share.NewLightAvailability,
 				fx.OnStart(func(ctx context.Context, avail *share.LightAvailability) error {
 					return avail.Start(ctx)
 				}),
@@ -48,7 +49,7 @@ func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 			"share",
 			baseComponents,
 			fx.Provide(fx.Annotate(
-				FullAvailability(*cfg),
+				share.NewFullAvailability,
 				fx.OnStart(func(ctx context.Context, avail *share.FullAvailability) error {
 					return avail.Start(ctx)
 				}),
