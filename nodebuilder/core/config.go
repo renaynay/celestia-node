@@ -25,7 +25,7 @@ func DefaultConfig() Config {
 
 // ValidateBasic performs basic validation of the config.
 func (cfg *Config) ValidateBasic() error {
-	ip, err := sanityCheckIP(cfg.IP)
+	ip, err := sanitizeIP(cfg.IP)
 	if err != nil {
 		return err
 	}
@@ -42,9 +42,9 @@ func (cfg *Config) ValidateBasic() error {
 	return err
 }
 
-// sanityCheckIP trims leading protocol scheme and port from the given
+// sanitizeIP trims leading protocol scheme and port from the given
 // IP address if present.
-func sanityCheckIP(ip string) (string, error) {
+func sanitizeIP(ip string) (string, error) {
 	original := ip
 	ip = strings.TrimPrefix(ip, "http://")
 	ip = strings.TrimPrefix(ip, "https://")
