@@ -34,7 +34,7 @@ func Module(tp node.Type, cfg *Config, options ...fx.Option) fx.Option {
 				}),
 			)),
 			fx.Provide(fx.Annotate(
-				Remote(*cfg),
+				Remote,
 				fx.OnStart(func(ctx context.Context, client core.Client) error {
 					return client.Start()
 				}),

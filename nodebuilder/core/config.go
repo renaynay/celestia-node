@@ -1,5 +1,11 @@
 package core
 
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
 // Config combines all configuration fields for managing the relationship with a Core node.
 type Config struct {
 	IP       string
@@ -10,10 +16,42 @@ type Config struct {
 // DefaultConfig returns default configuration for managing the
 // node's connection to a Celestia-Core endpoint.
 func DefaultConfig() Config {
-	return Config{}
+	return Config{
+		IP:       "0.0.0.0",
+		RPCPort:  "0",
+		GRPCPort: "0",
+	}
 }
 
 // ValidateBasic performs basic validation of the config.
 func (cfg *Config) ValidateBasic() error {
-	return nil
+	_, err := sanityCheckIP(cfg.IP)
+	if err != nil {
+		return err
+	}
+	_, err = strconv.Atoi(cfg.RPCPort)
+	if err != nil {
+		return err
+	}
+	_, err = strconv.Atoi(cfg.GRPCPort)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+// sanityCheckIP trims leading protocol scheme and port from the given
+// IP address if present.
+func sanityCheckIP(ip string) (string, error) {
+	original := ip
+	ip = strings.TrimPrefix(ip, "http://")
+	ip = strings.TrimPrefix(ip, "https://")
+	ip = strings.TrimPrefix(ip, "tcp://")
+	ip = strings.TrimSuffix(ip, "/")
+	ip = strings.Split(ip, ":")[0]
+	if ip == "" {
+		return "", fmt.Errorf("invalid IP addr given: %s", original)
+	}
+	return ip, nil
 }

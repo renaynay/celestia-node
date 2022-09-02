@@ -3,8 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -58,42 +56,12 @@ func ParseCoreFlags(
 		}
 		return
 	}
-	// sanity check given core ip addr and strip leading protocol
-	ip, err := sanityCheckIP(coreIP)
-	if err != nil {
-		return
-	}
 
 	rpc := cmd.Flag(coreRPCFlag).Value.String()
-	// sanity check rpc endpoint
-	_, err = strconv.Atoi(rpc)
-	if err != nil {
-		return ctx, err
-	}
-	cfg.Core.IP = ip
-	cfg.Core.RPCPort = rpc
-
 	grpc := cmd.Flag(coreGRPCFlag).Value.String()
-	// sanity check gRPC endpoint
-	_, err = strconv.Atoi(grpc)
-	if err != nil {
-		return
-	}
+
+	cfg.Core.IP = coreIP
+	cfg.Core.RPCPort = rpc
 	cfg.Core.GRPCPort = grpc
 	return
-}
-
-// sanityCheckIP trims leading protocol scheme and port from the given
-// IP address if present.
-func sanityCheckIP(ip string) (string, error) {
-	original := ip
-	ip = strings.TrimPrefix(ip, "http://")
-	ip = strings.TrimPrefix(ip, "https://")
-	ip = strings.TrimPrefix(ip, "tcp://")
-	ip = strings.TrimSuffix(ip, "/")
-	ip = strings.Split(ip, ":")[0]
-	if ip == "" {
-		return "", fmt.Errorf("invalid IP addr given: %s", original)
-	}
-	return ip, nil
 }
