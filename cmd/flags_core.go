@@ -40,7 +40,6 @@ func CoreFlags() *flag.FlagSet {
 }
 
 // ParseCoreFlags parses Core flags from the given cmd and applies values to Env.
-//nolint:nakedret
 func ParseCoreFlags(
 	ctx context.Context,
 	cmd *cobra.Command,

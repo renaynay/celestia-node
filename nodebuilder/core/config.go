@@ -25,10 +25,11 @@ func DefaultConfig() Config {
 
 // ValidateBasic performs basic validation of the config.
 func (cfg *Config) ValidateBasic() error {
-	_, err := sanityCheckIP(cfg.IP)
+	ip, err := sanityCheckIP(cfg.IP)
 	if err != nil {
 		return err
 	}
+	cfg.IP = ip
 	_, err = strconv.Atoi(cfg.RPCPort)
 	if err != nil {
 		return err
