@@ -18,7 +18,7 @@ var log = logging.Logger("state-module")
 // Module provides all components necessary to construct the
 // state service.
 func Module(tp node.Type, cfg *Config) fx.Option {
-	// sanitise config values before constructing module
+	// sanitize config values before constructing module
 	cfgErr := cfg.ValidateBasic()
 
 	switch tp {

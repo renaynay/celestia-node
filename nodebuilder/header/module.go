@@ -19,7 +19,7 @@ import (
 var log = logging.Logger("header-module")
 
 func Module(tp node.Type, cfg *Config) fx.Option {
-	// sanitise config values before constructing module
+	// sanitize config values before constructing module
 	cfgErr := cfg.ValidateBasic()
 
 	baseOptions := fx.Options(

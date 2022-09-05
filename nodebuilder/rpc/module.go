@@ -13,7 +13,7 @@ import (
 )
 
 func Module(tp node.Type, cfg *rpcServ.Config) fx.Option {
-	// sanitise config values before constructing module
+	// sanitize config values before constructing module
 	cfgErr := cfg.ValidateBasic()
 
 	baseComponents := fx.Options(

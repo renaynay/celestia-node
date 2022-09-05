@@ -6,7 +6,7 @@ import (
 
 // Module collects all the components and services related to p2p.
 func Module(cfg *Config) fx.Option {
-	// sanitise config values before constructing module
+	// sanitize config values before constructing module
 	cfgErr := cfg.ValidateBasic()
 
 	return fx.Module(
