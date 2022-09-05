@@ -2,7 +2,6 @@ package header
 
 import (
 	"context"
-
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -33,7 +32,7 @@ func P2PExchange(cfg Config) func(params.Bootstrappers, host.Host) (header.Excha
 }
 
 // InitStore initializes the store.
-func InitStore(ctx context.Context, cfg *Config, net params.Network, s header.Store, ex header.Exchange) error {
+func InitStore(ctx context.Context, cfg Config, net params.Network, s header.Store, ex header.Exchange) error {
 	trustedHash, err := cfg.trustedHash(net)
 	if err != nil {
 		return err
