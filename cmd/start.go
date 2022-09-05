@@ -26,6 +26,9 @@ Options passed on start override configuration options only on start and are not
 			if err != nil {
 				return err
 			}
+			// override config with all modifiers passed on start
+			cfg := NodeConfig(ctx)
+			err = store.PutConfig(&cfg)
 
 			nd, err := nodebuilder.New(NodeType(ctx), store, NodeOptions(ctx)...)
 			if err != nil {
