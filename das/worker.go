@@ -40,13 +40,13 @@ func (w *worker) run(
 	sample sampleFn,
 	resultCh chan<- result) {
 	jobStart := time.Now()
-	log.Debugw("start sampling worker", "from", w.state.From, "to", w.state.To)
+	log.Infow("start sampling worker", "from", w.state.From, "to", w.state.To)
 
 	for curr := w.state.From; curr <= w.state.To; curr++ {
 		// TODO: get headers in batches
 		h, err := getter.GetByHeight(ctx, curr)
 		if err == nil {
-			log.Debugw("got header from header store",
+			log.Infow("got header from header store",
 				"height", h.Height, "hash", h.Hash().String(), "width", len(h.DAH.RowsRoots))
 
 			err = sample(ctx, h)
