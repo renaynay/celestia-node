@@ -58,7 +58,7 @@ func (cl *Listener) Start(ctx context.Context) error {
 	return nil
 }
 
-// Stop stops the Listener listener loop.
+// Stop stops the listener loop.
 func (cl *Listener) Stop(ctx context.Context) error {
 	cl.cancel()
 	cl.cancel = nil
@@ -69,6 +69,7 @@ func (cl *Listener) Stop(ctx context.Context) error {
 // generating ExtendedHeaders and broadcasting them to the header-sub
 // gossipsub network.
 func (cl *Listener) listen(ctx context.Context, sub <-chan *types.Block) {
+	log.Info("listener: started listening to core connection for new blocks")
 	defer log.Info("listener: listening stopped")
 	for {
 		select {
@@ -76,6 +77,7 @@ func (cl *Listener) listen(ctx context.Context, sub <-chan *types.Block) {
 			if !ok {
 				return
 			}
+			log.Debugw("listener: received new block", "height", b.Height)
 
 			syncing, err := cl.fetcher.IsSyncing(ctx)
 			if err != nil {
