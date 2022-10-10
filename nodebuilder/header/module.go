@@ -28,6 +28,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 		fx.Error(cfgErr),
 		fx.Supply(params.BlockTime),
 		fx.Provide(NewHeaderService),
+		// store.Store
 		fx.Provide(fx.Annotate(
 			store.NewStore,
 			fx.OnStart(func(ctx context.Context, store header.Store) error {
@@ -38,12 +39,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			}),
 		)),
 		fx.Invoke(InitStore),
-		fx.Provide(func(subscriber *p2p.Subscriber) header.Subscriber {
-			return subscriber
-		}),
-		fx.Provide(func(subscriber *p2p.Subscriber) header.Broadcaster {
-			return subscriber
-		}),
+		// sync.Syncer
 		fx.Provide(fx.Annotate(
 			sync.NewSyncer,
 			fx.OnStart(func(ctx context.Context, lc fx.Lifecycle, fservice fraudServ.Module, syncer *sync.Syncer) error {
@@ -66,6 +62,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 				return syncer.Stop(ctx)
 			}),
 		)),
+		// p2p.Subscriber
 		fx.Provide(fx.Annotate(
 			p2p.NewSubscriber,
 			fx.OnStart(func(ctx context.Context, sub *p2p.Subscriber) error {
@@ -75,7 +72,13 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 				return sub.Stop(ctx)
 			}),
 		)),
-
+		fx.Provide(func(subscriber *p2p.Subscriber) header.Subscriber {
+			return subscriber
+		}),
+		fx.Provide(func(subscriber *p2p.Subscriber) header.Broadcaster {
+			return subscriber
+		}),
+		// p2p.ExchangeServer
 		fx.Provide(fx.Annotate(
 			p2p.NewExchangeServer,
 			fx.OnStart(func(ctx context.Context, server *p2p.ExchangeServer) error {
