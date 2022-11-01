@@ -8,6 +8,7 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/das"
 	"github.com/celestiaorg/celestia-node/nodebuilder/fraud"
 	"github.com/celestiaorg/celestia-node/nodebuilder/header"
+	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
@@ -18,6 +19,7 @@ type API interface {
 	state.Module
 	share.Module
 	das.Module
+	node.Module
 }
 
 type Client struct {
@@ -26,6 +28,7 @@ type Client struct {
 	State  state.API
 	Share  share.API
 	DAS    das.API
+	Node   node.API
 
 	closer multiClientCloser
 }
@@ -64,6 +67,7 @@ func NewClient(ctx context.Context, addr string) (*Client, error) {
 		"header": &client.Header.Internal,
 		"fraud":  &client.Fraud.Internal,
 		"das":    &client.DAS.Internal,
+		"node":   &client.Node.Internal,
 	}
 	for name, module := range modules {
 		closer, err := jsonrpc.NewClient(ctx, addr, name, module, nil)
