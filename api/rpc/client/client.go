@@ -59,11 +59,11 @@ func NewClient(ctx context.Context, addr string) (*Client, error) {
 
 	// TODO: this duplication of strings many times across the codebase can be avoided with issue #1176
 	var modules = map[string]interface{}{
-		"share":  &client.Share,
-		"state":  &client.State,
-		"header": &client.Header,
-		"fraud":  &client.Fraud,
-		"das":    &client.DAS,
+		"share":  &client.Share.Internal,
+		"state":  &client.State.Internal,
+		"header": &client.Header.Internal,
+		"fraud":  &client.Fraud.Internal,
+		"das":    &client.DAS.Internal,
 	}
 	for name, module := range modules {
 		closer, err := jsonrpc.NewClient(ctx, addr, name, module, nil)

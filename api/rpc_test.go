@@ -128,6 +128,17 @@ func implementsMarshaler(t *testing.T, typ reflect.Type) {
 
 }
 
+//
+//func TestRPC(t *testing.T) {
+//	client, err := client.NewClient(context.Background(), "http://localhost:26658")
+//	require.NoError(t, err)
+//	t.Cleanup(client.Close)
+//
+//	bal, err := client.DAS.SamplingStats(context.Background())
+//	require.NoError(t, err)
+//	fmt.Println(bal)
+//}
+
 func setupNodeWithModifiedRPC(t *testing.T) (*nodebuilder.Node, *mockAPI) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
