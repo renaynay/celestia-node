@@ -7,7 +7,6 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 )
 
-// TODO @renaynay: figure out how to dedup
 var (
 	buildTime       string
 	lastCommit      string
