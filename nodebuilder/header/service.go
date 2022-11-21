@@ -23,7 +23,7 @@ type Module interface {
 }
 
 // Service represents the header service that can be started / stopped on a node.
-// Sjrvice's main function is to manage its sub-services. service can contain several
+// Service manages its sub-services. Service can contain several
 // sub-services, such as Exchange, ExchangeServer, Syncer, and so forth.
 type Service struct {
 	ex header.Exchange
