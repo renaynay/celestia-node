@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -139,6 +140,16 @@ func TestRPC(t *testing.T) {
 	fmt.Println(bal)
 }
 */
+
+func TestRPC(t *testing.T) {
+	c, err := client.NewClient(context.Background(), "http://localhost:26658")
+	require.NoError(t, err)
+	t.Cleanup(c.Close)
+
+	bal, err := c.DAS.SamplingStats(context.Background())
+	require.NoError(t, err)
+	fmt.Println(bal)
+}
 
 func setupNodeWithModifiedRPC(t *testing.T) (*nodebuilder.Node, *mockAPI) {
 	ctx, cancel := context.WithCancel(context.Background())

@@ -10,15 +10,13 @@ import (
 
 	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/filecoin-project/go-jsonrpc/auth"
+	jwt "github.com/gbrlsnchs/jwt/v3"
 	logging "github.com/ipfs/go-log/v2"
+
+	perms "github.com/celestiaorg/celestia-node/api/rpc/permissions"
 )
 
 var log = logging.Logger("rpc")
-
-var (
-	AllPerms     = []auth.Permission{"read", "write", "admin"}
-	DefaultPerms = []auth.Permission{"read"}
-)
 
 type Server struct {
 	srv      *http.Server
@@ -28,13 +26,19 @@ type Server struct {
 	started atomic.Bool
 }
 
+type jwtPayload struct {
+	Allow []auth.Permission
+}
+
 func NewServer(address, port string) *Server {
 	rpc := jsonrpc.NewServer()
 	authHandler := &auth.Handler{
 		Verify: func(ctx context.Context, token string) ([]auth.Permission, error) {
+			p := &jwtPayload{}
+			jwt.Verify([]byte(token), (*jwt.HMACSHA)(a.APISecret), p)
 			// TODO(distractedm1nd/renaynay): implement auth
 			log.Warn("auth not implemented, token: ", token)
-			return DefaultPerms, nil
+			return perms.DefaultPerms, nil
 		},
 		Next: rpc.ServeHTTP,
 	}

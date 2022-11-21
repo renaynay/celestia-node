@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/filecoin-project/go-jsonrpc"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
+
+var authKey = "Authorization"
 
 type API interface {
 	fraud.Module
@@ -50,11 +53,6 @@ func (m *multiClientCloser) closeAll() {
 	}
 }
 
-// Close closes the connections to all namespaces registered on the client.
-func (c *Client) Close() {
-	c.closer.closeAll()
-}
-
 // NewClient creates a new Client with one connection per namespace.
 func NewClient(ctx context.Context, addr string) (*Client, error) {
 	var client Client
@@ -70,7 +68,9 @@ func NewClient(ctx context.Context, addr string) (*Client, error) {
 		"node":   &client.Node.Internal,
 	}
 	for name, module := range modules {
-		closer, err := jsonrpc.NewClient(ctx, addr, name, module, nil)
+
+		authHeader := http.Header{authKey: []string{"h"}} // TODO get token
+		closer, err := jsonrpc.NewClient(ctx, addr, name, module, authHeader)
 		if err != nil {
 			return nil, err
 		}
@@ -78,4 +78,9 @@ func NewClient(ctx context.Context, addr string) (*Client, error) {
 	}
 
 	return &client, nil
+}
+
+// Close closes the connections to all namespaces registered on the client.
+func (c *Client) Close() {
+	c.closer.closeAll()
 }
