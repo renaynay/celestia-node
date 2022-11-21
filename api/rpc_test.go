@@ -91,8 +91,8 @@ func implementsMarshaler(t *testing.T, typ reflect.Type) {
 
 	switch typ.Kind() {
 	case reflect.Struct:
-		// a user defined struct could implement json.Marshaler on the pointer receiver, so check there first.
-		// note that the "non-pointer" receiver is checked before the switch.
+		// a user defined struct could implement json.Marshaler on the pointer receiver, so check there
+		// first. note that the "non-pointer" receiver is checked before the switch.
 		pointerType := reflect.TypeOf(reflect.New(typ).Elem().Addr().Interface())
 		if pointerType.Implements(reflect.TypeOf(new(json.Marshaler)).Elem()) {
 			return
@@ -128,16 +128,17 @@ func implementsMarshaler(t *testing.T, typ reflect.Type) {
 
 }
 
-//
-//func TestRPC(t *testing.T) {
-//	client, err := client.NewClient(context.Background(), "http://localhost:26658")
-//	require.NoError(t, err)
-//	t.Cleanup(client.Close)
-//
-//	bal, err := client.DAS.SamplingStats(context.Background())
-//	require.NoError(t, err)
-//	fmt.Println(bal)
-//}
+/*
+func TestRPC(t *testing.T) {
+	client, err := client.NewClient(context.Background(), "http://localhost:26658")
+	require.NoError(t, err)
+	t.Cleanup(client.Close)
+
+	bal, err := client.DAS.SamplingStats(context.Background())
+	require.NoError(t, err)
+	fmt.Println(bal)
+}
+*/
 
 func setupNodeWithModifiedRPC(t *testing.T) (*nodebuilder.Node, *mockAPI) {
 	ctx, cancel := context.WithCancel(context.Background())
