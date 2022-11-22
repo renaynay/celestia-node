@@ -13,7 +13,6 @@ type (
 	// PrivKey represents private key with arbitrary body.
 	PrivKey struct {
 		Body []byte `json:"body"`
-
 		// TODO(@Wondertan): At later point, it might make sense to have a Type.
 	}
 )

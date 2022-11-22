@@ -30,27 +30,29 @@ type jwtPayload struct {
 	Allow []auth.Permission
 }
 
-func NewServer(address, port string) *Server {
+func NewServer(address, port string, key *jwt.HMACSHA) *Server {
 	rpc := jsonrpc.NewServer()
-	authHandler := &auth.Handler{
-		Verify: func(ctx context.Context, token string) ([]auth.Permission, error) {
-			p := &jwtPayload{}
-			jwt.Verify([]byte(token), (*jwt.HMACSHA)(a.APISecret), p)
-			// TODO(distractedm1nd/renaynay): implement auth
-			log.Warn("auth not implemented, token: ", token)
-			return perms.DefaultPerms, nil
-		},
-		Next: rpc.ServeHTTP,
-	}
-	return &Server{
+	serv := &Server{
 		rpc: rpc,
 		srv: &http.Server{
-			Addr:    address + ":" + port,
-			Handler: authHandler,
+			Addr: address + ":" + port,
 			// the amount of time allowed to read request headers. set to the default 2 seconds
 			ReadHeaderTimeout: 2 * time.Second,
 		},
 	}
+	serv.srv.Handler = &auth.Handler{
+		Verify: serv.verifyAuth,
+		Next:   rpc.ServeHTTP,
+	}
+	return serv
+}
+
+func (s *Server) verifyAuth(ctx context.Context, token string) ([]auth.Permission, error) {
+	p := &jwtPayload{}
+	jwt.Verify([]byte(token), (*jwt.HMACSHA)(s.APISecret), p)
+	// TODO(distractedm1nd/renaynay): implement auth
+	log.Warn("auth not implemented, token: ", token)
+	return perms.DefaultPerms, nil
 }
 
 // RegisterService registers a service onto the RPC server. All methods on the service will then be

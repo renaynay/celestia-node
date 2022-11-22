@@ -103,7 +103,7 @@ func (f *fsKeystore) List() ([]KeyName, error) {
 
 	names := make([]KeyName, len(entries))
 	for i, e := range entries {
-		kn, err := KeyNameFromBase32(e.Name())
+		kn, err := KeyNameFromBase32(e.Name()) // TODO @renaynay: this will break if we put base64 in keystore too
 		if err != nil {
 			return nil, err
 		}
