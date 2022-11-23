@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(p2pCmd, headerCmd)
+	rootCmd.AddCommand(p2pCmd, headerCmd, authCmd)
 }
 
 var rootCmd = &cobra.Command{
