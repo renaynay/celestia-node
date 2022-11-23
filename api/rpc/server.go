@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"reflect"
@@ -13,7 +14,7 @@ import (
 	jwt "github.com/gbrlsnchs/jwt/v3"
 	logging "github.com/ipfs/go-log/v2"
 
-	perms "github.com/celestiaorg/celestia-node/api/rpc/permissions"
+	"github.com/celestiaorg/celestia-node/api/rpc/permissions"
 )
 
 var log = logging.Logger("rpc")
@@ -24,13 +25,11 @@ type Server struct {
 	listener net.Listener
 
 	started atomic.Bool
+
+	auth *jwt.HMACSHA
 }
 
-type jwtPayload struct {
-	Allow []auth.Permission
-}
-
-func NewServer(address, port string, key *jwt.HMACSHA) *Server {
+func NewServer(address, port string, authSecret *jwt.HMACSHA) *Server {
 	rpc := jsonrpc.NewServer()
 	serv := &Server{
 		rpc: rpc,
@@ -39,6 +38,7 @@ func NewServer(address, port string, key *jwt.HMACSHA) *Server {
 			// the amount of time allowed to read request headers. set to the default 2 seconds
 			ReadHeaderTimeout: 2 * time.Second,
 		},
+		auth: authSecret,
 	}
 	serv.srv.Handler = &auth.Handler{
 		Verify: serv.verifyAuth,
@@ -47,12 +47,15 @@ func NewServer(address, port string, key *jwt.HMACSHA) *Server {
 	return serv
 }
 
+// verifyAuth // TODO @renaynay:
 func (s *Server) verifyAuth(ctx context.Context, token string) ([]auth.Permission, error) {
-	p := &jwtPayload{}
-	jwt.Verify([]byte(token), (*jwt.HMACSHA)(s.APISecret), p)
-	// TODO(distractedm1nd/renaynay): implement auth
-	log.Warn("auth not implemented, token: ", token)
-	return perms.DefaultPerms, nil
+	p := &permissions.JWTPayload{}
+	_, err := jwt.Verify([]byte(token), s.auth, p)
+	if err != nil {
+		return nil, fmt.Errorf("failed to authenticate token: %w", err)
+	}
+	// check permissions
+	return p.Allow, nil
 }
 
 // RegisterService registers a service onto the RPC server. All methods on the service will then be
@@ -64,7 +67,7 @@ func (s *Server) RegisterService(namespace string, service interface{}) {
 // RegisterAuthedService registers a service onto the RPC server. All methods on the service will
 // then be exposed over the RPC.
 func (s *Server) RegisterAuthedService(namespace string, service interface{}, out interface{}) {
-	auth.PermissionedProxy(AllPerms, DefaultPerms, service, getInternalStruct(out))
+	auth.PermissionedProxy(permissions.AllPerms, permissions.DefaultPerms, service, getInternalStruct(out))
 	s.RegisterService(namespace, out)
 }
 

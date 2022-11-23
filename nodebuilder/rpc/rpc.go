@@ -1,11 +1,7 @@
 package rpc
 
 import (
-	"encoding/hex"
-	"fmt"
 	"github.com/gbrlsnchs/jwt/v3"
-	"os"
-	"strings"
 
 	"github.com/celestiaorg/celestia-node/api/rpc"
 	"github.com/celestiaorg/celestia-node/nodebuilder/das"
@@ -15,8 +11,6 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
-
-const authKey = "rpc_auth"
 
 // RegisterEndpoints registers the given services on the rpc.
 func RegisterEndpoints(
@@ -36,17 +30,6 @@ func RegisterEndpoints(
 	serv.RegisterAuthedService("node", nodeMod, &node.API{})
 }
 
-func Server(cfg *Config) *rpc.Server {
-	return rpc.NewServer(cfg.Address, cfg.Port)
-}
-
-func auth(keystorePath string) (*jwt.HMACSHA, error) {
-	os.Open(fmt.Sprintf("%s/%s", keystorePath, authKey))
-
-	decoded, err := hex.DecodeString(strings.TrimSpace(string(encoded)))
-	if err != nil {
-		return err
-	}
-
-	jwt.NewHS256()
+func Server(cfg *Config, auth *jwt.HMACSHA) *rpc.Server {
+	return rpc.NewServer(cfg.Address, cfg.Port, auth)
 }

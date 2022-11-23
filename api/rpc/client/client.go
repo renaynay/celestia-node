@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/filecoin-project/go-jsonrpc"
@@ -53,6 +54,30 @@ func (m *multiClientCloser) closeAll() {
 	}
 }
 
+func NewClientWithPerms(ctx context.Context, addr string, token string) (*Client, error) {
+	var client Client
+	var multiCloser multiClientCloser
+
+	// TODO: this duplication of strings many times across the codebase can be avoided with issue #1176
+	var modules = map[string]interface{}{
+		"share":  &client.Share.Internal,
+		"state":  &client.State.Internal,
+		"header": &client.Header.Internal,
+		"fraud":  &client.Fraud.Internal,
+		"das":    &client.DAS.Internal,
+	}
+	for name, module := range modules {
+		authHeader := http.Header{authKey: []string{fmt.Sprintf("Bearer %s", token)}} // TODO get token
+		closer, err := jsonrpc.NewClient(ctx, addr, name, module, authHeader)
+		if err != nil {
+			return nil, err
+		}
+		multiCloser.register(closer)
+	}
+
+	return &client, nil
+}
+
 // NewClient creates a new Client with one connection per namespace.
 func NewClient(ctx context.Context, addr string) (*Client, error) {
 	var client Client
@@ -68,8 +93,7 @@ func NewClient(ctx context.Context, addr string) (*Client, error) {
 		"node":   &client.Node.Internal,
 	}
 	for name, module := range modules {
-
-		authHeader := http.Header{authKey: []string{"h"}} // TODO get token
+		authHeader := http.Header{authKey: []string{fmt.Sprintf("Bearer %s", "TODO")}} // TODO get token
 		closer, err := jsonrpc.NewClient(ctx, addr, name, module, authHeader)
 		if err != nil {
 			return nil, err

@@ -6,6 +6,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/api/rpc"
+	"github.com/celestiaorg/celestia-node/api/rpc/permissions"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
@@ -16,6 +17,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 	baseComponents := fx.Options(
 		fx.Supply(cfg),
 		fx.Error(cfgErr),
+		fx.Provide(permissions.NewAdminSecret),
 		fx.Provide(fx.Annotate(
 			Server,
 			fx.OnStart(func(ctx context.Context, server *rpc.Server) error {
