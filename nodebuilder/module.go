@@ -35,7 +35,7 @@ func ConstructModule(tp node.Type, network p2p.Network, cfg *Config, store Store
 		state.ConstructModule(tp, &cfg.State),
 		header.ConstructModule(tp, &cfg.Header),
 		share.ConstructModule(tp, &cfg.Share),
-		rpc.ConstructModule(tp, &cfg.RPC),
+		rpc.ConstructModule(tp, store.Path(), &cfg.RPC),
 		gateway.ConstructModule(tp, &cfg.Gateway),
 		core.ConstructModule(tp, &cfg.Core),
 		das.ConstructModule(tp, &cfg.DASer),

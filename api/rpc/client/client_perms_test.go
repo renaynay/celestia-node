@@ -14,8 +14,6 @@ func TestClientPermissions(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	dummy := permissions.DummySecret()
-
 	token, err := permissions.NewTokenWithPerms(dummy, permissions.DefaultPerms)
 	require.NoError(t, err)
 
