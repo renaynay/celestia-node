@@ -27,6 +27,8 @@ func NewAdminSecret(name, path string) (*jwt.HMACSHA, error) {
 		PrivKey: sk,
 	}
 
+	// TODO @renaynay: It doesn't make sense to generate the jwt secret without saving it anywhere but idk
+	// what this API should look like
 	filename := fmt.Sprintf("%s/jwt-%s.jwts", path, name)
 	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {

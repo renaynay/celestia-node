@@ -1,4 +1,4 @@
-package rpc
+package node
 
 import (
 	"encoding/hex"
@@ -10,18 +10,17 @@ import (
 	"strings"
 
 	"github.com/celestiaorg/celestia-node/api/rpc/permissions"
-	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
-func getSecret(tp node.Type, path string) (*jwt.HMACSHA, error) { // TODO @renaynay eventually this should be keystore
-	ksPath := path + "/keys"
-	// check in keystore
-	file, err := os.Open(ksPath)
-	if os.IsExist(err) {
-		defer file.Close()
-		return decodeKeyIntoSecret(file)
-	}
-	return generateNewWithSignedToken(tp, path)
+func rpcAuthSecret(tp Type, path string) (*jwt.HMACSHA, error) { // TODO @renaynay eventually this should be keystore
+	// TODO implement looking for a key w prefix jwt here otherwise it won't work
+	ksPath := path + "/keys" // TODO @renaynay: eventually this needs to be keystore.Keystore.Get()
+	//	file, err := os.Open(ksPath)
+	//	if err == nil {
+	//		defer file.Close()
+	//		return decodeKeyIntoSecret(file)
+	//	}
+	return generateNewWithSignedToken(tp, ksPath)
 }
 
 // decodeKeyIntoSecret // TODO @renaynay
@@ -44,7 +43,7 @@ func decodeKeyIntoSecret(input io.Reader) (*jwt.HMACSHA, error) {
 	return jwt.NewHS256(keyInfo.PrivKey), nil
 }
 
-func generateNewWithSignedToken(tp node.Type, path string) (*jwt.HMACSHA, error) {
+func generateNewWithSignedToken(tp Type, path string) (*jwt.HMACSHA, error) {
 	// generate new JWT secret and save
 	secret, err := permissions.NewAdminSecret(tp.String(), path)
 	if err != nil {

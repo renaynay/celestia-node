@@ -1,13 +1,14 @@
 package node
 
 import (
-	"context"
 	"fmt"
 	"runtime"
 
 	"github.com/filecoin-project/go-jsonrpc/auth"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/gbrlsnchs/jwt/v3"
 	logging "github.com/ipfs/go-log/v2"
+
+	"github.com/celestiaorg/celestia-node/api/rpc/permissions"
 )
 
 var (
@@ -27,18 +28,20 @@ type Module interface {
 	// LogLevelSet sets the given component log level to the given level.
 	LogLevelSet(name, level string) error
 
-	AuthVerify(ctx context.Context, token string) ([]auth.Permission, error) //perm:read
-	AuthNew(ctx context.Context, perms []auth.Permission) ([]byte, error)    //perm:admin
+	// AuthVerify returns the given token's permissions.
+	AuthVerify(token string) ([]auth.Permission, error) //perm:read
+	// AuthNew signs and returns a token with the given permissions.
+	AuthNew(perms []auth.Permission) ([]byte, error) //perm:admin
 
 }
 
 type API struct {
 	Internal struct {
-		Type        func() Type                                              `perm:"admin"`
-		Version     func() Version                                           `perm:"admin"`
-		LogLevelSet func(name, level string) error                           `perm:"admin"`
-		AuthVerify  func(context.Context, string) ([]auth.Permission, error) `perm:"admin"`
-		AuthNew     func(ctx context.Context, perms []auth.Permission) ([]byte, error)
+		Type        func() Type                                   `perm:"admin"`
+		Version     func() Version                                `perm:"admin"`
+		LogLevelSet func(name, level string) error                `perm:"admin"`
+		AuthVerify  func(token string) ([]auth.Permission, error) `perm:"admin"`
+		AuthNew     func(perms []auth.Permission) ([]byte, error) `perm:"admin"`
 	}
 }
 
@@ -54,6 +57,8 @@ func (api *API) LogLevelSet(name, level string) error {
 
 type admin struct {
 	tp Type
+
+	secret *jwt.HMACSHA
 }
 
 func newAdmin(tp Type) Module {
@@ -89,14 +94,15 @@ func (a *admin) LogLevelSet(name, level string) error {
 	return logging.SetLogLevel(name, level)
 }
 
-func (a *admin) AuthVerify(ctx context.Context, token string) ([]auth.Permission, error) {
-	//TODO implement me
-	panic("implement me")
+func (a *admin) AuthVerify(token string) ([]auth.Permission, error) {
+	p := &permissions.JWTPayload{}
+	_, err := jwt.Verify([]byte(token), a.secret, p)
+	if err != nil {
+		return nil, fmt.Errorf("failed to authenticate token: %w", err)
+	}
+	return p.Allow, nil
 }
 
-func (a *admin) AuthNew(ctx context.Context, perms []auth.Permission) ([]byte, error) {
-	jwt.New()
-
-	//TODO implement me
-	panic("implement me")
+func (a *admin) AuthNew(perms []auth.Permission) ([]byte, error) {
+	return permissions.NewTokenWithPerms(a.secret, perms)
 }
