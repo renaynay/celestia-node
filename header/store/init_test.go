@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,7 +27,7 @@ func TestInitStore_NoReinit(t *testing.T) {
 	store, err := NewStore(ds)
 	require.NoError(t, err)
 
-	err = Init(ctx, store, exchange, head.Hash())
+	err = Init(ctx, store, exchange, head.Hash(), "test")
 	assert.NoError(t, err)
 
 	err = store.Start(ctx)
@@ -41,7 +42,7 @@ func TestInitStore_NoReinit(t *testing.T) {
 	reopenedStore, err := NewStore(ds)
 	require.NoError(t, err)
 
-	err = Init(ctx, reopenedStore, exchange, head.Hash())
+	err = Init(ctx, reopenedStore, exchange, head.Hash(), "test")
 	assert.NoError(t, err)
 
 	err = reopenedStore.Start(ctx)
@@ -56,4 +57,22 @@ func TestInitStore_NoReinit(t *testing.T) {
 
 	err = reopenedStore.Stop(ctx)
 	require.NoError(t, err)
+}
+
+// TestInit_ChainIDMismatch tests to ensure that a header returned of a
+// different chainID to the node's network ID throws an error.
+func TestInit_ChainIDMismatch(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	t.Cleanup(cancel)
+
+	suite := header.NewTestSuite(t, 3)
+	head := suite.Head()
+	exchange := local.NewExchange(NewTestStore(ctx, t, head))
+
+	ds := sync.MutexWrap(datastore.NewMapDatastore())
+	store, err := NewStore(ds)
+	require.NoError(t, err)
+
+	err = Init(ctx, store, exchange, head.Hash(), "randomNetwork")
+	assert.True(t, strings.Contains(err.Error(), "header chainID mismatch"))
 }

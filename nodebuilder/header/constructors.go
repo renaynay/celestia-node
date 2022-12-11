@@ -82,6 +82,7 @@ func newInitStore(
 	net modp2p.Network,
 	s header.Store,
 	ex header.Exchange,
+	network modp2p.Network,
 ) (initStore, error) {
 	trustedHash, err := cfg.trustedHash(net)
 	if err != nil {
@@ -90,7 +91,7 @@ func newInitStore(
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			err = store.Init(ctx, s, ex, trustedHash)
+			err = store.Init(ctx, s, ex, trustedHash, network)
 			if err != nil {
 				// TODO(@Wondertan): Error is ignored, as otherwise unit tests for Node construction fail.
 				// 	This is due to requesting step of initialization, which fetches initial Header by trusted hash from
