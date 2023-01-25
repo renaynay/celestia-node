@@ -3,6 +3,8 @@ package p2p
 import (
 	"context"
 	"fmt"
+	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
+	ws "github.com/libp2p/go-libp2p/p2p/transport/websocket"
 
 	"github.com/libp2p/go-libp2p"
 	p2pconfig "github.com/libp2p/go-libp2p/config"
@@ -41,9 +43,11 @@ func Host(params hostParams) (HostBase, error) {
 		libp2p.DisableRelay(),
 		libp2p.BandwidthReporter(params.Bandwidth),
 		libp2p.ResourceManager(params.ResourceManager),
+		// don't use quic
+		libp2p.Transport(tcp.NewTCPTransport),
+		libp2p.Transport(ws.New),
 		// to clearly define what defaults we rely upon
 		libp2p.DefaultSecurity,
-		libp2p.DefaultTransports,
 		libp2p.DefaultMuxers,
 	}
 
