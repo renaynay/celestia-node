@@ -4,10 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	ds "github.com/ipfs/go-datastore"
 	ds_sync "github.com/ipfs/go-datastore/sync"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/share/eds"
@@ -29,8 +31,15 @@ func TestCoreExchange_RequestHeaders(t *testing.T) {
 }
 
 func createCoreFetcher(t *testing.T) *BlockFetcher {
-	client := StartTestNode(t).Client
-	return NewBlockFetcher(client)
+	cfg := DefaultTestConfig()
+	cfg.Accounts = []string{tmrand.Str(9)}
+	cctx := StartTestNodeWithConfig(t, cfg)
+	for i := 0; i < 6; i++ {
+		_, err := cctx.FillBlock(8, cfg.Accounts, flags.BroadcastBlock)
+		require.NoError(t, err)
+	}
+
+	return NewBlockFetcher(cctx.Client)
 }
 
 func createStore(t *testing.T) *eds.Store {
