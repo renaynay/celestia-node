@@ -47,11 +47,8 @@ func (sg *ShrexGetter) Start(context.Context) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	sg.cancel = cancel
 	sg.peers.Start()
-	err := sg.shrexSub.AddValidator(sg.peers.Validate)
-	if err != nil {
-		return err
-	}
 	go sg.listen(ctx)
+	err := sg.shrexSub.AddValidator(sg.peers.Validate)
 	return err
 }
 
@@ -70,8 +67,14 @@ func (sg *ShrexGetter) listen(ctx context.Context) {
 	for {
 		dataHash, err := sub.Next(ctx)
 		if err != nil {
-			return
+			if err == context.Canceled {
+				return
+			}
+
+			log.Errorw("failed to get next datahash", "err", err)
+			continue
 		}
+
 		log.Debug("received datahash over shrexsub: ", dataHash.String())
 	}
 }

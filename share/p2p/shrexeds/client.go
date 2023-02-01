@@ -36,7 +36,6 @@ func NewClient(host host.Host, opts ...Option) (*Client, error) {
 	if err := params.Validate(); err != nil {
 		return nil, fmt.Errorf("shrex-eds: client creation failed: %w", err)
 	}
-
 	return &Client{
 		host:       host,
 		protocolID: protocolID(params.protocolSuffix),
@@ -51,6 +50,7 @@ func (c *Client) RequestEDS(
 ) (*rsmt2d.ExtendedDataSquare, error) {
 	eds, err := c.doRequest(ctx, dataHash, peer)
 	if err == nil {
+		log.Debug("got eds")
 		return eds, nil
 	}
 	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
@@ -65,7 +65,7 @@ func (c *Client) RequestEDS(
 		}
 	}
 	if err != p2p.ErrUnavailable {
-		log.Errorw("client: eds request to peer failed", "peer", peer, "hash", dataHash.String())
+		log.Errorw("client: eds request to peer failed", "peer", peer, "hash", dataHash.String(), "err", err)
 	}
 	return nil, err
 }
