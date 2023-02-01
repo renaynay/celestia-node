@@ -56,7 +56,6 @@ func (s *PubSub) Start(context.Context) error {
 	if err != nil {
 		return err
 	}
-
 	s.topic = topic
 	return nil
 }
@@ -84,12 +83,13 @@ func (s *PubSub) AddValidator(validate Validator) error {
 // Subscribe provides a new Subscription for EDS notifications.
 func (s *PubSub) Subscribe() (*Subscription, error) {
 	if s.topic == nil {
-		return nil, fmt.Errorf("shrex-push: topic is not started")
+		return nil, fmt.Errorf("shrexsub: topic is not started")
 	}
 	return newSubscription(s.topic)
 }
 
 // Broadcast sends the EDS notification (DataHash) to every connected peer.
 func (s *PubSub) Broadcast(ctx context.Context, data share.DataHash) error {
+	log.Debug("publishing datahash to shrexsub: ", data.String())
 	return s.topic.Publish(ctx, data)
 }

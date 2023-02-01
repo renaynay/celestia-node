@@ -4,8 +4,10 @@ import (
 	"context"
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
+	libhead "github.com/celestiaorg/celestia-node/libs/header"
 	disc "github.com/celestiaorg/celestia-node/share/availability/discovery"
 	"github.com/celestiaorg/celestia-node/share/p2p/peers"
+	"github.com/celestiaorg/celestia-node/share/p2p/shrexnd"
 	"time"
 
 	"github.com/ipfs/go-datastore"
@@ -34,6 +36,12 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 		fx.Provide(discovery(*cfg)),
 		fx.Provide(newModule),
 		fx.Invoke(share.EnsureEmptySquareExists),
+		// TODO: Configure for light nodes
+		fx.Provide(
+			func(host host.Host, network modp2p.Network) (*shrexnd.Client, error) {
+				return shrexnd.NewClient(host, shrexnd.WithProtocolSuffix(string(network)))
+			},
+		),
 	)
 
 	switch tp {
@@ -121,6 +129,9 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 			// cacheAvailability's lifecycle continues to use a fx hook,
 			// since the LC requires a cacheAvailability but the constructor returns a share.Availability
 			fx.Provide(cacheAvailability[*full.ShareAvailability]),
+			//fx.Provide(func(subscriber libhead.Subscriber[*header.ExtendedHeader]) (header.Subscription, error) {
+			//	return subscriber.Subscribe()
+			//}),
 			fx.Provide(fullGetter),
 			fx.Provide(peerManager),
 		)
@@ -129,7 +140,7 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 	}
 }
 
-func peerManager(subscriber header.Subscription, discovery *disc.Discovery) *peers.Manager {
+func peerManager(subscriber libhead.Subscriber[*header.ExtendedHeader], discovery *disc.Discovery) *peers.Manager {
 	// TODO: Replace modp2p.BlockTime?
 	return peers.NewManager(subscriber, discovery, modp2p.BlockTime*3)
 }
