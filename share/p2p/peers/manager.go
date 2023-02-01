@@ -53,14 +53,14 @@ func NewManager(
 		done:            make(chan struct{}),
 	}
 
-	//discovery.WithOnPeersUpdate(
-	//	func(peerID peer.ID, isAdded bool) {
-	//		if isAdded {
-	//			s.fullNodes.add(peerID)
-	//			return
-	//		}
-	//		s.fullNodes.remove(peerID)
-	//	})
+	discovery.WithOnPeersUpdate(
+		func(peerID peer.ID, isAdded bool) {
+			if isAdded {
+				s.fullNodes.add(peerID)
+				return
+			}
+			s.fullNodes.remove(peerID)
+		})
 
 	return s
 }
@@ -93,9 +93,7 @@ type sampleResult int
 func (s *Manager) GetPeer(
 	ctx context.Context, datahash share.DataHash,
 ) (peer.ID, DoneFunc, error) {
-	log.Debug("getting peer ", datahash.String())
 	p := s.getOrCreateValidatedPool(datahash.String())
-	log.Debug("peersList: ", p.pool.peersList)
 	peerID, ok := p.pool.tryGet()
 	if ok {
 		return peerID, s.doneFunc(datahash, peerID), nil
@@ -135,7 +133,6 @@ func (s *Manager) doneFunc(datahash share.DataHash, peerID peer.ID) DoneFunc {
 // markSampled marks datahash as sampled if not yet marked, to release waiting validator and
 // retransmit the message via shrex.Sub
 func (s *Manager) markSampled(datahash share.DataHash) {
-	log.Debug("mark sampled ", datahash.String())
 	p := s.getOrCreateValidatedPool(datahash.String())
 	if p.isSynced.CompareAndSwap(false, true) {
 		close(p.waitSyncCh)
@@ -144,7 +141,6 @@ func (s *Manager) markSampled(datahash share.DataHash) {
 
 // RemovePeers removes peers for given datahash from store
 func (s *Manager) RemovePeers(datahash share.DataHash, ids ...peer.ID) {
-	log.Debug("removing peers from", datahash.String())
 	p := s.getOrCreateValidatedPool(datahash.String())
 	p.pool.remove(ids...)
 }
@@ -169,7 +165,6 @@ func (s *Manager) subscribeHeader(ctx context.Context) {
 			continue
 		}
 
-		log.Debug("header sub: ", h.DataHash.String())
 		s.getOrCreateValidatedPool(h.DataHash.String())
 	}
 }
@@ -185,13 +180,11 @@ func (s *Manager) getOrCreateValidatedPool(datahash string) syncPool {
 		// save as already validated
 		p.isValidDataHash.Store(true)
 		s.pools[datahash] = p
-		log.Debug("creating validated pool: ", datahash)
 		return p
 	}
 
 	// if not yet validated, there is validator waiting that needs to be released
 	p.markValidated()
-	log.Debug("getting validated pool: ", datahash)
 	return p
 }
 
@@ -200,11 +193,8 @@ func (s *Manager) getOrCreateValidatedPool(datahash string) syncPool {
 // address this, validator should be reworked to be non-blocking, with retransmission being invoked
 // in sync manner from another routine upon header discovery.
 func (s *Manager) Validate(ctx context.Context, peerID peer.ID, hash share.DataHash) pubsub.ValidationResult {
-	log.Debug("validating message from shrexsub", hash.String())
 	p := s.getOrCreateUnvalidatedPool(hash.String())
 	p.pool.add(peerID)
-	log.Debug("added peer to pool: ", peerID.ShortString(), hash.String())
-	log.Debug("peersList: ", p.pool.peersList)
 
 	// check of validation required
 	if !p.isValidDataHash.Load() {
@@ -236,10 +226,8 @@ func (s *Manager) getOrCreateUnvalidatedPool(datahash string) syncPool {
 		p.validatorWaitTimer = time.AfterFunc(s.poolSyncTimeout, func() {
 			close(p.validatorWaitCh)
 		})
-		log.Debug("creating unvalidated pool: ", datahash)
 		s.pools[datahash] = p
 	} else {
-		log.Debug("getting unvalidated pool: ", datahash)
 	}
 	return p
 }
