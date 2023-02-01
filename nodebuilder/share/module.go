@@ -2,12 +2,16 @@ package share
 
 import (
 	"context"
+	"github.com/celestiaorg/celestia-node/header"
+	"github.com/celestiaorg/celestia-node/libs/fxutil"
+	disc "github.com/celestiaorg/celestia-node/share/availability/discovery"
+	"github.com/celestiaorg/celestia-node/share/p2p/peers"
+	"time"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p/core/host"
 	"go.uber.org/fx"
 
-	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	modp2p "github.com/celestiaorg/celestia-node/nodebuilder/p2p"
 	"github.com/celestiaorg/celestia-node/share"
@@ -30,7 +34,6 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 		fx.Provide(discovery(*cfg)),
 		fx.Provide(newModule),
 		fx.Invoke(share.EnsureEmptySquareExists),
-		fxutil.ProvideAs(getters.NewIPLDGetter, new(share.Getter)),
 	)
 
 	switch tp {
@@ -38,6 +41,7 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 		return fx.Module(
 			"share",
 			baseComponents,
+			fxutil.ProvideAs(getters.NewIPLDGetter, new(share.Getter)),
 			fx.Provide(fx.Annotate(light.NewShareAvailability)),
 			// cacheAvailability's lifecycle continues to use a fx hook,
 			// since the LC requires a cacheAvailability but the constructor returns a share.Availability
@@ -47,6 +51,7 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 		return fx.Module(
 			"share",
 			baseComponents,
+			fx.Provide(getters.NewIPLDGetter),
 			fx.Provide(fx.Annotate(
 				func(host host.Host, store *eds.Store, network modp2p.Network) (*shrexeds.Server, error) {
 					return shrexeds.NewServer(host, store, shrexeds.WithProtocolSuffix(string(network)))
@@ -116,8 +121,31 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 			// cacheAvailability's lifecycle continues to use a fx hook,
 			// since the LC requires a cacheAvailability but the constructor returns a share.Availability
 			fx.Provide(cacheAvailability[*full.ShareAvailability]),
+			fx.Provide(fullGetter),
+			fx.Provide(peerManager),
 		)
 	default:
 		panic("invalid node type")
 	}
+}
+
+func peerManager(subscriber header.Subscription, discovery *disc.Discovery) *peers.Manager {
+	// TODO: Replace modp2p.BlockTime?
+	return peers.NewManager(subscriber, discovery, modp2p.BlockTime*3)
+}
+
+// TODO: Light nodes should also use shrexgetter for nd
+func fullGetter(
+	store *eds.Store,
+	shrexGetter *getters.ShrexGetter,
+) share.Getter {
+	return getters.NewCascadeGetter(
+		[]share.Getter{
+			getters.NewStoreGetter(store),
+			getters.NewTeeGetter(shrexGetter, store),
+			//getters.NewIPLDGetter(bServ),
+		},
+		// TODO: Replace modp2p.BlockTime?
+		time.Second*10,
+	)
 }
