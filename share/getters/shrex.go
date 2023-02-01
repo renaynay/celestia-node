@@ -9,6 +9,7 @@ import (
 	"github.com/celestiaorg/celestia-node/share/p2p/peers"
 	"github.com/celestiaorg/celestia-node/share/p2p/shrexeds"
 	"github.com/celestiaorg/celestia-node/share/p2p/shrexnd"
+	"github.com/celestiaorg/celestia-node/share/p2p/shrexsub"
 
 	"github.com/celestiaorg/nmt/namespace"
 	"github.com/celestiaorg/rsmt2d"
@@ -20,8 +21,41 @@ var _ share.Getter = (*ShrexGetter)(nil)
 type ShrexGetter struct {
 	edsClient *shrexeds.Client
 	ndClient  *shrexnd.Client
+	shrexSub  *shrexsub.PubSub
 
 	peers *peers.Manager
+}
+
+func NewShrexGetter(
+	edsClient *shrexeds.Client,
+	ndClient *shrexnd.Client,
+	shrexSub *shrexsub.PubSub,
+	peerManager *peers.Manager,
+) *ShrexGetter {
+	return &ShrexGetter{
+		edsClient: edsClient,
+		ndClient:  ndClient,
+		shrexSub:  shrexSub,
+		peers:     peerManager,
+	}
+}
+
+func (sg *ShrexGetter) Start(ctx context.Context) error {
+	sg.peers.Start()
+	// TODO: Do we need to subscribe?
+	err := sg.shrexSub.AddValidator(sg.peers.Validate)
+	if err != nil {
+		return err
+	}
+	return sg.shrexSub.Start(ctx)
+}
+
+func (sg *ShrexGetter) Stop(ctx context.Context) error {
+	err := sg.peers.Stop(ctx)
+	if err != nil {
+		return err
+	}
+	return sg.shrexSub.Stop(ctx)
 }
 
 func (sg *ShrexGetter) GetShare(ctx context.Context, root *share.Root, row, col int) (share.Share, error) {
