@@ -43,19 +43,11 @@ func NewShrexGetter(
 func (sg *ShrexGetter) Start(ctx context.Context) error {
 	sg.peers.Start()
 	// TODO: Do we need to subscribe?
-	err := sg.shrexSub.AddValidator(sg.peers.Validate)
-	if err != nil {
-		return err
-	}
-	return sg.shrexSub.Start(ctx)
+	return sg.shrexSub.AddValidator(sg.peers.Validate)
 }
 
 func (sg *ShrexGetter) Stop(ctx context.Context) error {
-	err := sg.peers.Stop(ctx)
-	if err != nil {
-		return err
-	}
-	return sg.shrexSub.Stop(ctx)
+	return sg.peers.Stop(ctx)
 }
 
 func (sg *ShrexGetter) GetShare(ctx context.Context, root *share.Root, row, col int) (share.Share, error) {
