@@ -55,6 +55,7 @@ func (p *syncPool) waitSampling(ctx context.Context) (sampled bool) {
 
 func (p *syncPool) markValidated() {
 	if p.isValidDataHash.CompareAndSwap(false, true) {
+		log.Debug("marked pool as validated")
 		// unlock all awaiting Validators.
 		// if unable to stop the timer, the channel was already closed by afterfunc
 		if p.validatorWaitTimer.Stop() {

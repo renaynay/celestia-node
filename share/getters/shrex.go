@@ -3,6 +3,7 @@ package getters
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/celestiaorg/celestia-node/share"
 	"github.com/celestiaorg/celestia-node/share/p2p"
@@ -19,6 +20,8 @@ var _ share.Getter = (*ShrexGetter)(nil)
 
 // ShrexGetter is a share.Getter that uses the shrex/eds and shrex/nd protocol to retrieve shares.
 type ShrexGetter struct {
+	cancel context.CancelFunc
+
 	edsClient *shrexeds.Client
 	ndClient  *shrexnd.Client
 	shrexSub  *shrexsub.PubSub
@@ -40,14 +43,37 @@ func NewShrexGetter(
 	}
 }
 
-func (sg *ShrexGetter) Start(ctx context.Context) error {
+func (sg *ShrexGetter) Start(context.Context) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	sg.cancel = cancel
 	sg.peers.Start()
-	// TODO: Do we need to subscribe?
-	return sg.shrexSub.AddValidator(sg.peers.Validate)
+	err := sg.shrexSub.AddValidator(sg.peers.Validate)
+	if err != nil {
+		return err
+	}
+	go sg.listen(ctx)
+	return err
 }
 
 func (sg *ShrexGetter) Stop(ctx context.Context) error {
+	defer sg.cancel()
 	return sg.peers.Stop(ctx)
+}
+
+func (sg *ShrexGetter) listen(ctx context.Context) {
+	sub, err := sg.shrexSub.Subscribe()
+	if err != nil {
+		panic(fmt.Errorf("couldn't start shrexsub subscription: %w", err))
+	}
+	defer sub.Cancel()
+
+	for {
+		dataHash, err := sub.Next(ctx)
+		if err != nil {
+			return
+		}
+		log.Debug("received datahash over shrexsub: ", dataHash.String())
+	}
 }
 
 func (sg *ShrexGetter) GetShare(ctx context.Context, root *share.Root, row, col int) (share.Share, error) {
