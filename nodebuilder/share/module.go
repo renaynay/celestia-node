@@ -65,6 +65,15 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 				},
 			),
 			fx.Provide(fx.Annotate(
+				getters.NewShrexGetter,
+				fx.OnStart(func(ctx context.Context, getter *getters.ShrexGetter) error {
+					return getter.Start(ctx)
+				}),
+				fx.OnStop(func(ctx context.Context, getter *getters.ShrexGetter) error {
+					return getter.Stop(ctx)
+				}),
+			)),
+			fx.Provide(fx.Annotate(
 				func(path node.StorePath, ds datastore.Batching) (*eds.Store, error) {
 					return eds.NewStore(string(path), ds)
 				},
