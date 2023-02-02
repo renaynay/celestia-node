@@ -97,6 +97,8 @@ func (sg *ShrexGetter) GetEDS(ctx context.Context, root *share.Root) (*rsmt2d.Ex
 			return eds, nil
 		case p2p.ErrInvalidResponse:
 			setStatus(peers.ResultPeerMMisbehaved)
+		case context.DeadlineExceeded, context.Canceled:
+			return nil, ctx.Err()
 		default:
 			setStatus(peers.ResultFail)
 		}
@@ -121,6 +123,8 @@ func (sg *ShrexGetter) GetSharesByNamespace(
 			return eds, nil
 		case p2p.ErrInvalidResponse:
 			setStatus(peers.ResultPeerMMisbehaved)
+		case context.DeadlineExceeded, context.Canceled:
+			return nil, ctx.Err()
 		default:
 			setStatus(peers.ResultFail)
 		}
