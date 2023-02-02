@@ -2,7 +2,6 @@ package ipld
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/ipfs/go-blockservice"
@@ -81,12 +80,12 @@ func (n *NmtNodeAdder) Commit() error {
 	defer n.lock.Unlock()
 
 	if n.err != nil {
-		return fmt.Errorf("before batch commit: %w", n.err)
+		log.Errorf("before batch commit: %v", n.err)
 	}
 
 	n.err = n.add.Commit()
 	if n.err != nil {
-		return fmt.Errorf("after batch commit: %w", n.err)
+		log.Errorf("after batch commit: %v", n.err)
 	}
 	return nil
 }
