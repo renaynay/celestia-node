@@ -187,6 +187,6 @@ func fullGetter(
 			getters.NewTeeGetter(ipldGetter, store),
 		},
 		// TODO: Replace modp2p.BlockTime?
-		modp2p.BlockTime / 3,
+		modp2p.BlockTime,
 	)
 }
