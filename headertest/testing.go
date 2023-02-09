@@ -295,7 +295,7 @@ func RandBlockID(t *testing.T) types.BlockID {
 
 // FraudMaker creates a custom ConstructFn that breaks the block at the given height.
 func FraudMaker(t *testing.T, faultHeight int64, bServ blockservice.BlockService) header.ConstructFn {
-	log.Warn("Corrupting block...", "height", faultHeight)
+	log.Warn("Corrupting block...", "height ", faultHeight)
 	return func(ctx context.Context,
 		b *types.Block,
 		comm *types.Commit,
@@ -312,10 +312,12 @@ func FraudMaker(t *testing.T, faultHeight int64, bServ blockservice.BlockService
 			eh = CreateFraudExtHeader(t, eh, bServ)
 			return eh, nil
 		}
-		flattened := eds.Flattened()
-		_, err := share.ImportShares(ctx, flattened, bServ)
-		if err != nil {
-			return nil, err
+		if eds != nil {
+			flattened := eds.Flattened()
+			_, err := share.ImportShares(ctx, flattened, bServ)
+			if err != nil {
+				return nil, err
+			}
 		}
 		return header.MakeExtendedHeader(ctx, b, comm, vals, eds)
 	}
@@ -333,7 +335,6 @@ func CreateFraudExtHeader(
 	require.NoError(t, err)
 	dah := da.NewDataAvailabilityHeader(extended)
 	eh.DAH = &dah
-	eh.RawHeader.DataHash = dah.Hash()
 	return eh
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/fraud"
 	"github.com/celestiaorg/celestia-node/headertest"
@@ -35,8 +36,11 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	// we increase the timeout for this test to decrease flakiness in CI
 	testTimeout := time.Millisecond * 200
 	sw := swamp.NewSwamp(t, swamp.WithBlockTime(testTimeout))
-
-	bridge := sw.NewBridgeNode(core.WithHeaderConstructFn(headertest.FraudMaker(t, 20, mdutils.Bserv())))
+	bserv := mdutils.Bserv()
+	bridge := sw.NewBridgeNode(
+		core.WithHeaderConstructFn(headertest.FraudMaker(t, 20, bserv)),
+		fx.Replace(bserv),
+	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), swamp.DefaultTestTimeout)
 	t.Cleanup(cancel)
