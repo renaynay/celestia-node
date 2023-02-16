@@ -10,6 +10,7 @@ import (
 
 	header "github.com/celestiaorg/celestia-node/header"
 	header0 "github.com/celestiaorg/celestia-node/libs/header"
+	sync "github.com/celestiaorg/celestia-node/libs/header/sync"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -123,6 +124,20 @@ func (m *MockModule) NetworkHead(arg0 context.Context) (*header.ExtendedHeader, 
 func (mr *MockModuleMockRecorder) NetworkHead(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkHead", reflect.TypeOf((*MockModule)(nil).NetworkHead), arg0)
+}
+
+// SyncState mocks base method.
+func (m *MockModule) SyncState(arg0 context.Context) sync.State {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SyncState", arg0)
+	ret0, _ := ret[0].(sync.State)
+	return ret0
+}
+
+// SyncState indicates an expected call of SyncState.
+func (mr *MockModuleMockRecorder) SyncState(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncState", reflect.TypeOf((*MockModule)(nil).SyncState), arg0)
 }
 
 // WaitSync mocks base method.

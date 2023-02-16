@@ -5,6 +5,7 @@ import (
 
 	"github.com/celestiaorg/celestia-node/header"
 	libhead "github.com/celestiaorg/celestia-node/libs/header"
+	"github.com/celestiaorg/celestia-node/libs/header/sync"
 )
 
 // Module exposes the functionality needed for querying headers from the network.
@@ -29,12 +30,14 @@ type Module interface {
 	// until header has been processed by the store or context deadline is exceeded.
 	GetByHeight(context.Context, uint64) (*header.ExtendedHeader, error)
 
-	// IsSyncing returns the status of sync
+	// IsSyncing returns whether the node is syncing.
 	IsSyncing(context.Context) bool
 	// WaitSync blocks until the header Syncer is synced to network head.
 	WaitSync(ctx context.Context) error
 	// NetworkHead provides the Syncer's view of the current network head.
 	NetworkHead(ctx context.Context) (*header.ExtendedHeader, error)
+	// SyncState returns the current state of the Syncer.
+	SyncState(context.Context) sync.State
 }
 
 // API is a wrapper around Module for the RPC.
@@ -55,6 +58,7 @@ type API struct {
 		IsSyncing   func(context.Context) bool                                    `perm:"read"`
 		WaitSync    func(ctx context.Context) error                               `perm:"read"`
 		NetworkHead func(ctx context.Context) (*header.ExtendedHeader, error)     `perm:"public"`
+		SyncState   func(context.Context) sync.State                              `perm:"read"`
 	}
 }
 
@@ -88,4 +92,8 @@ func (api *API) WaitSync(ctx context.Context) error {
 
 func (api *API) NetworkHead(ctx context.Context) (*header.ExtendedHeader, error) {
 	return api.Internal.NetworkHead(ctx)
+}
+
+func (api *API) SyncState(ctx context.Context) sync.State {
+	return api.Internal.SyncState(ctx)
 }
