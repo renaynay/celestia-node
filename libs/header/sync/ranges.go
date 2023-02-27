@@ -40,32 +40,33 @@ func (rs *ranges[H]) Add(h H) {
 	defer rs.lk.Unlock()
 
 	head := rs.head()
-
-	// short-circuit if header is from the past
-	if !head.IsZero() && head.Height() >= h.Height() {
-		// TODO(@Wondertan): Technically, we can still apply the header:
-		//  * Headers here are verified, so we can trust them
-		//  * PubSub does not guarantee the ordering of msgs
-		//    * So there might be a case where ordering is broken
-		//    * Even considering the delay(block time) with which new headers are generated
-		//    * But rarely
-		//  Would be still nice to implement
-		log.Warnf("rcvd headers in wrong order")
-		return
+	if !head.IsZero() {
+		// if the new header is adjacent to head
+		if h.Height() == head.Height()+1 {
+			// append it to the last known range
+			rs.ranges[len(rs.ranges)-1].Append(h)
+			return
+		}
+		// short-circuit if header is from the past
+		if head.Height() >= h.Height() {
+			// TODO(@Wondertan): Technically, we can still apply the header:
+			//  * Headers here are verified, so we can trust them
+			//  * PubSub does not guarantee the ordering of msgs
+			//    * So there might be a case where ordering is broken
+			//    * Even considering the delay(block time) with which new headers are generated
+			//    * But rarely
+			//  Would be still nice to implement
+			log.Warnf("rcvd headers in wrong order")
+			return
+		}
 	}
 
-	// if the new header is adjacent to head
-	if !head.IsZero() && h.Height() == head.Height()+1 {
-		// append it to the last known range
-		rs.ranges[len(rs.ranges)-1].Append(h)
-	} else {
-		// otherwise, start a new range
-		rs.ranges = append(rs.ranges, newRange[H](h))
+	// otherwise, start a new range
+	rs.ranges = append(rs.ranges, newRange[H](h))
 
-		// it is possible to miss a header or few from PubSub, due to quick disconnects or sleep
-		// once we start rcving them again we save those in new range
-		// so 'Syncer.findHeaders' can fetch what was missed
-	}
+	// it is possible to miss a header or few from PubSub, due to quick disconnects or sleep
+	// once we start rcving them again we save those in new range
+	// so 'Syncer.findHeaders' can fetch what was missed
 }
 
 // FirstRangeWithin checks if the first range is within a given height span [start:end]
