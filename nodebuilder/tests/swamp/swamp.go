@@ -51,8 +51,9 @@ type Swamp struct {
 	LightNodes  []*nodebuilder.Node
 	comps       *Config
 
-	ClientContext testnode.Context
-	Accounts      []string
+	ClientContext  testnode.Context
+	Accounts       []string
+	coreClientStop func() error
 
 	genesis *header.ExtendedHeader
 }
@@ -74,17 +75,22 @@ func NewSwamp(t *testing.T, options ...Option) *Swamp {
 	// Now, we are making an assumption that consensus mechanism is already tested out
 	// so, we are not creating bridge nodes with each one containing its own core client
 	// instead we are assigning all created BNs to 1 Core from the swamp
-	cctx := core.StartTestNodeWithConfig(t, ic.TestConfig)
+	cctx, cleanup := core.StartTestNodeWithConfig(t, ic.TestConfig)
 	swp := &Swamp{
-		t:             t,
-		Network:       mocknet.New(),
-		ClientContext: cctx,
-		comps:         ic,
-		Accounts:      ic.Accounts,
+		t:              t,
+		Network:        mocknet.New(),
+		ClientContext:  cctx,
+		comps:          ic,
+		Accounts:       ic.Accounts,
+		coreClientStop: cleanup,
 	}
 
 	swp.t.Cleanup(func() {
 		swp.stopAllNodes(ctx, swp.BridgeNodes, swp.FullNodes, swp.LightNodes)
+		if swp.coreClientStop != nil {
+			err := swp.coreClientStop()
+			require.NoError(t, err)
+		}
 	})
 
 	swp.setupGenesis(ctx)
@@ -320,4 +326,11 @@ func (s *Swamp) Connect(t *testing.T, peerA, peerB peer.ID) {
 func (s *Swamp) Disconnect(t *testing.T, peerA, peerB peer.ID) {
 	require.NoError(t, s.Network.UnlinkPeers(peerA, peerB))
 	require.NoError(t, s.Network.DisconnectPeers(peerA, peerB))
+}
+
+// StopCoreClient stops and cleans up the core client.
+func (s *Swamp) StopCoreClient(t *testing.T) {
+	err := s.coreClientStop()
+	require.NoError(t, err)
+	s.coreClientStop = nil
 }

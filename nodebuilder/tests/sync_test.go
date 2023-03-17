@@ -174,16 +174,20 @@ func TestSyncFullWithBridge(t *testing.T) {
 
 	h, err = full.HeaderServ.GetByHeight(ctx, 30)
 	require.NoError(t, err)
-
 	assert.EqualValues(t, h.Commit.BlockID.Hash, sw.GetCoreBlockHashByHeight(ctx, 30))
 
 	err = full.ShareServ.SharesAvailable(ctx, h.DAH)
 	assert.NoError(t, err)
 
+	// stop core client so it stops producing blocks
+	sw.StopCoreClient(t)
+
+	stats, _ := full.DASer.SamplingStats(ctx)
+	t.Log("FAILED: ", stats.Workers)
+
 	err = full.DASer.WaitCatchUp(ctx)
 	require.NoError(t, err)
 
-	assert.EqualValues(t, h.Commit.BlockID.Hash, sw.GetCoreBlockHashByHeight(ctx, 30))
 	require.NoError(t, <-fillDn)
 }
 

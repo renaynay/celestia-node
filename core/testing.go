@@ -63,11 +63,15 @@ func DefaultTestConfig() *TestConfig {
 // StartTestNode simply starts Tendermint and Celestia App tandem with default testing
 // configuration.
 func StartTestNode(t *testing.T) testnode.Context {
-	return StartTestNodeWithConfig(t, DefaultTestConfig())
+	tn, cleanup := StartTestNodeWithConfig(t, DefaultTestConfig())
+	t.Cleanup(func() {
+		cleanup()
+	})
+	return tn
 }
 
 // StartTestNodeWithConfig starts Tendermint and Celestia App tandem with custom configuration.
-func StartTestNodeWithConfig(t *testing.T, cfg *TestConfig) testnode.Context {
+func StartTestNodeWithConfig(t *testing.T, cfg *TestConfig) (testnode.Context, func() error) {
 	state, kr, err := testnode.DefaultGenesisState(cfg.Accounts...)
 	require.NoError(t, err)
 
@@ -84,10 +88,6 @@ func StartTestNodeWithConfig(t *testing.T, cfg *TestConfig) testnode.Context {
 
 	cctx, cleanupCoreNode, err := testnode.StartNode(tmNode, cctx)
 	require.NoError(t, err)
-	t.Cleanup(func() {
-		err := cleanupCoreNode()
-		require.NoError(t, err)
-	})
 
 	cctx, cleanupGRPCServer, err := StartGRPCServer(app, cfg.App, cctx)
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func StartTestNodeWithConfig(t *testing.T, cfg *TestConfig) testnode.Context {
 	})
 
 	cctx.WithClient(client)
-	return cctx
+	return cctx, cleanupCoreNode
 }
 
 func getFreePort() int {
