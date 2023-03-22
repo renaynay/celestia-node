@@ -71,7 +71,7 @@ require (
 	golang.org/x/exp v0.0.0-20230129154200-a960b3787bd2
 	golang.org/x/sync v0.1.0
 	golang.org/x/text v0.8.0
-	google.golang.org/grpc v1.53.0
+	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
 )
 
