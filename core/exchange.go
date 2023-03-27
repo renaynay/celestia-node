@@ -1,11 +1,7 @@
 package core
 
 import (
-	"bytes"
 	"context"
-	"fmt"
-
-	libhead "github.com/celestiaorg/go-header"
 
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/share/eds"
@@ -72,40 +68,6 @@ func (ce *Exchange) GetVerifiedRange(
 		from = h
 	}
 	return headers, nil
-}
-
-func (ce *Exchange) Get(ctx context.Context, hash libhead.Hash) (*header.ExtendedHeader, error) {
-	log.Debugw("requesting header", "hash", hash.String())
-	block, err := ce.fetcher.GetBlockByHash(ctx, hash)
-	if err != nil {
-		return nil, err
-	}
-
-	comm, vals, err := ce.fetcher.GetBlockInfo(ctx, &block.Height)
-	if err != nil {
-		return nil, err
-	}
-
-	// extend block data
-	eds, err := extendBlock(block.Data)
-	if err != nil {
-		return nil, err
-	}
-	// construct extended header
-	eh, err := ce.construct(ctx, &block.Header, comm, vals, eds)
-	if err != nil {
-		return nil, err
-	}
-	// verify hashes match
-	if !bytes.Equal(hash, eh.Hash()) {
-		return nil, fmt.Errorf("incorrect hash in header: expected %x, got %x", hash, eh.Hash())
-	}
-	err = storeEDS(ctx, eh.DAH.Hash(), eds, ce.store)
-	if err != nil {
-		log.Errorw("storing EDS to eds.Store", "err", err)
-		return nil, err
-	}
-	return eh, nil
 }
 
 func (ce *Exchange) Head(ctx context.Context) (*header.ExtendedHeader, error) {

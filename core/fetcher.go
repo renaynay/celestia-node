@@ -3,12 +3,11 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	logging "github.com/ipfs/go-log/v2"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/types"
-
-	libhead "github.com/celestiaorg/go-header"
 )
 
 const newBlockSubscriber = "NewBlock/Events"
@@ -21,67 +20,27 @@ var (
 type BlockFetcher struct {
 	client Client
 
+	chainID string
+
 	doneCh chan struct{}
 	cancel context.CancelFunc
 }
 
 // NewBlockFetcher returns a new `BlockFetcher`.
-func NewBlockFetcher(client Client) *BlockFetcher {
+func NewBlockFetcher(client Client, chainID string) *BlockFetcher {
 	return &BlockFetcher{
-		client: client,
+		client:  client,
+		chainID: chainID,
 	}
-}
-
-// GetBlockInfo queries Core for additional block information, like Commit and ValidatorSet.
-func (f *BlockFetcher) GetBlockInfo(ctx context.Context, height *int64) (*types.Commit, *types.ValidatorSet, error) {
-	commit, err := f.Commit(ctx, height)
-	if err != nil {
-		return nil, nil, fmt.Errorf("core/fetcher: getting commit at height %d: %w", height, err)
-	}
-
-	// If a nil `height` is given as a parameter, there is a chance
-	// that a new block could be produced between getting the latest
-	// commit and getting the latest validator set. Therefore, it is
-	// best to get the validator set at the latest commit's height to
-	// prevent this potential inconsistency.
-	valSet, err := f.ValidatorSet(ctx, &commit.Height)
-	if err != nil {
-		return nil, nil, fmt.Errorf("core/fetcher: getting validator set at height %d: %w", height, err)
-	}
-
-	return commit, valSet, nil
-}
-
-// GetBlock queries Core for a `Block` at the given height.
-func (f *BlockFetcher) GetBlock(ctx context.Context, height *int64) (*types.Block, error) {
-	res, err := f.client.Block(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	if res != nil && res.Block == nil {
-		return nil, fmt.Errorf("core/fetcher: block not found, height: %d", height)
-	}
-
-	return res.Block, nil
-}
-
-func (f *BlockFetcher) GetBlockByHash(ctx context.Context, hash libhead.Hash) (*types.Block, error) {
-	res, err := f.client.BlockByHash(ctx, hash)
-	if err != nil {
-		return nil, err
-	}
-
-	if res != nil && res.Block == nil {
-		return nil, fmt.Errorf("core/fetcher: block not found, hash: %s", hash.String())
-	}
-
-	return res.Block, nil
 }
 
 // GetSignedBlock queries Core for a `Block` at the given height.
 func (f *BlockFetcher) GetSignedBlock(ctx context.Context, height *int64) (*coretypes.ResultSignedBlock, error) {
-	return f.client.SignedBlock(ctx, height)
+	signed, err := f.client.SignedBlock(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+	return signed, f.validateChainID(signed.Header.ChainID)
 }
 
 // Commit queries Core for a `Commit` from the block at
@@ -152,7 +111,16 @@ func (f *BlockFetcher) SubscribeNewBlockEvent(ctx context.Context) (<-chan types
 					log.Errorw("fetcher: new blocks subscription channel closed unexpectedly")
 					return
 				}
+
 				signedBlock := newEvent.Data.(types.EventDataSignedBlock)
+				if err := f.validateChainID(signedBlock.Header.ChainID); err != nil {
+					log.Errorw("fetcher: received block with unexpected chainID: expected %s, got %s",
+						f.chainID,
+						signedBlock.Header.ChainID,
+					)
+					return
+				}
+
 				select {
 				case signedBlockCh <- signedBlock:
 				case <-ctx.Done():
@@ -185,4 +153,14 @@ func (f *BlockFetcher) IsSyncing(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	return resp.SyncInfo.CatchingUp, nil
+}
+
+// validateChainID returns an error if there is a chainID mismatch.
+func (f *BlockFetcher) validateChainID(chainID string) error {
+	if !strings.EqualFold(f.chainID, chainID) {
+		return fmt.Errorf("header with different chainID received: expected %s, got %s",
+			f.chainID, chainID,
+		)
+	}
+	return nil
 }

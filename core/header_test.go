@@ -17,23 +17,20 @@ func TestMakeExtendedHeaderForEmptyBlock(t *testing.T) {
 	t.Cleanup(cancel)
 
 	client := StartTestNode(t).Client
-	fetcher := NewBlockFetcher(client)
+	fetcher := NewBlockFetcher(client, "private")
 
 	sub, err := fetcher.SubscribeNewBlockEvent(ctx)
 	require.NoError(t, err)
 	<-sub
 
 	height := int64(1)
-	b, err := fetcher.GetBlock(ctx, &height)
-	require.NoError(t, err)
-
-	comm, val, err := fetcher.GetBlockInfo(ctx, &height)
+	b, err := fetcher.GetSignedBlock(ctx, &height)
 	require.NoError(t, err)
 
 	eds, err := extendBlock(b.Data)
 	require.NoError(t, err)
 
-	headerExt, err := header.MakeExtendedHeader(ctx, &b.Header, comm, val, eds)
+	headerExt, err := header.MakeExtendedHeader(ctx, &b.Header, &b.Commit, &b.ValidatorSet, eds)
 	require.NoError(t, err)
 
 	assert.Equal(t, header.EmptyDAH(), *headerExt.DAH)

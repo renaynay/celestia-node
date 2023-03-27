@@ -15,7 +15,7 @@ func TestBlockFetcher_GetBlock_and_SubscribeNewBlockEvent(t *testing.T) {
 	t.Cleanup(cancel)
 
 	client := StartTestNode(t).Client
-	fetcher := NewBlockFetcher(client)
+	fetcher := NewBlockFetcher(client, "private")
 
 	// generate some blocks
 	newBlockChan, err := fetcher.SubscribeNewBlockEvent(ctx)
@@ -46,7 +46,7 @@ func TestBlockFetcherHeaderValues(t *testing.T) {
 	t.Cleanup(cancel)
 
 	client := StartTestNode(t).Client
-	fetcher := NewBlockFetcher(client)
+	fetcher := NewBlockFetcher(client, "private")
 
 	// generate some blocks
 	newBlockChan, err := fetcher.SubscribeNewBlockEvent(ctx)
@@ -59,11 +59,7 @@ func TestBlockFetcherHeaderValues(t *testing.T) {
 	case <-ctx.Done():
 		require.NoError(t, ctx.Err())
 	}
-	// get Commit from current height
-	commit, err := fetcher.Commit(ctx, &h)
-	require.NoError(t, err)
-	// get ValidatorSet from current height
-	valSet, err := fetcher.ValidatorSet(ctx, &h)
+	firstBlock, err := fetcher.GetSignedBlock(ctx, &h)
 	require.NoError(t, err)
 	// get next block
 	var nextBlock types.EventDataSignedBlock
@@ -73,10 +69,9 @@ func TestBlockFetcherHeaderValues(t *testing.T) {
 		require.NoError(t, ctx.Err())
 	}
 	// compare LastCommit from next block to Commit from first block height
-	assert.Equal(t, nextBlock.Header.LastCommitHash, commit.Hash())
-	assert.Equal(t, nextBlock.Header.Height, commit.Height+1)
+	assert.Equal(t, nextBlock.Header.LastCommitHash, firstBlock.Commit.Hash())
+	assert.Equal(t, nextBlock.Header.Height, firstBlock.Commit.Height+1)
 	// compare ValidatorSet hash to the ValidatorsHash from first block height
-	hexBytes := valSet.Hash()
-	assert.Equal(t, nextBlock.ValidatorSet.Hash(), hexBytes)
+	assert.Equal(t, nextBlock.ValidatorSet.Hash(), firstBlock.ValidatorSet.Hash())
 	require.NoError(t, fetcher.UnsubscribeNewBlockEvent(ctx))
 }

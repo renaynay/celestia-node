@@ -98,6 +98,7 @@ func (cl *Listener) listen(ctx context.Context, sub <-chan types.EventDataSigned
 				log.Errorw("listener: extending block data", "err", err)
 				return
 			}
+
 			// generate extended header
 			eh, err := cl.construct(ctx, &b.Header, &b.Commit, &b.ValidatorSet, eds)
 			if err != nil {

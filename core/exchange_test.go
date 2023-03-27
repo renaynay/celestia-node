@@ -37,7 +37,7 @@ func createCoreFetcher(t *testing.T, cfg *TestConfig) (*BlockFetcher, testnode.C
 	// flakiness with accessing account state)
 	_, err := cctx.WaitForHeightWithTimeout(2, time.Second*2) // TODO @renaynay: configure?
 	require.NoError(t, err)
-	return NewBlockFetcher(cctx.Client), cctx
+	return NewBlockFetcher(cctx.Client, "private"), cctx
 }
 
 func createStore(t *testing.T) *eds.Store {
