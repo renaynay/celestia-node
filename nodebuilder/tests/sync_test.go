@@ -65,8 +65,10 @@ func TestSyncLightWithBridge(t *testing.T) {
 	err = light.Start(ctx)
 	require.NoError(t, err)
 
-	sub, err := light.HeaderServ.Subscribe(ctx)
+	subctx, subcancel := context.WithCancel(ctx)
+	sub, err := light.HeaderServ.Subscribe(subctx)
 	require.NoError(t, err)
+	t.Cleanup(subcancel)
 	t.Log("73, succ")
 
 	go func() {
