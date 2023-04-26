@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -36,6 +37,8 @@ func TestSyncLightWithBridge(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), swamp.DefaultTestTimeout)
 	t.Cleanup(cancel)
 
+	t.Log("hi")
+
 	sw := swamp.NewSwamp(t, swamp.WithBlockTime(btime))
 	fillDn := swamp.FillBlocks(ctx, sw.ClientContext, sw.Accounts, bsize, blocks)
 
@@ -48,6 +51,7 @@ func TestSyncLightWithBridge(t *testing.T) {
 
 	h, err := bridge.HeaderServ.GetByHeight(ctx, 20)
 	require.NoError(t, err)
+	t.Log("53")
 
 	require.EqualValues(t, h.Commit.BlockID.Hash, sw.GetCoreBlockHashByHeight(ctx, 20))
 
@@ -61,11 +65,29 @@ func TestSyncLightWithBridge(t *testing.T) {
 	err = light.Start(ctx)
 	require.NoError(t, err)
 
+	sub, err := light.HeaderServ.Subscribe(ctx)
+	require.NoError(t, err)
+	t.Log("73, succ")
+
+	go func() {
+		for {
+			if ctx.Err() != nil {
+				return
+			}
+			got := <-sub
+			if got != nil {
+				fmt.Println("got msg via sub: ", got.Height())
+			}
+		}
+	}()
+
 	h, err = light.HeaderServ.GetByHeight(ctx, 30)
 	require.NoError(t, err)
+	t.Log("66")
 
 	err = light.ShareServ.SharesAvailable(ctx, h.DAH)
 	assert.NoError(t, err)
+	t.Log("shares avail")
 
 	err = light.DASer.WaitCatchUp(ctx)
 	require.NoError(t, err)

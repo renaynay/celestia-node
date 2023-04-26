@@ -75,6 +75,7 @@ func (s *Service) Subscribe(ctx context.Context) (<-chan *header.ExtendedHeader,
 	if err != nil {
 		return nil, err
 	}
+	defer subscription.Cancel()
 
 	headerCh := make(chan *header.ExtendedHeader)
 	go func() {
