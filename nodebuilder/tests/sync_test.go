@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -65,9 +63,7 @@ func TestSyncAgainstBridge(t *testing.T) {
 		// create a light node that is connected to the bridge node as
 		// a bootstrapper
 		cfg := nodebuilder.DefaultConfig(node.Light)
-		addrs, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
-		require.NoError(t, err)
-		cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
+		swamp.WithTrustedPeers(t, cfg, bridge)
 		light := sw.NewNodeWithConfig(node.Light, cfg)
 		// start light node and wait for it to sync 20 blocks
 		err = light.Start(ctx)
@@ -88,9 +84,7 @@ func TestSyncAgainstBridge(t *testing.T) {
 	t.Run("full sync against bridge", func(t *testing.T) {
 		// create a full node with bridge node as its bootstrapper
 		cfg := nodebuilder.DefaultConfig(node.Full)
-		addrs, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
-		require.NoError(t, err)
-		cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
+		swamp.WithTrustedPeers(t, cfg, bridge)
 		full := sw.NewNodeWithConfig(node.Full, cfg)
 
 		// let full node sync 20 blocks
@@ -110,7 +104,12 @@ func TestSyncAgainstBridge(t *testing.T) {
 	})
 
 	// wait for the core block filling process to exit
-	require.NoError(t, <-fillDn)
+	select {
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case err := <-fillDn:
+		require.NoError(t, err)
+	}
 }
 
 /*
@@ -149,9 +148,7 @@ func TestSyncStartStopLightWithBridge(t *testing.T) {
 
 	// create a light node and connect it to the bridge node as a bootstrapper
 	cfg := nodebuilder.DefaultConfig(node.Light)
-	addrs, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
-	require.NoError(t, err)
-	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
+	swamp.WithTrustedPeers(t, cfg, bridge)
 	light := sw.NewNodeWithConfig(node.Light, cfg)
 
 	// start light node and let it sync to 20
@@ -162,9 +159,9 @@ func TestSyncStartStopLightWithBridge(t *testing.T) {
 	require.EqualValues(t, h.Commit.BlockID.Hash, sw.GetCoreBlockHashByHeight(ctx, numBlocks))
 
 	// disconnect light from bridge node to force light node to miss a few blocks
-	sw.Disconnect(t, bridge.Host.ID(), light.Host.ID())
+	sw.Disconnect(t, bridge, light)
 	time.Sleep(time.Second * 3)
-	sw.Connect(t, bridge.Host.ID(), light.Host.ID())
+	sw.Connect(t, bridge, light)
 
 	// ensure when light node comes back up, it can sync the remainder of the chain it
 	// missed while sleeping
@@ -173,7 +170,12 @@ func TestSyncStartStopLightWithBridge(t *testing.T) {
 	assert.EqualValues(t, h.Commit.BlockID.Hash, sw.GetCoreBlockHashByHeight(ctx, 40))
 
 	// wait for the core block filling process to exit
-	require.NoError(t, <-fillDn)
+	select {
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case err := <-fillDn:
+		require.NoError(t, err)
+	}
 }
 
 /*
@@ -212,9 +214,7 @@ func TestSyncLightAgainstFull(t *testing.T) {
 
 	// create a FN with BN as a trusted peer
 	cfg := nodebuilder.DefaultConfig(node.Full)
-	addrs, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
-	require.NoError(t, err)
-	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
+	swamp.WithTrustedPeers(t, cfg, bridge)
 	full := sw.NewNodeWithConfig(node.Full, cfg)
 
 	// start FN and wait for it to sync up to BN
@@ -225,9 +225,7 @@ func TestSyncLightAgainstFull(t *testing.T) {
 
 	// create an LN with FN as a trusted peer
 	cfg = nodebuilder.DefaultConfig(node.Light)
-	addrs, err = peer.AddrInfoToP2pAddrs(host.InfoFromHost(full.Host))
-	require.NoError(t, err)
-	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
+	swamp.WithTrustedPeers(t, cfg, full)
 	light := sw.NewNodeWithConfig(node.Light, cfg)
 
 	// ensure there is no direct connection between LN and BN so that
@@ -242,7 +240,12 @@ func TestSyncLightAgainstFull(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait for the core block filling process to exit
-	require.NoError(t, <-fillDn)
+	select {
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case err := <-fillDn:
+		require.NoError(t, err)
+	}
 }
 
 /*
@@ -278,9 +281,7 @@ func TestSyncLightWithTrustedPeers(t *testing.T) {
 
 	// create a FN with BN as trusted peer
 	cfg := nodebuilder.DefaultConfig(node.Full)
-	bridgeInfo, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
-	require.NoError(t, err)
-	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, bridgeInfo[0].String())
+	swamp.WithTrustedPeers(t, cfg, bridge)
 	full := sw.NewNodeWithConfig(node.Full, cfg)
 
 	// let FN sync to network head
@@ -291,9 +292,7 @@ func TestSyncLightWithTrustedPeers(t *testing.T) {
 
 	// create a LN with both FN and BN as trusted peers
 	cfg = nodebuilder.DefaultConfig(node.Light)
-	fullInfo, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(full.Host))
-	require.NoError(t, err)
-	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, bridgeInfo[0].String(), fullInfo[0].String())
+	swamp.WithTrustedPeers(t, cfg, bridge, full)
 	light := sw.NewNodeWithConfig(node.Light, cfg)
 
 	// let LN sync to network head
@@ -303,5 +302,10 @@ func TestSyncLightWithTrustedPeers(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait for the core block filling process to exit
-	require.NoError(t, <-fillDn)
+	select {
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case err := <-fillDn:
+		require.NoError(t, err)
+	}
 }
