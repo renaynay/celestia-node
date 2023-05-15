@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 
@@ -23,12 +24,14 @@ Test-Case: Full Node will propagate a fraud proof to the network, once Byzantine
 Pre-Requisites:
 - CoreClient is started by swamp.
 Steps:
-1. Create a Bridge Node(BN) with broken extended header at height 10.
+1. Create a Bridge Node(BN) with fraudulent extended header at height 10.
 2. Start a BN.
 3. Create a Full Node(FN) with a connection to BN as a trusted peer.
 4. Start a FN.
-5. Subscribe to a fraud proof and wait when it will be received.
-6. Check FN is not synced to 15.
+5. Subscribe to bad encoding fraud proof and wait for it to be received.
+6. Check FN has not synced beyond 10.
+
+// TODO
 Note: 15 is not available because DASer will be stopped before reaching this height due to receiving a fraud proof.
 Another note: this test disables share exchange to speed up test results.
 */
@@ -45,26 +48,20 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	sw := swamp.NewSwamp(t, swamp.WithBlockTime(blockTime))
 	fillDn := swamp.FillBlocks(ctx, sw.ClientContext, sw.Accounts, blockSize, blocks)
 
+	// create and start a BN that will create a fraudulent header
+	// at height 10
 	cfg := nodebuilder.DefaultConfig(node.Bridge)
 	cfg.Share.UseShareExchange = false
-	bridge := sw.NewNodeWithConfig(
-		node.Bridge,
-		cfg,
-		core.WithHeaderConstructFn(headertest.FraudMaker(t, 10, mdutils.Bserv())),
-	)
-
+	bridge := sw.NewNodeWithConfig(node.Bridge, cfg, core.WithHeaderConstructFn(headertest.FraudMaker(t, 10, mdutils.Bserv())))
 	err := bridge.Start(ctx)
 	require.NoError(t, err)
 
+	// start a FN with BN as a trusted peer
 	cfg = nodebuilder.DefaultConfig(node.Full)
 	cfg.Share.UseShareExchange = false
-	addrs, err := peer.AddrInfoToP2pAddrs(host.InfoFromHost(bridge.Host))
-	require.NoError(t, err)
-	cfg.Header.TrustedPeers = append(cfg.Header.TrustedPeers, addrs[0].String())
-
+	swamp.WithTrustedPeers(t, cfg, bridge)
 	store := nodebuilder.MockStore(t, cfg)
 	full := sw.NewNodeWithStore(node.Full, store)
-
 	err = full.Start(ctx)
 	require.NoError(t, err)
 
@@ -76,6 +73,7 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	select {
 	case p := <-subscr:
 		require.Equal(t, 10, int(p.Height()))
+		t.Log("HERE!")
 	case <-ctx.Done():
 		t.Fatal("fraud proof was not received in time")
 	}
@@ -84,20 +82,32 @@ func TestFraudProofBroadcasting(t *testing.T) {
 	// FIXME: Eventually, this should be a check on service registry managing and keeping
 	//  lifecycles of each Module.
 	syncCtx, syncCancel := context.WithTimeout(context.Background(), blockTime)
-	_, err = full.HeaderServ.GetByHeight(syncCtx, 100)
-	require.ErrorIs(t, err, context.DeadlineExceeded)
-	syncCancel()
+	t.Cleanup(syncCancel)
+	_, err = full.HeaderServ.GetByHeight(syncCtx, blocks)
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
 
-	require.NoError(t, full.Stop(ctx))
-	require.NoError(t, sw.RemoveNode(full, node.Full))
-
-	full = sw.NewNodeWithStore(node.Full, store)
-
-	require.Error(t, full.Start(ctx))
-	proofs, err := full.FraudServ.Get(ctx, byzantine.BadEncoding)
+	// start a new FN connected to the previous FN after the fraud proof has
+	// already been propagated to ensure that it can sync the fraud proof properly
+	// and stall services.
+	cfg = nodebuilder.DefaultConfig(node.Full)
+	swamp.WithTrustedPeers(t, cfg, full)
+	newFull := sw.NewNodeWithConfig(node.Full, cfg)
+	err = newFull.Start(ctx)
 	require.NoError(t, err)
-	require.NotNil(t, proofs)
-	require.NoError(t, <-fillDn)
+
+	time.Sleep(5 * time.Second)
+
+	proofs, err := newFull.FraudServ.Get(ctx, byzantine.BadEncoding)
+	require.NoError(t, err)
+	assert.Equal(t, 10, proofs[0].Proof.Height())
+	assert.NotNil(t, proofs)
+
+	select {
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case err := <-fillDn:
+		require.NoError(t, err)
+	}
 }
 
 /*
