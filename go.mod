@@ -3,6 +3,7 @@ module github.com/celestiaorg/celestia-node
 go 1.20
 
 replace github.com/ipfs/go-verifcid => github.com/celestiaorg/go-verifcid v0.0.1-lazypatch
+replace	github.com/celestiaorg/go-header => /Users/rene/go/src/github.com/renaynay/go-header
 
 require (
 	cosmossdk.io/math v1.0.0-beta.3

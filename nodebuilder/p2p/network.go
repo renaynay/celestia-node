@@ -19,10 +19,14 @@ const (
 	BlockspaceRace Network = "blockspacerace-0"
 	// Private can be used to set up any private network, including local testing setups.
 	Private Network = "private"
-	// BlockTime is a network block time.
-	// TODO @renaynay @Wondertan (#790)
-	BlockTime = time.Second * 15
 )
+
+// DefaultBlockTime is the approximate network block time. TODO @renaynay @Wondertan (#790)
+var DefaultBlockTime = time.Second * 15
+
+// NetworkBlockTime is a type definition for the approximate block time of the
+// network which is primarily used for estimation of "outdatedness" of headers.
+type NetworkBlockTime time.Duration
 
 // Network is a type definition for DA network run by Celestia Node.
 type Network string

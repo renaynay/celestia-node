@@ -23,7 +23,6 @@ import (
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/libs/keystore"
-	"github.com/celestiaorg/celestia-node/logs"
 	"github.com/celestiaorg/celestia-node/nodebuilder"
 	coremodule "github.com/celestiaorg/celestia-node/nodebuilder/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
@@ -60,7 +59,7 @@ type Swamp struct {
 // NewSwamp creates a new instance of Swamp.
 func NewSwamp(t *testing.T, options ...Option) *Swamp {
 	if testing.Verbose() {
-		logs.SetDebugLogging()
+		//	logs.SetDebugLogging()
 	}
 
 	ic := DefaultConfig()
@@ -261,13 +260,17 @@ func (s *Swamp) newNode(t node.Type, store nodebuilder.Store, options ...fx.Opti
 
 	// tempDir is used for the eds.Store
 	tempDir := s.t.TempDir()
+
+	// default options for all nodes in swamp
 	options = append(options,
 		p2p.WithHost(s.createPeer(ks)),
 		fx.Replace(node.StorePath(tempDir)),
 		fx.Invoke(func(ctx context.Context, store libhead.Store[*header.ExtendedHeader]) error {
 			return store.Init(ctx, s.genesis)
 		}),
+		fx.Replace(time.Millisecond), // TODO @renaynay
 	)
+
 	node, err := nodebuilder.New(t, p2p.Private, store, options...)
 	require.NoError(s.t, err)
 	return node

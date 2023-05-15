@@ -48,6 +48,8 @@ func TestSyncLightWithBridge(t *testing.T) {
 
 	h, err := bridge.HeaderServ.GetByHeight(ctx, 20)
 	require.NoError(t, err)
+	err = bridge.HeaderServ.SyncWait(ctx)
+	require.NoError(t, err)
 
 	require.EqualValues(t, h.Commit.BlockID.Hash, sw.GetCoreBlockHashByHeight(ctx, 20))
 
@@ -62,6 +64,8 @@ func TestSyncLightWithBridge(t *testing.T) {
 	require.NoError(t, err)
 
 	h, err = light.HeaderServ.GetByHeight(ctx, 30)
+	require.NoError(t, err)
+	err = light.HeaderServ.SyncWait(ctx)
 	require.NoError(t, err)
 
 	err = light.ShareServ.SharesAvailable(ctx, h.DAH)

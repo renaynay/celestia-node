@@ -2,12 +2,13 @@ package header
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/peerstore"
 	"github.com/libp2p/go-libp2p/p2p/net/conngater"
 	"go.uber.org/fx"
+	"time"
 
 	libfraud "github.com/celestiaorg/go-fraud"
 	libhead "github.com/celestiaorg/go-header"
@@ -66,14 +67,17 @@ func newSyncer(
 	store InitStore,
 	sub libhead.Subscriber[*header.ExtendedHeader],
 	cfg Config,
+	blockTime time.Duration,
 ) (*sync.Syncer[*header.ExtendedHeader], *modfraud.ServiceBreaker[*sync.Syncer[*header.ExtendedHeader]], error) {
 	syncer, err := sync.NewSyncer[*header.ExtendedHeader](ex, store, sub,
 		sync.WithParams(cfg.Syncer),
-		sync.WithBlockTime(modp2p.BlockTime),
+		sync.WithBlockTime(blockTime),
 	)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	fmt.Println("\n\n\nPROVIDING: blocktime:   ", blockTime.String(), "\n\n\nl")
 
 	return syncer, &modfraud.ServiceBreaker[*sync.Syncer[*header.ExtendedHeader]]{
 		Service:   syncer,
