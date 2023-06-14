@@ -9,7 +9,7 @@ require (
 	cosmossdk.io/math v1.0.0-beta.3
 	github.com/BurntSushi/toml v1.3.0
 	github.com/alecthomas/jsonschema v0.0.0-20200530073317-71f438968921
-	github.com/benbjohnson/clock v1.3.0
+	github.com/benbjohnson/clock v1.3.5
 	github.com/celestiaorg/celestia-app v1.0.0-rc2
 	github.com/celestiaorg/go-fraud v0.1.0
 	github.com/celestiaorg/go-header v0.2.7
