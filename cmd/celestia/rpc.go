@@ -258,7 +258,7 @@ func parseParams(method string, params []string) []interface{} {
 		if err != nil {
 			panic("Error parsing gas limit: uint64 could not be parsed.")
 		}
-		parsedParams[3] = num
+		parsedParams = append(parsedParams, num)
 		return parsedParams
 	case "CancelUnbondingDelegation":
 		// 1. Validator Address
