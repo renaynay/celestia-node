@@ -1,3 +1,7 @@
+//go:build !race
+
+// TODO @renaynay: re-enable once the race within core/app is resolved.
+
 package core
 
 import (
