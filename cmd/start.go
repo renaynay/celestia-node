@@ -59,7 +59,7 @@ Options passed on start override configuration options only on start and are not
 
 			ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM)
 			defer cancel()
-			err = nd.Start(ctx)
+			err = nd.Start(ctx, true)
 			if err != nil {
 				return err
 			}

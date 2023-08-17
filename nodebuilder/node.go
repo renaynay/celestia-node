@@ -92,7 +92,7 @@ func NewWithConfig(tp node.Type, network p2p.Network, store Store, cfg *Config, 
 }
 
 // Start launches the Node and all its components and services.
-func (n *Node) Start(ctx context.Context) error {
+func (n *Node) Start(ctx context.Context, withVerbosity ...bool) error {
 	to := n.Config.Node.StartupTimeout
 	ctx, cancel := context.WithTimeout(ctx, to)
 	defer cancel()
@@ -104,6 +104,10 @@ func (n *Node) Start(ctx context.Context) error {
 			return fmt.Errorf("node: failed to start within timeout(%s): %w", to, err)
 		}
 		return fmt.Errorf("node: failed to start: %w", err)
+	}
+
+	if len(withVerbosity) == 0 {
+		return nil
 	}
 
 	log.Infof("\n\n/_____/  /_____/  /_____/  /_____/  /_____/ \n\nStarted celestia DA node \nnode "+
