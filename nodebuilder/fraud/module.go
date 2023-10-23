@@ -26,7 +26,7 @@ func ConstructModule(tp node.Type) fx.Option {
 			baseComponent,
 			fx.Provide(newFraudServiceWithSync),
 		)
-	case node.Full, node.Bridge:
+	case node.Full, node.Bridge, node.Consensus:
 		return fx.Module(
 			"fraud",
 			baseComponent,

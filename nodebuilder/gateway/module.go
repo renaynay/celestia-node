@@ -43,7 +43,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			baseComponents,
 			fx.Invoke(Handler),
 		)
-	case node.Bridge:
+	case node.Bridge, node.Consensus:
 		return fx.Module(
 			"gateway",
 			baseComponents,

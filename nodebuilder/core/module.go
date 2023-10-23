@@ -31,6 +31,23 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 	switch tp {
 	case node.Light, node.Full:
 		return fx.Module("core", baseComponents)
+	case node.Consensus:
+		return fx.Module("core",
+			baseComponents,
+			// TODO @renaynay @cmwaters: eventually removable if can guarantee
+			//  continguous chain of headers / header adjacency requirement is removed
+			fx.Provide(core.NewBlockFetcher),
+			fxutil.ProvideAs(core.NewExchange, new(libhead.Exchange[*header.ExtendedHeader])),
+			fx.Provide(fx.Annotate(
+				remote,
+				fx.OnStart(func(ctx context.Context, client core.Client) error {
+					return client.Start()
+				}),
+				fx.OnStop(func(ctx context.Context, client core.Client) error {
+					return client.Stop()
+				}),
+			)),
+		)
 	case node.Bridge:
 		return fx.Module("core",
 			baseComponents,

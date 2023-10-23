@@ -1,22 +1,20 @@
-package da_broadcast
+package relay
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/celestiaorg/rsmt2d"
 	"github.com/tendermint/tendermint/types"
 
 	libhead "github.com/celestiaorg/go-header"
+	"github.com/celestiaorg/rsmt2d"
 
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/share/eds"
-	"github.com/celestiaorg/celestia-node/share/ipld"
 	"github.com/celestiaorg/celestia-node/share/p2p/shrexsub"
 )
 
-// DABroadcaster TODO @renaynay
-type DABroadcaster struct {
+// DARelayer TODO @renaynay
+type DARelayer struct {
 	construct header.ConstructFn
 
 	headerBroadcaster libhead.Broadcaster[*header.ExtendedHeader]
@@ -26,7 +24,21 @@ type DABroadcaster struct {
 	edsStore *eds.Store
 }
 
-func (b *DABroadcaster) BroadcastAndStore(
+func NewDARelayer(
+	construct header.ConstructFn,
+	headerBroadCaster libhead.Broadcaster[*header.ExtendedHeader],
+	hashBroadcaster shrexsub.BroadcastFn,
+	edsStore *eds.Store,
+) *DARelayer {
+	return &DARelayer{
+		construct:         construct,
+		headerBroadcaster: headerBroadCaster,
+		hashBroadcaster:   hashBroadcaster,
+		edsStore:          edsStore,
+	}
+}
+
+func (b *DARelayer) BroadcastAndStore(
 	ctx context.Context,
 	rawHeader *types.Header,
 	commit *types.Commit,
@@ -45,14 +57,7 @@ func (b *DABroadcaster) BroadcastAndStore(
 	if err != nil {
 		return err
 	}
-
-	// attempt to store block data if not empty
-	ctx = ipld.CtxWithProofsAdder(ctx, adder)
-	err = storeEDS(ctx, b.Header.DataHash.Bytes(), eds, cl.store)
-	if err != nil {
-		return fmt.Errorf("storing EDS: %w", err)
-	}
-
+	// TODO eventually we need to bring back caching of proofs
 	// store the EDS
 	err = b.edsStore.Put(ctx, eh.DAH.Hash(), eds)
 	if err != nil {

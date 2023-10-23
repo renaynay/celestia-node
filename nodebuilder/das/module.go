@@ -54,7 +54,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 				return das
 			}),
 		)
-	case node.Bridge:
+	case node.Bridge, node.Consensus:
 		return fx.Module(
 			"daser",
 			baseComponents,

@@ -18,6 +18,8 @@ const (
 	Light
 	// Full is a Celestia Node that stores blocks in their entirety.
 	Full
+	// Consensus is a Celestia Validator Node that broadcasts its blocks to the DA network.
+	Consensus
 )
 
 // String converts Type to its string representation.
@@ -46,14 +48,16 @@ func ParseType(str string) Type {
 
 // typeToString keeps string representations of all valid Types.
 var typeToString = map[Type]string{
-	Bridge: "Bridge",
-	Light:  "Light",
-	Full:   "Full",
+	Bridge:    "Bridge",
+	Light:     "Light",
+	Full:      "Full",
+	Consensus: "Consensus",
 }
 
 // typeToString maps strings representations of all valid Types.
 var stringToType = map[string]Type{
-	"Bridge": Bridge,
-	"Light":  Light,
-	"Full":   Full,
+	"Bridge":    Bridge,
+	"Light":     Light,
+	"Full":      Full,
+	"Consensus": Consensus,
 }

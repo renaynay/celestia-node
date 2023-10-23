@@ -8,6 +8,7 @@ import (
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	"github.com/celestiaorg/celestia-node/nodebuilder/blob"
+	"github.com/celestiaorg/celestia-node/nodebuilder/consensus"
 	"github.com/celestiaorg/celestia-node/nodebuilder/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/das"
 	"github.com/celestiaorg/celestia-node/nodebuilder/fraud"
@@ -15,6 +16,7 @@ import (
 	modhead "github.com/celestiaorg/celestia-node/nodebuilder/header"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
+	"github.com/celestiaorg/celestia-node/nodebuilder/relay"
 	"github.com/celestiaorg/celestia-node/nodebuilder/rpc"
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
@@ -56,6 +58,8 @@ func ConstructModule(tp node.Type, network p2p.Network, cfg *Config, store Store
 		fraud.ConstructModule(tp),
 		blob.ConstructModule(),
 		node.ConstructModule(tp),
+		relay.ConstructModule(tp),
+		consensus.ConstructModule(tp),
 	)
 
 	return fx.Module(

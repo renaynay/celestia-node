@@ -11,6 +11,7 @@ import (
 
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
+	consensus "github.com/celestiaorg/celestia-app/node"
 
 	"github.com/celestiaorg/celestia-node/libs/fslock"
 	"github.com/celestiaorg/celestia-node/libs/utils"
@@ -29,6 +30,15 @@ func Init(cfg Config, path string, tp node.Type) error {
 		return err
 	}
 	log.Infof("Initializing %s Node Store over '%s'", tp, path)
+
+	if tp == node.Consensus {
+		validatorDirPath := path + "/validator"
+		err = consensus.Init(validatorDirPath)
+		if err != nil {
+			return err
+		}
+		log.Infow("Initialized consensus node store", "path", validatorDirPath)
+	}
 
 	err = initRoot(path)
 	if err != nil {

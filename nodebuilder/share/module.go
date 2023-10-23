@@ -165,7 +165,7 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 	)
 
 	switch tp {
-	case node.Bridge:
+	case node.Bridge, node.Consensus:
 		return fx.Module(
 			"share",
 			baseComponents,
