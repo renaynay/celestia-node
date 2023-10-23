@@ -38,15 +38,6 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 			//  continguous chain of headers / header adjacency requirement is removed
 			fx.Provide(core.NewBlockFetcher),
 			fxutil.ProvideAs(core.NewExchange, new(libhead.Exchange[*header.ExtendedHeader])),
-			fx.Provide(fx.Annotate(
-				remote,
-				fx.OnStart(func(ctx context.Context, client core.Client) error {
-					return client.Start()
-				}),
-				fx.OnStop(func(ctx context.Context, client core.Client) error {
-					return client.Stop()
-				}),
-			)),
 		)
 	case node.Bridge:
 		return fx.Module("core",

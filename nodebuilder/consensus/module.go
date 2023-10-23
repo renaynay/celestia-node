@@ -7,6 +7,7 @@ import (
 
 	consensus "github.com/celestiaorg/celestia-app/node"
 
+	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
@@ -37,6 +38,10 @@ func ConstructModule(tp node.Type) fx.Option {
 				}),
 			),
 		),
+		fx.Provide(func(nd *consensus.Node) core.Client {
+			// TODO @cmwaters: return consensus node client
+			return nil
+		}),
 	)
 }
 
