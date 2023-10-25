@@ -59,7 +59,7 @@ func ConstructModule(tp node.Type, network p2p.Network, cfg *Config, store Store
 		blob.ConstructModule(),
 		node.ConstructModule(tp),
 		relay.ConstructModule(tp),
-		consensus.ConstructModule(tp),
+		consensus.ConstructModule(tp, store.Path()+"/validator"),
 	)
 
 	return fx.Module(

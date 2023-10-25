@@ -3,7 +3,7 @@ package relay
 import (
 	"go.uber.org/fx"
 
-	consensus "github.com/celestiaorg/celestia-app/node"
+	capp "github.com/celestiaorg/celestia-app/app"
 
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/relay"
@@ -21,7 +21,7 @@ func ConstructModule(tp node.Type) fx.Option {
 	return fx.Module(
 		"da_broadcaster",
 		fx.Provide(relay.NewDARelayer),
-		fx.Provide(func(relayer *relay.DARelayer) consensus.PublishFn {
+		fx.Provide(func(relayer *relay.DARelayer) capp.PublishFn {
 			return relayer.BroadcastAndStore
 		}),
 	)

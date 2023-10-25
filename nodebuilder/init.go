@@ -11,7 +11,7 @@ import (
 
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
-	consensus "github.com/celestiaorg/celestia-app/node"
+	cnode "github.com/celestiaorg/celestia-app/node"
 
 	"github.com/celestiaorg/celestia-node/libs/fslock"
 	"github.com/celestiaorg/celestia-node/libs/utils"
@@ -32,8 +32,19 @@ func Init(cfg Config, path string, tp node.Type) error {
 	log.Infof("Initializing %s Node Store over '%s'", tp, path)
 
 	if tp == node.Consensus {
-		validatorDirPath := path + "/validator"
-		err = consensus.Init(validatorDirPath)
+		validatorDirPath := path + "/validator" // TODO @renaynay: hardcode somewhere
+		// first try to load the validator filestore if exists
+		var fs *cnode.Filesystem
+		if utils.Exists(validatorDirPath) {
+			fs, err = cnode.Load(validatorDirPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			fs = cnode.Init(validatorDirPath)
+		}
+
+		err = fs.Save()
 		if err != nil {
 			return err
 		}

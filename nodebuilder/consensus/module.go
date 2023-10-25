@@ -1,17 +1,16 @@
 package consensus
 
 import (
-	"context"
-
 	"go.uber.org/fx"
 
-	consensus "github.com/celestiaorg/celestia-app/node"
+	capp "github.com/celestiaorg/celestia-app/app"
+	cnode "github.com/celestiaorg/celestia-app/node"
 
 	"github.com/celestiaorg/celestia-node/core"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
-func ConstructModule(tp node.Type) fx.Option {
+func ConstructModule(tp node.Type, path string) fx.Option {
 	switch tp {
 	case node.Light, node.Full, node.Bridge:
 		return fx.Options()
@@ -24,17 +23,14 @@ func ConstructModule(tp node.Type) fx.Option {
 		"consensus",
 		fx.Provide(
 			fx.Annotate(
-				newConsensusNode,
-				fx.OnStart(func(
-					ctx context.Context,
-					nd *consensus.Node,
-					publishFn consensus.PublishFn,
-				) error {
-					return nd.Run(ctx, publishFn)
+				func(publishFn capp.PublishFn) (*cnode.Node, error) {
+					return newConsensusNode(path, publishFn)
+				},
+				fx.OnStart(func(nd *cnode.Node) error {
+					return nd.Start()
 				}),
-				fx.OnStop(func(ctx context.Context, nd *consensus.Node) error {
-					// TODO @cmwaters: stop consensus node
-					return nil
+				fx.OnStop(func(nd *cnode.Node) error {
+					return nd.Stop()
 				}),
 			),
 		),
@@ -45,7 +41,11 @@ func ConstructModule(tp node.Type) fx.Option {
 	)
 }
 
-func newConsensusNode() (*consensus.Node, error) {
-	// TODO @renaynay @cmwaters: needs to be an actual constructor somehow
-	return &consensus.Node{}, nil
+func newConsensusNode(path string, publishFn capp.PublishFn) (*cnode.Node, error) {
+	fs, err := cnode.Load(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return cnode.New(fs, publishFn)
 }
