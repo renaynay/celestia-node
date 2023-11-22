@@ -29,7 +29,7 @@ func registerEndpoints(
 	serv.RegisterAuthedService("fraud", fraudMod, &fraud.API{})
 	serv.RegisterAuthedService("das", daserMod, &das.API{})
 	serv.RegisterAuthedService("header", headerMod, &header.API{})
-	serv.RegisterAuthedService("state", stateMod, &state.API{})
+	//serv.RegisterAuthedService("state", stateMod, &state.API{})
 	serv.RegisterAuthedService("share", shareMod, &share.API{})
 	serv.RegisterAuthedService("p2p", p2pMod, &p2p.API{})
 	serv.RegisterAuthedService("node", nodeMod, &node.API{})

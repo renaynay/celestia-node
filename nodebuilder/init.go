@@ -61,14 +61,15 @@ func Init(cfg Config, path string, tp node.Type) error {
 		return err
 	}
 	log.Infow("Saved config", "path", cfgPath)
+	/*
 
-	log.Infow("Accessing keyring...")
-	err = generateKeys(cfg, ksPath)
-	if err != nil {
-		log.Errorw("generating account keys", "err", err)
-		return err
-	}
-
+		log.Infow("Accessing keyring...")
+		err = generateKeys(cfg, ksPath)
+		if err != nil {
+			log.Errorw("generating account keys", "err", err)
+			return err
+		}
+	*/
 	log.Info("Node Store initialized")
 	return nil
 }

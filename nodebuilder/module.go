@@ -18,18 +18,21 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/rpc"
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/nodebuilder/state"
+	libstate "github.com/celestiaorg/celestia-node/state"
 )
 
 func ConstructModule(tp node.Type, network p2p.Network, cfg *Config, store Store) fx.Option {
 	log.Infow("Accessing keyring...")
-	ks, err := store.Keystore()
-	if err != nil {
-		fx.Error(err)
-	}
-	signer, err := state.KeyringSigner(cfg.State, ks, network)
-	if err != nil {
-		fx.Error(err)
-	}
+	/*
+		ks, err := store.Keystore()
+		if err != nil {
+			fx.Error(err)
+		}
+			signer, err := state.KeyringSigner(cfg.State, ks, network)
+			if err != nil {
+				fx.Error(err)
+			}
+	*/
 
 	baseComponents := fx.Options(
 		fx.Supply(tp),
@@ -43,10 +46,13 @@ func ConstructModule(tp node.Type, network p2p.Network, cfg *Config, store Store
 		fx.Provide(store.Datastore),
 		fx.Provide(store.Keystore),
 		fx.Supply(node.StorePath(store.Path())),
-		fx.Supply(signer),
+		//fx.Supply(signer),
 		// modules provided by the node
+		fx.Provide(func() (state.Module, *libstate.CoreAccessor) {
+			return nil, nil
+		}),
 		p2p.ConstructModule(tp, &cfg.P2P),
-		state.ConstructModule(tp, &cfg.State, &cfg.Core),
+		//state.ConstructModule(tp, &cfg.State, &cfg.Core),
 		modhead.ConstructModule[*header.ExtendedHeader](tp, &cfg.Header),
 		share.ConstructModule(tp, &cfg.Share),
 		rpc.ConstructModule(tp, &cfg.RPC),
