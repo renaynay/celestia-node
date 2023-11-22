@@ -28,7 +28,6 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
-	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 var (
@@ -66,7 +65,6 @@ type Node struct {
 	// services
 	ShareServ  share.Module  // not optional
 	HeaderServ header.Module // not optional
-	StateServ  state.Module  // not optional
 	FraudServ  fraud.Module  // not optional
 	BlobServ   blob.Module   // not optional
 	DASer      das.Module    // not optional

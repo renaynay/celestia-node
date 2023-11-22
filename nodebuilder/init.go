@@ -1,25 +1,13 @@
 package nodebuilder
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/celestiaorg/celestia-app/app"
-	"github.com/celestiaorg/celestia-app/app/encoding"
 
 	"github.com/celestiaorg/celestia-node/libs/fslock"
 	"github.com/celestiaorg/celestia-node/libs/utils"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
-	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
-
-// PrintKeyringInfo whether to print keyring information during init.
-var PrintKeyringInfo = true
 
 // Init initializes the Node FileSystem Store for the given Node Type 'tp' in the directory under
 // 'path'.
@@ -61,15 +49,6 @@ func Init(cfg Config, path string, tp node.Type) error {
 		return err
 	}
 	log.Infow("Saved config", "path", cfgPath)
-	/*
-
-		log.Infow("Accessing keyring...")
-		err = generateKeys(cfg, ksPath)
-		if err != nil {
-			log.Errorw("generating account keys", "err", err)
-			return err
-		}
-	*/
 	log.Info("Node Store initialized")
 	return nil
 }
@@ -183,50 +162,4 @@ func initDir(path string) error {
 		return nil
 	}
 	return os.Mkdir(path, perms)
-}
-
-// generateKeys will construct a keyring from the given keystore path and check
-// if account keys already exist. If not, it will generate a new account key and
-// store it.
-func generateKeys(cfg Config, ksPath string) error {
-	encConf := encoding.MakeConfig(app.ModuleEncodingRegisters...)
-
-	if cfg.State.KeyringBackend == keyring.BackendTest {
-		log.Warn("Detected plaintext keyring backend. For elevated security properties, consider using" +
-			" the `file` keyring backend.")
-	}
-	ring, err := keyring.New(app.Name, cfg.State.KeyringBackend, ksPath, os.Stdin, encConf.Codec)
-	if err != nil {
-		return err
-	}
-	keys, err := ring.List()
-	if err != nil {
-		return err
-	}
-	if len(keys) > 0 {
-		// at least one key is already present
-		return nil
-	}
-	log.Infow("NO KEY FOUND IN STORE, GENERATING NEW KEY...", "path", ksPath)
-	keyInfo, mn, err := generateNewKey(ring)
-	if err != nil {
-		return err
-	}
-	log.Info("NEW KEY GENERATED...")
-	addr, err := keyInfo.GetAddress()
-	if err != nil {
-		return err
-	}
-	if PrintKeyringInfo {
-		fmt.Printf("\nNAME: %s\nADDRESS: %s\nMNEMONIC (save this somewhere safe!!!): \n%s\n\n",
-			keyInfo.Name, addr.String(), mn)
-	}
-	return nil
-}
-
-// generateNewKey generates and returns a new key on the given keyring called
-// "my_celes_key".
-func generateNewKey(ring keyring.Keyring) (*keyring.Record, string, error) {
-	return ring.NewMnemonic(state.DefaultAccountName, keyring.English, sdk.GetConfig().GetFullBIP44Path(),
-		keyring.DefaultBIP39Passphrase, hd.Secp256k1)
 }

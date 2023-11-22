@@ -16,7 +16,6 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
 	"github.com/celestiaorg/celestia-node/nodebuilder/rpc"
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
-	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 // ConfigLoader defines a function that loads a config from any source.
@@ -27,7 +26,6 @@ type ConfigLoader func() (*Config, error)
 type Config struct {
 	Node    node.Config
 	Core    core.Config
-	State   state.Config
 	P2P     p2p.Config
 	RPC     rpc.Config
 	Gateway gateway.Config
@@ -42,7 +40,6 @@ func DefaultConfig(tp node.Type) *Config {
 	commonConfig := &Config{
 		Node:    node.DefaultConfig(tp),
 		Core:    core.DefaultConfig(),
-		State:   state.DefaultConfig(),
 		P2P:     p2p.DefaultConfig(tp),
 		RPC:     rpc.DefaultConfig(),
 		Gateway: gateway.DefaultConfig(),

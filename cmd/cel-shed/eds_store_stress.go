@@ -136,7 +136,7 @@ var edsStoreStress = &cobra.Command{
 			return err
 		}
 
-		nodestore, err := nodebuilder.OpenStore(path, nil)
+		nodestore, err := nodebuilder.OpenStore(path)
 		if err != nil {
 			return err
 		}

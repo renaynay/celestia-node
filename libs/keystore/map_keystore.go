@@ -3,25 +3,18 @@ package keystore
 import (
 	"fmt"
 	"sync"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-
-	"github.com/celestiaorg/celestia-app/app"
-	"github.com/celestiaorg/celestia-app/app/encoding"
 )
 
 // mapKeystore is a simple in-memory Keystore implementation.
 type mapKeystore struct {
 	keys   map[KeyName]PrivKey
 	keysLk sync.Mutex
-	ring   keyring.Keyring
 }
 
 // NewMapKeystore constructs in-memory Keystore.
 func NewMapKeystore() Keystore {
 	return &mapKeystore{
 		keys: make(map[KeyName]PrivKey),
-		ring: keyring.NewInMemory(encoding.MakeConfig(app.ModuleEncodingRegisters...).Codec),
 	}
 }
 
@@ -77,8 +70,4 @@ func (m *mapKeystore) List() ([]KeyName, error) {
 
 func (m *mapKeystore) Path() string {
 	return ""
-}
-
-func (m *mapKeystore) Keyring() keyring.Keyring {
-	return m.ring
 }

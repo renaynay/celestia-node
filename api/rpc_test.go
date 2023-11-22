@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cristalhq/jwt"
 	"github.com/golang/mock/gomock"
 	"github.com/libp2p/go-libp2p/core/network"
@@ -34,9 +33,6 @@ import (
 	p2pMock "github.com/celestiaorg/celestia-node/nodebuilder/p2p/mocks"
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
 	shareMock "github.com/celestiaorg/celestia-node/nodebuilder/share/mocks"
-	statemod "github.com/celestiaorg/celestia-node/nodebuilder/state"
-	stateMock "github.com/celestiaorg/celestia-node/nodebuilder/state/mocks"
-	"github.com/celestiaorg/celestia-node/state"
 )
 
 func TestRPCCallsUnderlyingNode(t *testing.T) {
@@ -67,17 +63,6 @@ func TestRPCCallsUnderlyingNode(t *testing.T) {
 	}
 	require.NotNil(t, rpcClient)
 	require.NoError(t, err)
-
-	expectedBalance := &state.Balance{
-		Amount: sdk.NewInt(100),
-		Denom:  "utia",
-	}
-
-	server.State.EXPECT().Balance(gomock.Any()).Return(expectedBalance, nil)
-
-	balance, err := rpcClient.State.Balance(ctx)
-	require.NoError(t, err)
-	require.Equal(t, expectedBalance, balance)
 }
 
 // api contains all modules that are made available as the node's
@@ -85,7 +70,6 @@ func TestRPCCallsUnderlyingNode(t *testing.T) {
 type api struct {
 	Fraud  fraud.Module
 	Header header.Module
-	State  statemod.Module
 	Share  share.Module
 	DAS    das.Module
 	Node   node.Module
@@ -183,19 +167,6 @@ func TestAuthedRPC(t *testing.T) {
 				require.ErrorContains(t, err, "missing permission")
 			}
 
-			// 2. Test method with write-level permissions
-			expectedResp := &state.TxResponse{}
-			if tt.perm > 2 {
-				server.State.EXPECT().SubmitTx(gomock.Any(), gomock.Any()).Return(expectedResp, nil)
-				txResp, err := rpcClient.State.SubmitTx(ctx, []byte{})
-				require.NoError(t, err)
-				require.Equal(t, expectedResp, txResp)
-			} else {
-				_, err := rpcClient.State.SubmitTx(ctx, []byte{})
-				require.Error(t, err)
-				require.ErrorContains(t, err, "missing permission")
-			}
-
 			// 3. Test method with admin-level permissions
 			expectedReachability := network.Reachability(3)
 			if tt.perm > 3 {
@@ -286,7 +257,6 @@ func setupNodeWithAuthedRPC(t *testing.T, auth jwt.Signer) (*nodebuilder.Node, *
 	ctrl := gomock.NewController(t)
 
 	mockAPI := &mockAPI{
-		stateMock.NewMockModule(ctrl),
 		shareMock.NewMockModule(ctrl),
 		fraudMock.NewMockModule(ctrl),
 		headerMock.NewMockModule(ctrl),
@@ -299,7 +269,6 @@ func setupNodeWithAuthedRPC(t *testing.T, auth jwt.Signer) (*nodebuilder.Node, *
 	// given the behavior of fx.Invoke, this invoke will be called last as it is added at the root
 	// level module. For further information, check the documentation on fx.Invoke.
 	invokeRPC := fx.Invoke(func(srv *rpc.Server) {
-		srv.RegisterAuthedService("state", mockAPI.State, &statemod.API{})
 		srv.RegisterAuthedService("share", mockAPI.Share, &share.API{})
 		srv.RegisterAuthedService("fraud", mockAPI.Fraud, &fraud.API{})
 		srv.RegisterAuthedService("header", mockAPI.Header, &header.API{})
@@ -323,7 +292,6 @@ func setupNodeWithAuthedRPC(t *testing.T, auth jwt.Signer) (*nodebuilder.Node, *
 }
 
 type mockAPI struct {
-	State  *stateMock.MockModule
 	Share  *shareMock.MockModule
 	Fraud  *fraudMock.MockModule
 	Header *headerMock.MockModule

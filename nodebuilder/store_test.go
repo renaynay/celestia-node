@@ -33,16 +33,16 @@ func TestRepo(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			dir := t.TempDir()
 
-			_, err := OpenStore(dir, nil)
+			_, err := OpenStore(dir)
 			assert.ErrorIs(t, err, ErrNotInited)
 
 			err = Init(*DefaultConfig(tt.tp), dir, tt.tp)
 			require.NoError(t, err)
 
-			store, err := OpenStore(dir, nil)
+			store, err := OpenStore(dir)
 			require.NoError(t, err)
 
-			_, err = OpenStore(dir, nil)
+			_, err = OpenStore(dir)
 			assert.ErrorIs(t, err, ErrOpened)
 
 			ks, err := store.Keystore()
@@ -164,7 +164,7 @@ type store struct {
 }
 
 func newStore(ctx context.Context, t require.TestingT, params *eds.Parameters, dir string) store {
-	s, err := OpenStore(dir, nil)
+	s, err := OpenStore(dir)
 	require.NoError(t, err)
 	ds, err := s.Datastore()
 	require.NoError(t, err)

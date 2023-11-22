@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-
 	"github.com/celestiaorg/celestia-app/test/util/testnode"
 )
 
@@ -19,7 +17,7 @@ func FillBlocks(ctx context.Context, cctx testnode.Context, accounts []string, b
 		time.Sleep(time.Millisecond * 50)
 		var err error
 		for i := 0; i < blocks; i++ {
-			_, err = cctx.FillBlock(bsize, accounts, flags.BroadcastBlock)
+			_, err = cctx.FillBlock(bsize, accounts, "block")
 			if err != nil {
 				break
 			}

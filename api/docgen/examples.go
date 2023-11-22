@@ -7,7 +7,6 @@ import (
 	"reflect"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/filecoin-project/go-jsonrpc/auth"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -27,7 +26,6 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/share"
 	"github.com/celestiaorg/celestia-node/share/eds/byzantine"
-	"github.com/celestiaorg/celestia-node/state"
 )
 
 //go:embed "exampledata/extendedHeader.json"
@@ -70,29 +68,9 @@ var ExampleValues = map[reflect.Type]interface{}{
 
 func init() {
 	addToExampleValues(share.EmptyExtendedDataSquare())
-	addr, err := sdk.AccAddressFromBech32("celestia1377k5an3f94v6wyaceu0cf4nq6gk2jtpc46g7h")
-	if err != nil {
-		panic(err)
-	}
-	addToExampleValues(addr)
-	ExampleValues[reflect.TypeOf((*sdk.Address)(nil)).Elem()] = addr
-
-	valAddr, err := sdk.ValAddressFromBech32("celestiavaloper1q3v5cugc8cdpud87u4zwy0a74uxkk6u4q4gx4p")
-	if err != nil {
-		panic(err)
-	}
-	addToExampleValues(valAddr)
-
-	addToExampleValues(state.Address{Address: addr})
-
-	var txResponse *state.TxResponse
-	err = json.Unmarshal([]byte(exampleTxResponse), &txResponse)
-	if err != nil {
-		panic(err)
-	}
 
 	var samplingStats das.SamplingStats
-	err = json.Unmarshal([]byte(exampleSamplingStats), &samplingStats)
+	err := json.Unmarshal([]byte(exampleSamplingStats), &samplingStats)
 	if err != nil {
 		panic(err)
 	}
@@ -109,7 +87,6 @@ func init() {
 		panic(err)
 	}
 
-	addToExampleValues(txResponse)
 	addToExampleValues(samplingStats)
 	addToExampleValues(extendedHeader)
 	addToExampleValues(resourceMngrStats)

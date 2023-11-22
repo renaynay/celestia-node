@@ -10,7 +10,6 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
 	"github.com/celestiaorg/celestia-node/nodebuilder/rpc"
-	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 // NOTE: We should always ensure that the added Flags below are parsed somewhere, like in the
@@ -24,7 +23,6 @@ func init() {
 		cmdnode.MiscFlags(),
 		rpc.Flags(),
 		gateway.Flags(),
-		state.Flags(),
 	}
 
 	bridgeCmd.AddCommand(

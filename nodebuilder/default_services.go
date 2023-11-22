@@ -8,14 +8,12 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
-	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 // PackageToAPI maps a package to its API struct. Currently only used for
 // method discovery for openrpc spec generation
 var PackageToAPI = map[string]interface{}{
 	"fraud":  &fraud.API{},
-	"state":  &state.API{},
 	"share":  &share.API{},
 	"header": &header.API{},
 	"das":    &das.API{},

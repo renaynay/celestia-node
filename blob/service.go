@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/types"
 	logging "github.com/ipfs/go-log/v2"
 
 	"github.com/celestiaorg/celestia-app/pkg/shares"
@@ -27,7 +26,7 @@ var (
 // avoid a circular dependency between the blob and the state package, since the state package needs
 // the blob.Blob type for this signature.
 type Submitter interface {
-	SubmitPayForBlob(ctx context.Context, fee math.Int, gasLim uint64, blobs []*Blob) (*types.TxResponse, error)
+	SubmitPayForBlob(ctx context.Context, fee math.Int, gasLim uint64, blobs []*Blob) (interface{}, error)
 }
 
 type Service struct {
@@ -77,11 +76,11 @@ func (s *Service) Submit(ctx context.Context, blobs []*Blob, options *SubmitOpti
 		options = DefaultSubmitOptions()
 	}
 
-	resp, err := s.blobSubmitter.SubmitPayForBlob(ctx, types.NewInt(options.Fee), options.GasLimit, blobs)
+	_, err := s.blobSubmitter.SubmitPayForBlob(ctx, math.NewInt(0), options.GasLimit, blobs)
 	if err != nil {
 		return 0, err
 	}
-	return uint64(resp.Height), nil
+	return uint64(0), nil
 }
 
 // Get retrieves all the blobs for given namespaces at the given height by commitment.

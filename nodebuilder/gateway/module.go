@@ -10,7 +10,6 @@ import (
 	headerServ "github.com/celestiaorg/celestia-node/nodebuilder/header"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	shareServ "github.com/celestiaorg/celestia-node/nodebuilder/share"
-	stateServ "github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 var log = logging.Logger("module/gateway")
@@ -48,12 +47,11 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			"gateway",
 			baseComponents,
 			fx.Invoke(func(
-				state stateServ.Module,
 				share shareServ.Module,
 				header headerServ.Module,
 				serv *gateway.Server,
 			) {
-				Handler(state, share, header, nil, serv)
+				Handler(share, header, nil, serv)
 			}),
 		)
 	default:

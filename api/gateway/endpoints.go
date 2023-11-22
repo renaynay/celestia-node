@@ -6,11 +6,6 @@ import (
 )
 
 func (h *Handler) RegisterEndpoints(rpc *Server) {
-	// state endpoints
-	rpc.RegisterHandlerFunc(fmt.Sprintf("%s/{%s}", balanceEndpoint, addrKey), h.handleBalanceRequest,
-		http.MethodGet)
-	rpc.RegisterHandlerFunc(submitTxEndpoint, h.handleSubmitTx, http.MethodPost)
-
 	// share endpoints
 	rpc.RegisterHandlerFunc(fmt.Sprintf("%s/{%s}/height/{%s}", namespacedSharesEndpoint, namespaceKey, heightKey),
 		h.handleSharesByNamespaceRequest, http.MethodGet)

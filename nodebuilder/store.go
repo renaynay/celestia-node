@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/ipfs/go-datastore"
 	"github.com/mitchellh/go-homedir"
 
@@ -50,7 +49,7 @@ type Store interface {
 // To be opened the Store must be initialized first, otherwise ErrNotInited is thrown.
 // OpenStore takes a file Lock on directory, hence only one Store can be opened at a time under the
 // given 'path', otherwise ErrOpened is thrown.
-func OpenStore(path string, ring keyring.Keyring) (Store, error) {
+func OpenStore(path string) (Store, error) {
 	path, err := storePath(path)
 	if err != nil {
 		return nil, err
@@ -70,7 +69,7 @@ func OpenStore(path string, ring keyring.Keyring) (Store, error) {
 		return nil, ErrNotInited
 	}
 
-	ks, err := keystore.NewFSKeystore(keysPath(path), ring)
+	ks, err := keystore.NewFSKeystore(keysPath(path))
 	if err != nil {
 		return nil, err
 	}

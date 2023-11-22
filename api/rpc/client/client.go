@@ -15,7 +15,6 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
 	"github.com/celestiaorg/celestia-node/nodebuilder/share"
-	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 var (
@@ -27,7 +26,6 @@ var (
 type Client struct {
 	Fraud  fraud.API
 	Header header.API
-	State  state.API
 	Share  share.API
 	DAS    das.API
 	P2P    p2p.API
@@ -84,7 +82,6 @@ func moduleMap(client *Client) map[string]interface{} {
 	// TODO: this duplication of strings many times across the codebase can be avoided with issue #1176
 	return map[string]interface{}{
 		"share":  &client.Share.Internal,
-		"state":  &client.State.Internal,
 		"header": &client.Header.Internal,
 		"fraud":  &client.Fraud.Internal,
 		"das":    &client.DAS.Internal,

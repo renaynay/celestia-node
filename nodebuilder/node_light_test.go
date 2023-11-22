@@ -1,7 +1,6 @@
 package nodebuilder
 
 import (
-	"context"
 	"crypto/rand"
 	"testing"
 
@@ -12,7 +11,6 @@ import (
 
 	nodebuilder "github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
-	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 func TestNewLightWithP2PKey(t *testing.T) {
@@ -45,12 +43,4 @@ func TestLight_WithNetwork(t *testing.T) {
 	node := TestNode(t, nodebuilder.Light)
 	require.NotNil(t, node)
 	assert.Equal(t, p2p.Private, node.Network)
-}
-
-// TestLight_WithStubbedCoreAccessor ensures that a node started without
-// a core connection will return a stubbed StateModule.
-func TestLight_WithStubbedCoreAccessor(t *testing.T) {
-	node := TestNode(t, nodebuilder.Light)
-	_, err := node.StateServ.Balance(context.Background())
-	assert.ErrorIs(t, state.ErrNoStateAccess, err)
 }

@@ -3,12 +3,9 @@ package nodebuilder
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 
-	apptypes "github.com/celestiaorg/celestia-app/x/blob/types"
 	libhead "github.com/celestiaorg/go-header"
 
 	"github.com/celestiaorg/celestia-node/core"
@@ -17,7 +14,6 @@ import (
 	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
-	"github.com/celestiaorg/celestia-node/nodebuilder/state"
 )
 
 // MockStore provides mock in memory Store for testing purposes.
@@ -39,12 +35,8 @@ func TestNodeWithConfig(t *testing.T, tp node.Type, cfg *Config, opts ...fx.Opti
 	cfg.Header.TrustedPeers = []string{"/ip4/1.2.3.4/tcp/12345/p2p/12D3KooWNaJ1y1Yio3fFJEXCZyd1Cat3jmrPdgkYCrHfKD3Ce21p"}
 
 	store := MockStore(t, cfg)
-	ks, err := store.Keystore()
-	require.NoError(t, err)
 
 	opts = append(opts,
-		// avoid writing keyring on disk
-		state.WithKeyringSigner(TestKeyringSigner(t, ks.Keyring())),
 		// temp dir for the eds store FIXME: Should be in mem
 		fx.Replace(node.StorePath(t.TempDir())),
 		// avoid requesting trustedPeer during initialization
@@ -63,12 +55,4 @@ func TestNodeWithConfig(t *testing.T, tp node.Type, cfg *Config, opts ...fx.Opti
 	nd, err := New(tp, p2p.Private, store, opts...)
 	require.NoError(t, err)
 	return nd
-}
-
-func TestKeyringSigner(t *testing.T, ring keyring.Keyring) *apptypes.KeyringSigner {
-	signer := apptypes.NewKeyringSigner(ring, "", string(p2p.Private))
-	_, _, err := signer.NewMnemonic("test_celes", keyring.English, "",
-		"", hd.Secp256k1)
-	require.NoError(t, err)
-	return signer
 }

@@ -71,7 +71,7 @@ func newKeystore(path string) (keystore.Keystore, error) {
 	if err != nil {
 		return nil, err
 	}
-	return keystore.NewFSKeystore(filepath.Join(expanded, "keys"), nil)
+	return keystore.NewFSKeystore(filepath.Join(expanded, "keys"))
 }
 
 func buildJWTToken(body []byte, permissions []auth.Permission) (string, error) {
