@@ -205,8 +205,10 @@ func constraintBadgerConfig() *dsbadger.Options {
 	// This *tremendously* reduces the amount of memory used by the node, up to 10 times less during
 	// compaction
 	opts.ValueThreshold = share.Size
+	/* // TODO @renaynay: Let's try to use the default once again to see if it lowers num files opened
 	// make sure we don't have any limits for stored headers
 	opts.ValueLogMaxEntries = 100000000
+	*/
 	// run value log GC more often to spread the work over time
 	opts.GcInterval = time.Minute * 1
 	// default 0.5 => 0.125 - makes sure value log GC is more aggressive on reclaiming disk space
