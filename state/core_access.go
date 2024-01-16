@@ -113,6 +113,7 @@ func (ca *CoreAccessor) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	log.Debugw("successfully dialed grpc endpoint", "endpoint", endpoint)
 	ca.coreConn = client
 	// create the query client
 	queryCli := banktypes.NewQueryClient(ca.coreConn)
@@ -132,6 +133,7 @@ func (ca *CoreAccessor) Start(ctx context.Context) error {
 		return fmt.Errorf("querying minimum gas price: %w", err)
 	}
 
+	log.Debugw("started state service")
 	return nil
 }
 
@@ -563,6 +565,7 @@ func (ca *CoreAccessor) queryMinimumGasPrice(
 ) (float64, error) {
 	rsp, err := nodeservice.NewServiceClient(ca.coreConn).Config(ctx, &nodeservice.ConfigRequest{})
 	if err != nil {
+		log.Errorw("unable to query minimum gas price from core endpoint", "err", err)
 		return 0, err
 	}
 
@@ -570,6 +573,7 @@ func (ca *CoreAccessor) queryMinimumGasPrice(
 	if err != nil {
 		return 0, err
 	}
+	defer log.Debug("successfully queried minimum gas price from core endpoint")
 	return coins.AmountOf(app.BondDenom).MustFloat64(), nil
 }
 
