@@ -364,8 +364,6 @@ github.com/celestiaorg/celestia-app v1.4.0 h1:hTId3xL8GssN5sHSHPP7svHi/iWp+XVxph
 github.com/celestiaorg/celestia-app v1.4.0/go.mod h1:zhdQIFGFZRRxrDVtFE4OFIT7/12RE8DRyfvNZdW8ceM=
 github.com/celestiaorg/celestia-core v1.29.0-tm-v0.34.29 h1:Fd7ymPUzExPGNl2gZw4i5S74arMw+iDHLE78M/cCxl4=
 github.com/celestiaorg/celestia-core v1.29.0-tm-v0.34.29/go.mod h1:xrICN0PBhp3AdTaZ8q4wS5Jvi32V02HNjaC2EsWiEKk=
-github.com/celestiaorg/cosmos-sdk v1.18.3-sdk-v0.46.14 h1:+Te28r5Zp4Vp69f82kcON9/BIF8f1BNXb0go2+achuc=
-github.com/celestiaorg/cosmos-sdk v1.18.3-sdk-v0.46.14/go.mod h1:Og5KKgoBEiQlI6u56lDLG191pfknIdXctFn3COWLQP8=
 github.com/celestiaorg/dagstore v0.0.0-20230824094345-537c012aa403 h1:Lj73O3S+KJx5/hgZ+IeOLEIoLsAveJN/7/ZtQQtPSVw=
 github.com/celestiaorg/dagstore v0.0.0-20230824094345-537c012aa403/go.mod h1:cCGM1UoMvyTk8k62mkc+ReVu8iHBCtSBAAL4wYU7KEI=
 github.com/celestiaorg/go-ds-badger4 v0.0.0-20230712104058-7ede1c814ac5 h1:MJgXvhJP1Au8rXTvMMlBXodu9jplEK1DxiLtMnEphOs=
@@ -2110,6 +2108,8 @@ github.com/regen-network/cosmos-proto v0.3.1 h1:rV7iM4SSFAagvy8RiyhiACbWEGotmqzy
 github.com/regen-network/cosmos-proto v0.3.1/go.mod h1:jO0sVX6a1B36nmE8C9xBFXpNwWejXC7QqCOnH3O0+YM=
 github.com/regen-network/protobuf v1.3.3-alpha.regen.1 h1:OHEc+q5iIAXpqiqFKeLpu5NwTIkVXUs48vFMwzqpqY4=
 github.com/regen-network/protobuf v1.3.3-alpha.regen.1/go.mod h1:2DjTFR1HhMQhiWC5sZ4OhQ3+NtdbZ6oBDKQwq5Ou+FI=
+github.com/renaynay/cosmos-sdk v0.46.0-rc3.0.20240121175603-2739fff62c89 h1:A7ZwaCJQgV39ddiBww0TxbRSoi8F2ag8ZhA591aZEdM=
+github.com/renaynay/cosmos-sdk v0.46.0-rc3.0.20240121175603-2739fff62c89/go.mod h1:Og5KKgoBEiQlI6u56lDLG191pfknIdXctFn3COWLQP8=
 github.com/retailnext/hllpp v1.0.1-0.20180308014038-101a6d2f8b52/go.mod h1:RDpi1RftBQPUCDRw6SmxeaREsAaRKnOclghuzp/WRzc=
 github.com/rivo/uniseg v0.4.4 h1:8TfxU8dW6PdqD27gjM8MVNuicgxIjxpm4K7x4jp8sis=
 github.com/rivo/uniseg v0.4.4/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
