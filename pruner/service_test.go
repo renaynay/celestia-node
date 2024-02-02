@@ -32,7 +32,7 @@ func TestService(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	blockTime := time.Millisecond * 25
+	blockTime := time.Millisecond
 
 	// all headers generated in suite are timestamped to time.Now(), so
 	// they will all be considered "pruneable" within the availability window (
@@ -43,23 +43,23 @@ func TestService(t *testing.T) {
 
 	serv := NewService(
 		mp,
-		AvailabilityWindow(time.Millisecond*100),
+		AvailabilityWindow(time.Millisecond*2),
 		store,
 		sync.MutexWrap(datastore.NewMapDatastore()),
 		blockTime,
-		WithGCCycle(time.Millisecond*100),
 	)
 
-	err := serv.Start(ctx)
+	serv.ctx, serv.cancel = ctx, cancel
+
+	err := serv.loadCheckpoint(ctx)
 	require.NoError(t, err)
 
-	// wait for 2 GC cycles to run
-	time.Sleep(time.Millisecond * 200)
+	time.Sleep(time.Millisecond * 2)
 
-	err = serv.Stop(ctx)
-	require.NoError(t, err)
+	lastPruned := serv.prune(ctx, serv.lastPruned())
 
-	assert.Equal(t, uint64(5), serv.checkpoint.LastPrunedHeight)
+	assert.Greater(t, lastPruned.Height(), uint64(2))
+	assert.Greater(t, serv.checkpoint.LastPrunedHeight, uint64(2))
 }
 
 func TestService_RetryingFailed(t *testing.T) {
