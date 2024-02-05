@@ -16,11 +16,6 @@ import (
 
 var log = logging.Logger("pruner/service")
 
-/*
-	TODO:
-		* failed headers retry loop / jobs
-*/
-
 // Service handles running the pruning cycle for the node.
 type Service struct {
 	pruner Pruner
