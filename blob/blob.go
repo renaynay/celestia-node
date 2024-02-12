@@ -36,25 +36,25 @@ type Proof []*nmt.Proof
 func (p Proof) Len() int { return len(p) }
 
 func (p Proof) MarshalJSON() ([]byte, error) {
-	proofs := make([]string, 0, len(p))
+	proofs := make([][]byte, 0, len(p))
 	for _, proof := range p {
 		proofBytes, err := proof.MarshalJSON()
 		if err != nil {
 			return nil, err
 		}
-		proofs = append(proofs, string(proofBytes))
+		proofs = append(proofs, proofBytes)
 	}
 	return json.Marshal(proofs)
 }
 
 func (p *Proof) UnmarshalJSON(b []byte) error {
-	var proofs []string
+	var proofs [][]byte
 	if err := json.Unmarshal(b, &proofs); err != nil {
 		return err
 	}
 	for _, proof := range proofs {
 		var nmtProof nmt.Proof
-		if err := nmtProof.UnmarshalJSON([]byte(proof)); err != nil {
+		if err := nmtProof.UnmarshalJSON(proof); err != nil {
 			return err
 		}
 		*p = append(*p, &nmtProof)
