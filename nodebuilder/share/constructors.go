@@ -23,9 +23,13 @@ import (
 const (
 	// fullNodesTag is the tag used to identify full nodes in the discovery service.
 	fullNodesTag = "full"
+	// archivalNodesTag is the tag used to identify archival nodes in the discovery
+	// service.
+	archivalNodesTag = "archival"
 )
 
-func newDiscovery(cfg *disc.Parameters,
+func newDiscovery(
+	cfg *disc.Parameters,
 ) func(routing.ContentRouting, host.Host, *peers.Manager) (*disc.Discovery, error) {
 	return func(
 		r routing.ContentRouting,
@@ -40,6 +44,21 @@ func newDiscovery(cfg *disc.Parameters,
 			disc.WithOnPeersUpdate(manager.UpdateFullNodePool),
 		)
 	}
+}
+
+func newArchivalDiscovery(
+	cfg *disc.Parameters,
+	contentRouting routing.ContentRouting,
+	h host.Host,
+	manager *peers.Manager,
+) (*disc.Discovery, error) {
+	return disc.NewDiscovery(
+		cfg,
+		h,
+		routingdisc.NewRoutingDiscovery(contentRouting),
+		archivalNodesTag,
+		disc.WithOnPeersUpdate(manager.UpdateFullNodePool),
+	)
 }
 
 func newShareModule(getter share.Getter, avail share.Availability) Module {

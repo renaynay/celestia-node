@@ -27,6 +27,8 @@ type Config struct {
 
 	LightAvailability light.Parameters `toml:",omitempty"`
 	Discovery         *discovery.Parameters
+
+	ArchivalEnabled bool
 }
 
 func DefaultConfig(tp node.Type) Config {
@@ -37,6 +39,7 @@ func DefaultConfig(tp node.Type) Config {
 		ShrExNDParams:     shrexnd.DefaultParameters(),
 		UseShareExchange:  true,
 		PeerManagerParams: peers.DefaultParameters(),
+		ArchivalEnabled:   false,
 	}
 
 	if tp == node.Light {

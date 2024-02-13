@@ -14,6 +14,7 @@ import (
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	modp2p "github.com/celestiaorg/celestia-node/nodebuilder/p2p"
+	"github.com/celestiaorg/celestia-node/nodebuilder/pruner"
 	"github.com/celestiaorg/celestia-node/share"
 	"github.com/celestiaorg/celestia-node/share/availability/full"
 	"github.com/celestiaorg/celestia-node/share/availability/light"
@@ -47,6 +48,9 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 		shrexGetterComponents(cfg),
 		fx.Provide(func(shrexSub *shrexsub.PubSub) shrexsub.BroadcastFn {
 			return shrexSub.Broadcast
+		}),
+		fx.Provide(func(pruneCfg pruner.Config) fx.Option {
+			return archivalServiceComponents(cfg, pruneCfg)
 		}),
 	)
 
@@ -270,5 +274,33 @@ func lightAvailabilityComponents(cfg *Config) fx.Option {
 		fx.Provide(func(avail *light.ShareAvailability) share.Availability {
 			return avail
 		}),
+	)
+}
+
+// archivalServiceComponents returns components necessary to discover
+// and use archival nodes for historical syncing if pruning is not
+// enabled.
+func archivalServiceComponents(cfg *Config, pruneCfg pruner.Config) fx.Option {
+	if !pruneCfg.EnableService {
+		return fx.Options()
+	}
+
+	// TODO @renaynay: figure out how to provide / invoke 2 diff discoveries (advertisement + disc)
+	// TODO @renaynay: construct 2nd peerMan + give it to shrex getter
+	// TODO @renaynay: route reqs inside shrexGetter.
+	return fx.Options(
+		fx.Invoke(func(disc *disc.Discovery) {}),
+		fx.Provide(func(lc fx.Lifecycle) {
+			archivalDisc, err := newArchivalDiscovery(cfg.Discovery)
+			lc.Append(fx.Hook{OnStart: archivalDisc.Start, OnStop: archivalDisc.Stop})
+		},
+			newArchivalDiscovery(cfg.Discovery),
+			fx.OnStart(func(ctx context.Context, d *disc.Discovery) error {
+				return d.Start(ctx)
+			}),
+			fx.OnStop(func(ctx context.Context, d *disc.Discovery) error {
+				return d.Stop(ctx)
+			}),
+		)),
 	)
 }
