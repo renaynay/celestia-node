@@ -2,6 +2,7 @@ package share
 
 import (
 	"context"
+	"github.com/libp2p/go-libp2p/core/routing"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -49,9 +50,6 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 		fx.Provide(func(shrexSub *shrexsub.PubSub) shrexsub.BroadcastFn {
 			return shrexSub.Broadcast
 		}),
-		fx.Provide(func(pruneCfg pruner.Config) fx.Option {
-			return archivalServiceComponents(cfg, pruneCfg)
-		}),
 	)
 
 	switch tp {
@@ -81,6 +79,9 @@ func ConstructModule(tp node.Type, cfg *Config, options ...fx.Option) fx.Option 
 			bridgeAndFullComponents,
 			fx.Provide(getters.NewIPLDGetter),
 			fx.Provide(fullGetter),
+			fx.Provide(func(pruneCfg pruner.Config) fx.Option {
+				return archivalServiceComponents(cfg, pruneCfg)
+			}),
 		)
 	case node.Light:
 		return fx.Module(
@@ -280,27 +281,38 @@ func lightAvailabilityComponents(cfg *Config) fx.Option {
 // archivalServiceComponents returns components necessary to discover
 // and use archival nodes for historical syncing if pruning is not
 // enabled.
-func archivalServiceComponents(cfg *Config, pruneCfg pruner.Config) fx.Option {
+func archivalServiceComponents(tp node.Type, cfg *Config, pruneCfg pruner.Config) fx.Option {
 	if !pruneCfg.EnableService {
 		return fx.Options()
+	}
+
+	advertise := fx.Provide()
+
+	switch tp {
+	case node.Bridge:
+	case node.Full:
+		return fx.Options(
+			fx.Provide(
+				func(
+					lc fx.Lifecycle,
+					r routing.ContentRouting,
+					h host.Host,
+					manager *peers.Manager,
+				) error {
+					archivalDisc, err := newArchivalDiscovery(cfg.Discovery, r, h, manager)
+					if err != nil {
+						return err
+					}
+					// TODO @renaynay: does this actually invoke the disc?
+					lc.Append(fx.Hook{OnStart: archivalDisc.Start, OnStop: archivalDisc.Stop})
+					return nil
+				}),
+		)
+	default:
+		panic("invalid node type")
 	}
 
 	// TODO @renaynay: figure out how to provide / invoke 2 diff discoveries (advertisement + disc)
 	// TODO @renaynay: construct 2nd peerMan + give it to shrex getter
 	// TODO @renaynay: route reqs inside shrexGetter.
-	return fx.Options(
-		fx.Invoke(func(disc *disc.Discovery) {}),
-		fx.Provide(func(lc fx.Lifecycle) {
-			archivalDisc, err := newArchivalDiscovery(cfg.Discovery)
-			lc.Append(fx.Hook{OnStart: archivalDisc.Start, OnStop: archivalDisc.Stop})
-		},
-			newArchivalDiscovery(cfg.Discovery),
-			fx.OnStart(func(ctx context.Context, d *disc.Discovery) error {
-				return d.Start(ctx)
-			}),
-			fx.OnStop(func(ctx context.Context, d *disc.Discovery) error {
-				return d.Stop(ctx)
-			}),
-		)),
-	)
 }

@@ -12,6 +12,7 @@ import (
 
 	"github.com/celestiaorg/celestia-app/pkg/da"
 
+	"github.com/celestiaorg/celestia-node/nodebuilder/pruner"
 	"github.com/celestiaorg/celestia-node/share"
 	"github.com/celestiaorg/celestia-node/share/eds"
 	"github.com/celestiaorg/celestia-node/share/getters"
@@ -30,19 +31,42 @@ const (
 
 func newDiscovery(
 	cfg *disc.Parameters,
-) func(routing.ContentRouting, host.Host, *peers.Manager) (*disc.Discovery, error) {
+) func(routing.ContentRouting, host.Host, *peers.Manager, pruner.Config) ([]*disc.Discovery, error) {
 	return func(
 		r routing.ContentRouting,
 		h host.Host,
 		manager *peers.Manager,
-	) (*disc.Discovery, error) {
-		return disc.NewDiscovery(
+		pruneCfg pruner.Config,
+	) ([]*disc.Discovery, error) {
+		discoveries := make([]*disc.Discovery, 0, 2)
+		if !pruneCfg.EnableService {
+			// if archival service is enabled, enable archival discovery as well
+			archivalDisc, err := disc.NewDiscovery(
+				cfg,
+				h,
+				routingdisc.NewRoutingDiscovery(r),
+				archivalNodesTag,
+				disc.WithOnPeersUpdate(), // TODO @renaynay: callback here!
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			discoveries = append(discoveries, archivalDisc)
+		}
+
+		fullDisc, err := disc.NewDiscovery(
 			cfg,
 			h,
 			routingdisc.NewRoutingDiscovery(r),
 			fullNodesTag,
 			disc.WithOnPeersUpdate(manager.UpdateFullNodePool),
 		)
+		if err != nil {
+			return nil, err
+		}
+
+		return append(discoveries, fullDisc), nil
 	}
 }
 
@@ -52,13 +76,7 @@ func newArchivalDiscovery(
 	h host.Host,
 	manager *peers.Manager,
 ) (*disc.Discovery, error) {
-	return disc.NewDiscovery(
-		cfg,
-		h,
-		routingdisc.NewRoutingDiscovery(contentRouting),
-		archivalNodesTag,
-		disc.WithOnPeersUpdate(manager.UpdateFullNodePool),
-	)
+	return
 }
 
 func newShareModule(getter share.Getter, avail share.Availability) Module {
