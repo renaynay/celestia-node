@@ -10,7 +10,6 @@ import (
 
 	libhead "github.com/celestiaorg/go-header"
 	"github.com/celestiaorg/nmt"
-	"github.com/celestiaorg/rsmt2d"
 
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/pruner"
@@ -155,13 +154,11 @@ func (ce *Exchange) Get(ctx context.Context, hash libhead.Hash) (*header.Extende
 			&block.Height, hash, eh.Hash())
 	}
 
-	ctx = ipld.CtxWithProofsAdder(ctx, adder) // TODO @renaynay: should we short-circuit this if pruning enabled
-	// && historic?
-
-	err = ce.storeEDS(ctx, eh, eds)
+	err = storeEDS(ctx, eh, eds, adder, ce.store, ce.availabilityWindow)
 	if err != nil {
 		return nil, err
 	}
+	log.Debugw("stored EDS for height", "height", eh.Height())
 
 	return eh, nil
 }
@@ -198,27 +195,11 @@ func (ce *Exchange) getExtendedHeaderByHeight(ctx context.Context, height *int64
 		panic(fmt.Errorf("constructing extended header for height %d: %w", b.Header.Height, err))
 	}
 
-	ctx = ipld.CtxWithProofsAdder(ctx, adder) // TODO @renaynay: refer to above comment ^
-
-	err = ce.storeEDS(ctx, eh, eds)
+	err = storeEDS(ctx, eh, eds, adder, ce.store, ce.availabilityWindow)
 	if err != nil {
 		return nil, err
 	}
+	log.Debugw("stored EDS for height", "height", eh.Height())
 
 	return eh, nil
-}
-
-func (ce *Exchange) storeEDS(ctx context.Context, eh *header.ExtendedHeader, eds *rsmt2d.ExtendedDataSquare) error {
-	if !pruner.IsWithinAvailabilityWindow(eh.Time(), ce.availabilityWindow) {
-		log.Debugw("skipping storage of historic block", "height", eh.Height())
-		return nil
-	}
-
-	err := storeEDS(ctx, eh.DAH.Hash(), eds, ce.store)
-	if err != nil {
-		return fmt.Errorf("storing EDS to eds.Store for block height %d: %w", eh.Height(), err)
-	}
-
-	log.Debugw("stored EDS for height", "height", eh.Height())
-	return nil
 }
