@@ -298,8 +298,10 @@ func (sg *ShrexGetter) getPeer(
 	header *header.ExtendedHeader,
 ) (libpeer.ID, peers.DoneFunc, error) {
 	if !pruner.IsWithinAvailabilityWindow(header.Time(), sg.availabilityWindow) {
+		log.Infow("REQUESTING HISTORIC FROM ARCHIVAL PEER")
 		p, df, err := sg.archivalPeerManager.Peer(ctx, header.DAH.Hash(), header.Height())
 		return p, df, err
 	}
+	log.Infow("REQUESTING RECENT FROM FULL PEER")
 	return sg.fullPeerManager.Peer(ctx, header.DAH.Hash(), header.Height())
 }
