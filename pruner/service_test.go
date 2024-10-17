@@ -13,6 +13,7 @@ import (
 
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/header/headertest"
+	"github.com/celestiaorg/celestia-node/pruner/archival"
 	"github.com/celestiaorg/celestia-node/share/eds/edstest"
 	"github.com/celestiaorg/celestia-node/store"
 )
@@ -74,22 +75,26 @@ func TestService_ArchivalTrimming(t *testing.T) {
 	edsStore, err := store.NewStore(nil, tmp)
 	require.NoError(t, err)
 
-	headerStore := headertest.NewStore(t)
+	shg := NewSpacedHeaderGenerator(ctx, t, time.Now().Add(-time.Minute), time.Second, edsStore)
+	headerStore := headertest.NewCustomStore(t, shg, 20)
+	archivalPruner := archival.NewPruner(edsStore)
+	ds := sync.MutexWrap(datastore.NewMapDatastore())
 
-	for i := 1; i < 20; i++ {
-		eds := edstest.RandEDS(t, 4)
+	serv, err := NewService(
+		archivalPruner,
+		AvailabilityWindow(time.Second*30),
+		headerStore,
+		ds,
+		time.Second,
+	)
+	require.NoError(t, err)
 
-		headertest.Extended
+	last, err := serv.lastPruned(ctx)
+	require.NoError(t, err)
+	t.Log("first last: ", last.Height())
 
-		eh := headertest.ExtendedHeaderFromEDS(t, uint64(i), eds)
-
-		err = headerStore.Append(ctx, eh)
-		require.NoError(t, err)
-
-		err = edsStore.PutODSQ4(ctx, eh.DAH, eh.Height(), eds)
-		require.NoError(t, err)
-	}
-
+	last = serv.prune(ctx, last)
+	t.Log("new last: ", last.Height())
 }
 
 // TestService_FailedAreRecorded checks whether the pruner service
@@ -278,7 +283,7 @@ func TestFindPruneableHeaders(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			t.Cleanup(cancel)
 
-			headerGenerator := NewSpacedHeaderGenerator(t, tc.startTime, tc.blockTime)
+			headerGenerator := NewSpacedHeaderGenerator(ctx, t, tc.startTime, tc.blockTime, nil)
 			store := headertest.NewCustomStore(t, headerGenerator, tc.headerAmount)
 
 			mp := &mockPruner{}
@@ -351,28 +356,46 @@ func (mp *mockPruner) Prune(_ context.Context, h *header.ExtendedHeader) error {
 // TODO @renaynay @distractedm1nd: Deduplicate via headertest utility.
 // https://github.com/celestiaorg/celestia-node/issues/3278.
 type SpacedHeaderGenerator struct {
-	t                  *testing.T
+	t     *testing.T
+	store *store.Store
+
+	ctx context.Context
+
 	TimeBetweenHeaders time.Duration
 	currentTime        time.Time
 	currentHeight      int64
 }
 
 func NewSpacedHeaderGenerator(
-	t *testing.T, startTime time.Time, timeBetweenHeaders time.Duration,
+	ctx context.Context,
+	t *testing.T,
+	startTime time.Time,
+	timeBetweenHeaders time.Duration,
+	edsStore *store.Store,
 ) *SpacedHeaderGenerator {
 	return &SpacedHeaderGenerator{
 		t:                  t,
+		ctx:                ctx,
 		TimeBetweenHeaders: timeBetweenHeaders,
 		currentTime:        startTime,
 		currentHeight:      1,
+		store:              edsStore,
 	}
 }
 
 func (shg *SpacedHeaderGenerator) NextHeader() *header.ExtendedHeader {
-	h := headertest.RandExtendedHeaderAtTimestamp(shg.t, shg.currentTime, edstest.RandEDS(shg.t, 4))
+	eds := edstest.RandEDS(shg.t, 4)
+
+	h := headertest.RandExtendedHeaderAtTimestamp(shg.t, shg.currentTime, eds)
 	h.RawHeader.Height = shg.currentHeight
 	h.RawHeader.Time = shg.currentTime
 	shg.currentHeight++
 	shg.currentTime = shg.currentTime.Add(shg.TimeBetweenHeaders)
+
+	if shg.store != nil {
+		err := shg.store.PutODSQ4(shg.ctx, h.DAH, h.Height(), eds)
+		require.NoError(shg.t, err)
+	}
+
 	return h
 }
