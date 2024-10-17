@@ -38,18 +38,11 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 
 	switch tp {
 	case node.Light:
-		if cfg.EnableService {
-			return fx.Module("prune",
-				baseComponents,
-				prunerService,
-				fx.Provide(light.NewPruner),
-			)
-		}
-		// We do not trigger DetectPreviousRun for Light nodes, to allow them to disable pruning at wish.
-		// They are not expected to store a samples outside the sampling window and so partially pruned is
-		// not a concern.
+		// enforce pruning by default
 		return fx.Module("prune",
 			baseComponents,
+			prunerService,
+			fx.Provide(light.NewPruner),
 		)
 	case node.Full:
 		if cfg.EnableService {
@@ -61,6 +54,8 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 		}
 		return fx.Module("prune",
 			baseComponents,
+			prunerService,
+			fxutil.ProvideAs(archival.NewPruner, new(pruner.Pruner)),
 			fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
 				return pruner.DetectPreviousRun(ctx, ds)
 			}),
@@ -78,6 +73,8 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 		}
 		return fx.Module("prune",
 			baseComponents,
+			prunerService,
+			fxutil.ProvideAs(archival.NewPruner, new(pruner.Pruner)),
 			fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
 				return pruner.DetectPreviousRun(ctx, ds)
 			}),

@@ -13,6 +13,8 @@ import (
 
 	"github.com/celestiaorg/celestia-node/header"
 	"github.com/celestiaorg/celestia-node/header/headertest"
+	"github.com/celestiaorg/celestia-node/share/eds/edstest"
+	"github.com/celestiaorg/celestia-node/store"
 )
 
 /*
@@ -20,7 +22,7 @@ import (
 */
 
 // TestService tests the pruner service to check whether the expected
-// amount of blocks are pruned within a given AvailabilityWindow.
+// amount of blocks is pruned within a given AvailabilityWindow.
 // This test runs a pruning cycle once which should prune at least
 // 2 blocks (as the AvailabilityWindow is ~2 blocks). Since the
 // prune-able header determination is time-based, it cannot be
@@ -60,6 +62,34 @@ func TestService(t *testing.T) {
 
 	assert.Greater(t, lastPruned.Height(), uint64(2))
 	assert.Greater(t, serv.checkpoint.LastPrunedHeight, uint64(2))
+}
+
+// TODO @renaynay: doc
+func TestService_ArchivalTrimming(t *testing.T) {
+	t.Skip()
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	tmp := t.TempDir()
+	edsStore, err := store.NewStore(nil, tmp)
+	require.NoError(t, err)
+
+	headerStore := headertest.NewStore(t)
+
+	for i := 1; i < 20; i++ {
+		eds := edstest.RandEDS(t, 4)
+
+		headertest.Extended
+
+		eh := headertest.ExtendedHeaderFromEDS(t, uint64(i), eds)
+
+		err = headerStore.Append(ctx, eh)
+		require.NoError(t, err)
+
+		err = edsStore.PutODSQ4(ctx, eh.DAH, eh.Height(), eds)
+		require.NoError(t, err)
+	}
+
 }
 
 // TestService_FailedAreRecorded checks whether the pruner service
@@ -339,7 +369,7 @@ func NewSpacedHeaderGenerator(
 }
 
 func (shg *SpacedHeaderGenerator) NextHeader() *header.ExtendedHeader {
-	h := headertest.RandExtendedHeaderAtTimestamp(shg.t, shg.currentTime)
+	h := headertest.RandExtendedHeaderAtTimestamp(shg.t, shg.currentTime, edstest.RandEDS(shg.t, 4))
 	h.RawHeader.Height = shg.currentHeight
 	h.RawHeader.Time = shg.currentTime
 	shg.currentHeight++
