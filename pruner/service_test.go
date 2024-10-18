@@ -90,7 +90,7 @@ func TestService_ArchivalTrimming(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// initialise the pruner service manually
+	// initialize the pruner service manually
 	serv.ctx, serv.cancel = ctx, cancel
 	err = serv.loadCheckpoint(ctx)
 	require.NoError(t, err)

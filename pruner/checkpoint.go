@@ -32,7 +32,7 @@ type checkpoint struct {
 
 // DetectPreviousRun checks if the pruner has run before by checking for the existence of a
 // checkpoint.
-func DetectPreviousRun(ctx context.Context, ds datastore.Datastore) error {
+func DetectPreviousRun(_ context.Context, _ datastore.Datastore) error {
 	/*
 		_, err := getCheckpoint(ctx, namespace.Wrap(ds, storePrefix))
 		if errors.Is(err, errCheckpointNotFound) {
