@@ -67,7 +67,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 				prunerService,
 				fxutil.ProvideAs(full.NewPruner, new(pruner.Pruner)),
 				fx.Provide(func(window pruner.AvailabilityWindow) []core.Option {
-					return []core.Option{core.WithAvailabilityWindow(window)}
+					return []core.Option{core.WithAvailabilityWindow(window.Duration())}
 				}),
 			)
 		}
@@ -93,14 +93,14 @@ func availWindow(tp node.Type, pruneEnabled bool) fx.Option {
 		// light nodes are still subject to sampling within window
 		// even if pruning is not enabled.
 		return fx.Provide(func() pruner.AvailabilityWindow {
-			return light.Window
+			return pruner.AvailabilityWindow(light.Window)
 		})
 	case node.Full, node.Bridge:
 		return fx.Provide(func() pruner.AvailabilityWindow {
 			if pruneEnabled {
-				return full.Window
+				return pruner.AvailabilityWindow(full.Window)
 			}
-			return archival.Window
+			return pruner.AvailabilityWindow(archival.Window)
 		})
 	default:
 		panic("unknown node type")

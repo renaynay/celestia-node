@@ -3,6 +3,8 @@ package pruner
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -65,18 +67,17 @@ func TestService(t *testing.T) {
 	assert.Greater(t, serv.checkpoint.LastPrunedHeight, uint64(2))
 }
 
-// TODO @renaynay: doc
+// TestService_ArchivalTrimming // TODO @renaynay
 func TestService_ArchivalTrimming(t *testing.T) {
-	t.Skip()
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
 	tmp := t.TempDir()
-	edsStore, err := store.NewStore(nil, tmp)
+	edsStore, err := store.NewStore(store.DefaultParameters(), tmp)
 	require.NoError(t, err)
 
 	shg := NewSpacedHeaderGenerator(ctx, t, time.Now().Add(-time.Minute), time.Second, edsStore)
-	headerStore := headertest.NewCustomStore(t, shg, 20)
+	headerStore := headertest.NewCustomStore(t, shg, 60)
 	archivalPruner := archival.NewPruner(edsStore)
 	ds := sync.MutexWrap(datastore.NewMapDatastore())
 
@@ -89,12 +90,36 @@ func TestService_ArchivalTrimming(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	last, err := serv.lastPruned(ctx)
+	// initialise the pruner service manually
+	serv.ctx, serv.cancel = ctx, cancel
+	err = serv.loadCheckpoint(ctx)
 	require.NoError(t, err)
-	t.Log("first last: ", last.Height())
 
-	last = serv.prune(ctx, last)
-	t.Log("new last: ", last.Height())
+	// run a prune job
+	lastPruned, err := serv.lastPruned(ctx)
+	require.NoError(t, err)
+	lastPruned = serv.prune(ctx, lastPruned)
+
+	// expected to have pruned ~30 blocks (so [1:31])
+	assert.Equal(t, uint64(31), lastPruned.Height())
+
+	// manually check that the archival pruner trimmed the Q4 file of
+	// a historic block
+	historicHeader, err := headerStore.GetByHeight(ctx, uint64(4))
+	require.NoError(t, err)
+	// TODO @renaynay: make this not ugly somehow ?
+	path := filepath.Join(tmp, "blocks", historicHeader.DAH.String()) + ".q4"
+	_, err = os.Stat(path)
+	assert.Error(t, err)
+
+	// manually check that the Q4 file of a recent block (within sampling
+	// window) was not trimmed
+	recentHeader, err := headerStore.GetByHeight(ctx, uint64(40))
+	require.NoError(t, err)
+	// TODO @renaynay: make this not ugly somehow ?
+	path = filepath.Join(tmp, "blocks", recentHeader.DAH.String()) + ".q4"
+	_, err = os.Stat(path)
+	assert.NoError(t, err)
 }
 
 // TestService_FailedAreRecorded checks whether the pruner service
