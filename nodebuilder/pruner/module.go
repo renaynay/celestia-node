@@ -42,6 +42,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 
 	switch tp {
 	case node.Light:
+		// LNs enforce pruning by default
 		return fx.Module("prune",
 			baseComponents,
 			prunerService,
