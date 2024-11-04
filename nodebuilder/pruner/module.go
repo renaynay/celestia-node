@@ -2,7 +2,6 @@ package pruner
 
 import (
 	"context"
-	"time"
 
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
@@ -13,7 +12,7 @@ import (
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/pruner"
 	"github.com/celestiaorg/celestia-node/pruner/full"
-	"github.com/celestiaorg/celestia-node/share/availability"
+	fullavail "github.com/celestiaorg/celestia-node/share/availability/full"
 	"github.com/celestiaorg/celestia-node/share/availability/light"
 )
 
@@ -22,7 +21,6 @@ var log = logging.Logger("module/pruner")
 func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 	baseComponents := fx.Options(
 		fx.Supply(cfg),
-		availWindow(tp, cfg.EnableService),
 	)
 
 	prunerService := fx.Options(
@@ -56,6 +54,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 				baseComponents,
 				prunerService,
 				fxutil.ProvideAs(full.NewPruner, new(pruner.Pruner)),
+				fx.Supply([]fullavail.Option{}),
 			)
 		}
 		return fx.Module("prune",
@@ -63,6 +62,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
 				return pruner.DetectPreviousRun(ctx, ds)
 			}),
+			fx.Supply([]fullavail.Option{fullavail.WithArchivalMode()}),
 		)
 	case node.Bridge:
 		if cfg.EnableService {
@@ -70,9 +70,8 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 				baseComponents,
 				prunerService,
 				fxutil.ProvideAs(full.NewPruner, new(pruner.Pruner)),
-				fx.Provide(func(window availability.Window) []core.Option {
-					return []core.Option{core.WithAvailabilityWindow(window.Duration())}
-				}),
+				fx.Supply([]fullavail.Option{}),
+				fx.Supply([]core.Option{}),
 			)
 		}
 		return fx.Module("prune",
@@ -83,28 +82,9 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			fx.Provide(func() []core.Option {
 				return []core.Option{}
 			}),
+			fx.Supply([]fullavail.Option{fullavail.WithArchivalMode()}),
+			fx.Supply([]core.Option{core.WithArchivalMode()}),
 		)
-	default:
-		panic("unknown node type")
-	}
-}
-
-func availWindow(tp node.Type, pruneEnabled bool) fx.Option {
-	switch tp {
-	case node.Light:
-		// light nodes are still subject to sampling within window
-		// even if pruning is not enabled.
-		return fx.Provide(func() availability.Window {
-			return availability.Window(availability.StorageWindow)
-		})
-	case node.Full, node.Bridge:
-		return fx.Provide(func() availability.Window {
-			if pruneEnabled {
-				return availability.Window(availability.StorageWindow)
-			}
-			// implicitly disable pruning by setting the window to 0
-			return availability.Window(time.Duration(0))
-		})
 	default:
 		panic("unknown node type")
 	}

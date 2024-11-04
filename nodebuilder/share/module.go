@@ -218,9 +218,12 @@ func edsStoreComponents(cfg *Config) fx.Option {
 }
 
 func availabilityComponents(tp node.Type, cfg *Config) fx.Option {
+	availWindow := fx.Options(fx.Supply(availability.Window(availability.StorageWindow)))
+
 	switch tp {
 	case node.Light:
 		return fx.Options(
+			availWindow,
 			fx.Provide(fx.Annotate(
 				func(getter shwap.Getter, ds datastore.Batching, bs blockstore.Blockstore) *light.ShareAvailability {
 					return light.NewShareAvailability(
@@ -239,7 +242,14 @@ func availabilityComponents(tp node.Type, cfg *Config) fx.Option {
 		)
 	case node.Bridge, node.Full:
 		return fx.Options(
-			fx.Provide(full.NewShareAvailability),
+			availWindow,
+			fx.Provide(func(
+				s *store.Store,
+				getter shwap.Getter,
+				opts []full.Option,
+			) *full.ShareAvailability {
+				return full.NewShareAvailability(s, getter, opts...)
+			}),
 			fx.Provide(func(avail *full.ShareAvailability) share.Availability {
 				return avail
 			}),

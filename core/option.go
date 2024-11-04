@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/celestiaorg/celestia-node/nodebuilder/p2p"
+	"github.com/celestiaorg/celestia-node/share/availability"
 )
 
 type Option func(*params)
@@ -12,11 +13,13 @@ type params struct {
 	metrics            bool
 	chainID            string
 	availabilityWindow time.Duration
+	archival           bool
 }
 
 func defaultParams() params {
 	return params{
-		availabilityWindow: time.Duration(0),
+		availabilityWindow: availability.StorageWindow,
+		archival:           false,
 	}
 }
 
@@ -31,6 +34,12 @@ func WithMetrics() Option {
 func WithChainID(id p2p.Network) Option {
 	return func(p *params) {
 		p.chainID = id.String()
+	}
+}
+
+func WithArchivalMode() Option {
+	return func(p *params) {
+		p.archival = true
 	}
 }
 
