@@ -4,11 +4,9 @@ import (
 	"fmt"
 )
 
-var (
-	// DefaultSampleAmount specifies the minimum required amount of samples a light node must perform
-	// before declaring that a block is available
-	DefaultSampleAmount uint = 16
-)
+// DefaultSampleAmount specifies the minimum required amount of samples a light node must perform
+// before declaring that a block is available
+var DefaultSampleAmount uint = 16
 
 // Parameters is the set of Parameters that must be configured for the light
 // availability implementation
