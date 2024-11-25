@@ -78,7 +78,7 @@ func (la *ShareAvailability) SharesAvailable(ctx context.Context, header *header
 	}
 
 	// short-circuit if outside sampling window
-	if !availability.IsWithinWindow(header.Time(), la.params.storageWindow) {
+	if !availability.IsWithinWindow(header.Time(), availability.StorageWindow) {
 		return availability.ErrOutsideSamplingWindow
 	}
 

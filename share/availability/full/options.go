@@ -28,12 +28,3 @@ func WithArchivalMode() Option {
 		p.archival = true
 	}
 }
-
-// TODO @renaynay: do you need this??
-// WithStorageWindow is a functional option to set the storage window
-// to something other than the default for the full availability implementation
-func WithStorageWindow(window time.Duration) Option {
-	return func(p *params) {
-		p.storageWindow = window
-	}
-}

@@ -79,9 +79,6 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
 				return pruner.DetectPreviousRun(ctx, ds)
 			}),
-			fx.Provide(func() []core.Option {
-				return []core.Option{}
-			}),
 			fx.Supply([]fullavail.Option{fullavail.WithArchivalMode()}),
 			fx.Supply([]core.Option{core.WithArchivalMode()}),
 		)
