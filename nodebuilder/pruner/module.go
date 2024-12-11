@@ -61,8 +61,8 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			fullAvailOpts = []fullavail.Option{fullavail.WithArchivalMode()}
 			archivalOpts = fx.Options(
 				archivalOpts,
-				fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
-					return pruner.DetectPreviousRun(ctx, ds)
+				fx.Invoke(func(ctx context.Context, ds datastore.Batching, p pruner.Pruner) error {
+					return pruner.DetectPreviousRun(ctx, ds, p.Kind())
 				}),
 			)
 		}
@@ -84,8 +84,8 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			fullAvailOpts = []fullavail.Option{fullavail.WithArchivalMode()}
 			archivalOpts = fx.Options(
 				archivalOpts,
-				fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
-					return pruner.DetectPreviousRun(ctx, ds)
+				fx.Invoke(func(ctx context.Context, ds datastore.Batching, p pruner.Pruner) error {
+					return pruner.DetectPreviousRun(ctx, ds, p.Kind())
 				}),
 			)
 		}

@@ -111,3 +111,10 @@ func (fa *ShareAvailability) Prune(ctx context.Context, eh *header.ExtendedHeade
 	log.Debugf("removing block %s at height %d", eh.DAH.Hash(), eh.Height())
 	return fa.store.RemoveODSQ4(ctx, eh.Height(), eh.DAH.Hash())
 }
+
+func (fa *ShareAvailability) Kind() string {
+	if fa.archival {
+		return "archival"
+	}
+	return "full"
+}
