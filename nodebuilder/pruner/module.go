@@ -9,11 +9,9 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/celestiaorg/celestia-node/core"
-	"github.com/celestiaorg/celestia-node/libs/fxutil"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	modshare "github.com/celestiaorg/celestia-node/nodebuilder/share"
 	"github.com/celestiaorg/celestia-node/pruner"
-	"github.com/celestiaorg/celestia-node/pruner/full"
 	"github.com/celestiaorg/celestia-node/share/availability"
 	fullavail "github.com/celestiaorg/celestia-node/share/availability/full"
 	"github.com/celestiaorg/celestia-node/share/availability/light"
@@ -23,12 +21,6 @@ import (
 var log = logging.Logger("module/pruner")
 
 func ConstructModule(tp node.Type, cfg *Config) fx.Option {
-	baseComponents := fx.Options(
-		fx.Supply(cfg),
-		availWindow(tp, cfg.EnableService),
-		advertiseArchival(tp, cfg),
-	)
-
 	prunerService := fx.Options(
 		fx.Provide(fx.Annotate(
 			newPrunerService,
@@ -44,49 +36,62 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 		fx.Invoke(func(_ *pruner.Service) {}),
 	)
 
+	baseComponents := fx.Options(
+		fx.Supply(cfg),
+		availWindow(tp, cfg.EnableService),
+		advertiseArchival(tp, cfg),
+		prunerService,
+	)
+
 	switch tp {
 	case node.Light:
 		// LNs enforce pruning by default
 		return fx.Module("prune",
 			baseComponents,
-			prunerService,
 			// TODO(@walldiss @renaynay): remove conversion after Availability and Pruner interfaces are merged
 			//  note this provide exists in pruner module to avoid cyclical imports
 			fx.Provide(func(la *light.ShareAvailability) pruner.Pruner { return la }),
 		)
 	case node.Full:
-		if cfg.EnableService {
-			return fx.Module("prune",
-				baseComponents,
-				prunerService,
-				fxutil.ProvideAs(full.NewPruner, new(pruner.Pruner)),
-				fx.Supply([]fullavail.Option{}),
+		fullAvailOpts := []fullavail.Option{}
+		var archivalOpts fx.Option
+		if !cfg.EnableService {
+			// populate archival mode opts
+			fullAvailOpts = []fullavail.Option{fullavail.WithArchivalMode()}
+			archivalOpts = fx.Options(
+				archivalOpts,
+				fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
+					return pruner.DetectPreviousRun(ctx, ds)
+				}),
 			)
 		}
 		return fx.Module("prune",
 			baseComponents,
-			fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
-				return pruner.DetectPreviousRun(ctx, ds)
-			}),
-			fx.Supply([]fullavail.Option{fullavail.WithArchivalMode()}),
+			archivalOpts,
+			fx.Supply(fullAvailOpts),
+			fx.Provide(func(fa *fullavail.ShareAvailability) pruner.Pruner { return fa }),
 		)
 	case node.Bridge:
-		if cfg.EnableService {
-			return fx.Module("prune",
-				baseComponents,
-				prunerService,
-				fxutil.ProvideAs(full.NewPruner, new(pruner.Pruner)),
-				fx.Supply([]fullavail.Option{}),
-				fx.Supply([]core.Option{}),
+		var archivalOpts fx.Option
+		coreOpts := []core.Option{}
+		fullAvailOpts := []fullavail.Option{}
+		if !cfg.EnableService {
+			// populate archival mode opts
+			coreOpts = []core.Option{core.WithArchivalMode()}
+			fullAvailOpts = []fullavail.Option{fullavail.WithArchivalMode()}
+			archivalOpts = fx.Options(
+				archivalOpts,
+				fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
+					return pruner.DetectPreviousRun(ctx, ds)
+				}),
 			)
 		}
+
 		return fx.Module("prune",
 			baseComponents,
-			fx.Invoke(func(ctx context.Context, ds datastore.Batching) error {
-				return pruner.DetectPreviousRun(ctx, ds)
-			}),
-			fx.Supply([]fullavail.Option{fullavail.WithArchivalMode()}),
-			fx.Supply([]core.Option{core.WithArchivalMode()}),
+			fx.Provide(func(fa *fullavail.ShareAvailability) pruner.Pruner { return fa }),
+			fx.Supply(coreOpts),
+			fx.Supply(fullAvailOpts),
 		)
 	default:
 		panic("unknown node type")

@@ -1,5 +1,3 @@
-//go:build pruning || integration
-
 package tests
 
 import (
