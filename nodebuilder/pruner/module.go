@@ -53,8 +53,9 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			fx.Provide(func(la *light.ShareAvailability) pruner.Pruner { return la }),
 		)
 	case node.Full:
-		fullAvailOpts := []fullavail.Option{}
-		var archivalOpts fx.Option
+		fullAvailOpts := make([]fullavail.Option, 0)
+		archivalOpts := fx.Options()
+
 		if !cfg.EnableService {
 			// populate archival mode opts
 			fullAvailOpts = []fullavail.Option{fullavail.WithArchivalMode()}
@@ -65,6 +66,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 				}),
 			)
 		}
+
 		return fx.Module("prune",
 			baseComponents,
 			archivalOpts,
@@ -72,9 +74,10 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 			fx.Provide(func(fa *fullavail.ShareAvailability) pruner.Pruner { return fa }),
 		)
 	case node.Bridge:
-		var archivalOpts fx.Option
-		coreOpts := []core.Option{}
-		fullAvailOpts := []fullavail.Option{}
+		archivalOpts := fx.Options()
+		coreOpts := make([]core.Option, 0)
+		fullAvailOpts := make([]fullavail.Option, 0)
+
 		if !cfg.EnableService {
 			// populate archival mode opts
 			coreOpts = []core.Option{core.WithArchivalMode()}
