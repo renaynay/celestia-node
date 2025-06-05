@@ -1,5 +1,3 @@
-//go:build pruning || integration
-
 package tests
 
 import (
@@ -19,10 +17,13 @@ import (
 	libshare "github.com/celestiaorg/go-square/v2/share"
 
 	"github.com/celestiaorg/celestia-node/blob"
+	"github.com/celestiaorg/celestia-node/header"
+	"github.com/celestiaorg/celestia-node/header/headertest"
 	"github.com/celestiaorg/celestia-node/nodebuilder"
 	"github.com/celestiaorg/celestia-node/nodebuilder/das"
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 	"github.com/celestiaorg/celestia-node/nodebuilder/tests/swamp"
+	"github.com/celestiaorg/celestia-node/pruner"
 	"github.com/celestiaorg/celestia-node/share"
 	full_avail "github.com/celestiaorg/celestia-node/share/availability/full"
 	"github.com/celestiaorg/celestia-node/share/shwap/p2p/shrex/peers"
@@ -186,27 +187,30 @@ func TestDisallowConvertFromPrunedToArchival(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	t.Cleanup(cancel)
 
-	// Light nodes have pruning enabled by default
-	for _, nt := range []node.Type{node.Bridge, node.Full} {
-		pruningCfg := nodebuilder.DefaultConfig(nt)
-		pruningCfg.Pruner.EnableService = true
-		var err error
-		pruningCfg.Core.IP, pruningCfg.Core.Port, err = net.SplitHostPort(sw.ClientContext.GRPCClient.Target())
-		require.NoError(t, err)
-		store := nodebuilder.MockStore(t, pruningCfg)
-		pruningNode := sw.MustNewNodeWithStore(nt, store)
-		err = pruningNode.Start(ctx)
-		require.NoError(t, err)
-		err = pruningNode.Stop(ctx)
-		require.NoError(t, err)
+	pruningCfg := nodebuilder.DefaultConfig(nt)
+	pruningCfg.Pruner.EnableService = true
+	var err error
+	pruningCfg.Core.IP, pruningCfg.Core.Port, err = net.SplitHostPort(sw.ClientContext.GRPCClient.Target())
+	require.NoError(t, err)
+	store := nodebuilder.MockStore(t, pruningCfg)
 
-		archivalCfg := nodebuilder.DefaultConfig(nt)
-		err = store.PutConfig(archivalCfg)
-		require.NoError(t, err)
-		_, err = sw.NewNodeWithStore(nt, store)
-		assert.Error(t, err)
-		assert.ErrorIs(t, full_avail.ErrDisallowRevertToArchival, err)
-	}
+	// set pruner cycle to nanosecond to ensure a prune job is triggered instantly on start
+	prunerService := testPrunerService(t, store.Datastore())
+	pruningNode, err := sw.NewNodeWithStore(node.Bridge, store, fx.Replace(prunerService))
+	err = pruningNode.Start(ctx)
+	require.NoError(t, err)
+	// wait for a bit while pruner service gets started + runs its first cycle
+	_, err = pruningNode.HeaderServ.WaitForHeight(ctx, 5)
+	require.NoError(t, err)
+	err = pruningNode.Stop(ctx)
+	require.NoError(t, err)
+
+	archivalCfg := nodebuilder.DefaultConfig(nt)
+	err = store.PutConfig(archivalCfg)
+	require.NoError(t, err)
+	_, err = sw.NewNodeWithStore(nt, store)
+	assert.Error(t, err)
+	assert.ErrorIs(t, full_avail.ErrDisallowRevertToArchival, err)
 }
 
 func TestDisallowConvertToArchivalViaLastPrunedCheck(t *testing.T) {
@@ -298,4 +302,27 @@ func TestConvertFromArchivalToPruned(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, uint64(1), cp.LastPrunedHeight)
 	}
+}
+
+func testPrunerService(
+	t *testing.T,
+	ds datastore.Datastore,
+) *pruner.Service {
+
+	prunerService, err := pruner.NewService(
+		&mockPruner{},
+		time.Nanosecond,
+		headertest.NewStore(t),
+		ds,
+		pruner.WithPruneCycle(time.Nanosecond),
+	)
+	require.NoError(t, err)
+
+	return prunerService
+}
+
+type mockPruner struct{}
+
+func (m mockPruner) Prune(ctx context.Context, extendedHeader *header.ExtendedHeader) error {
+	return nil
 }
