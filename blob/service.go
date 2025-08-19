@@ -215,6 +215,7 @@ func (s *Service) Get(
 	blob, _, err = s.retrieve(ctx, height, namespace, sharesParser)
 
 	fmt.Println("blobservice.Get took (s):   ", time.Since(startTime).Seconds())
+	fmt.Println("blobservice.Get had err??  ", err)
 	return
 }
 
