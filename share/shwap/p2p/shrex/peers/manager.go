@@ -204,6 +204,19 @@ func (m *Manager) Stop(ctx context.Context) error {
 // appropriate result value
 func (m *Manager) Peer(ctx context.Context, datahash share.DataHash, height uint64,
 ) (peer.ID, DoneFunc, error) {
+	fmt.Println(" \n\n\n INSIDE manager.Peer")
+	fmt.Println("manager has full node peers:  ", m.nodes.len())
+	if m.getPool(datahash.String()) != nil {
+		fmt.Println("manager has shrexSub peers: ", m.getPool(datahash.String()).len())
+	} else {
+		fmt.Println("manager has NO SHREXSUB peers for given datahash")
+	}
+	m.lock.Lock()
+	for k, v := range m.pools {
+		fmt.Println("manager has pool:  ", k, "   w/ num activepeers: ", v.len())
+	}
+	m.lock.Unlock()
+
 	p := m.validatedPool(datahash.String(), height)
 
 	// first, check if a peer is available for the given datahash

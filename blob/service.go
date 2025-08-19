@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/types"
 	logging "github.com/ipfs/go-log/v2"
@@ -209,7 +210,11 @@ func (s *Service) Get(
 		return blob.compareCommitments(commitment)
 	}}
 
+	startTime := time.Now()
+
 	blob, _, err = s.retrieve(ctx, height, namespace, sharesParser)
+
+	fmt.Println("blobservice.Get took (s):   ", time.Since(startTime).Seconds())
 	return
 }
 
@@ -249,6 +254,10 @@ func (s *Service) GetProof(
 //
 // All blobs will preserve the order of the namespaces that were requested.
 func (s *Service) GetAll(ctx context.Context, height uint64, namespaces []libshare.Namespace) ([]*Blob, error) {
+	start := time.Now()
+	defer func() {
+		fmt.Println("blobservice.GetAll total time took:  (s)", time.Since(start).Seconds())
+	}()
 	header, err := s.headerGetter(ctx, height)
 	if err != nil {
 		return nil, err
@@ -343,15 +352,21 @@ func (s *Service) retrieve(
 
 	getCtx, headerGetterSpan := tracer.Start(ctx, "header-getter")
 
+	startTime := time.Now()
+
 	header, err := s.headerGetter(getCtx, height)
 	if err != nil {
 		headerGetterSpan.SetStatus(codes.Error, err.Error())
 		return nil, nil, err
 	}
 
+	fmt.Println("blobservice.headerGetter get height took (ms):  ", time.Since(startTime).Milliseconds())
+
 	headerGetterSpan.SetStatus(codes.Ok, "")
 	headerGetterSpan.AddEvent("received eds", trace.WithAttributes(
 		attribute.Int64("eds-size", int64(len(header.DAH.RowRoots)))))
+
+	startTime = time.Now()
 
 	rowIndex := -1
 	for i, row := range header.DAH.RowRoots {
@@ -365,17 +380,23 @@ func (s *Service) retrieve(
 		}
 	}
 
+	fmt.Println("blobservice.geting row index took (ms):  ", time.Since(startTime).Milliseconds())
+
 	getCtx, getSharesSpan := tracer.Start(ctx, "get-shares-by-namespace")
+
+	startTime = time.Now()
 
 	// collect shares for the requested namespace
 	namespacedShares, err := s.shareGetter.GetNamespaceData(getCtx, header, namespace)
 	if err != nil {
+		fmt.Println("blobservice.retrieve.GetNamespaceData FAILED took (ms):   ", time.Since(startTime).Milliseconds())
 		if errors.Is(err, shwap.ErrNotFound) {
 			err = ErrBlobNotFound
 		}
 		getSharesSpan.SetStatus(codes.Error, err.Error())
 		return nil, nil, err
 	}
+	fmt.Println("blobservice.retrieve.GetNamespaceData SUCCEEDED took (ms):   ", time.Since(startTime).Milliseconds())
 
 	getSharesSpan.SetStatus(codes.Ok, "")
 	getSharesSpan.AddEvent("received shares", trace.WithAttributes(
@@ -386,6 +407,14 @@ func (s *Service) retrieve(
 		proofs    = make(Proof, 0)
 	)
 
+	startTime = time.Now()
+	defer func() {
+		if err != nil {
+			fmt.Println("blobservice.retrieve.appshareparsing FAILED took (s):   ", time.Since(startTime).Seconds(), "   err: ", err.Error())
+		} else {
+			fmt.Println("blobservice.retrieve.appshareparsing SUCCEEDED took (s):   ", time.Since(startTime).Seconds())
+		}
+	}()
 	for _, row := range namespacedShares {
 		if len(row.Shares) == 0 {
 			// the above condition means that we've faced with an Absence Proof.

@@ -223,9 +223,14 @@ func (sg *Getter) GetNamespaceData(
 	header *header.ExtendedHeader,
 	namespace libshare.Namespace,
 ) (shwap.NamespaceData, error) {
+	startTime := time.Now()
+
 	if err := namespace.ValidateForData(); err != nil {
 		return nil, err
 	}
+
+	fmt.Println("shrexgetter.GetNamespaceData.namespace validate for data  took (ms): ", time.Since(startTime).Milliseconds())
+
 	var (
 		attempt int
 		err     error
@@ -238,6 +243,7 @@ func (sg *Getter) GetNamespaceData(
 	}()
 
 	// verify that the namespace could exist inside the roots before starting network requests
+	startTime = time.Now()
 	dah := header.DAH
 	rowIdxs, err := share.RowsWithNamespace(dah, namespace)
 	if err != nil {
@@ -246,6 +252,7 @@ func (sg *Getter) GetNamespaceData(
 	if len(rowIdxs) == 0 {
 		return shwap.NamespaceData{}, nil
 	}
+	fmt.Println("shrexgetter.GetNamespaceData.row idxs containing namespace took (ms): ", time.Since(startTime).Milliseconds())
 
 	for {
 		if ctx.Err() != nil {
@@ -265,6 +272,7 @@ func (sg *Getter) GetNamespaceData(
 			sg.metrics.recordNDAttempt(ctx, attempt, false)
 			return nil, errors.Join(err, getErr)
 		}
+		fmt.Println("shrexgetter.GetNamespaceData.get peer took (ms): ", time.Since(start).Milliseconds())
 
 		reqStart := time.Now()
 		reqCtx, cancel := utils.CtxWithSplitTimeout(ctx, sg.minAttemptsCount-attempt+1, sg.minRequestTimeout)
@@ -272,24 +280,31 @@ func (sg *Getter) GetNamespaceData(
 		cancel()
 		switch {
 		case getErr == nil:
+			fmt.Println("shrexgetter.GetNamespaceData.request nd took (ms): ", time.Since(reqStart).Milliseconds())
+			reqStart = time.Now()
 			// both inclusion and non-inclusion cases needs verification
 			if verErr := nd.Verify(dah, namespace); verErr != nil {
 				getErr = verErr
 				setStatus(peers.ResultBlacklistPeer)
 				break
 			}
+			fmt.Println("shrexgetter.GetNamespaceData.request nd verify took (ms): ", time.Since(reqStart).Milliseconds())
 			setStatus(peers.ResultNoop)
 			sg.metrics.recordNDAttempt(ctx, attempt, true)
 			return nd, nil
 		case errors.Is(getErr, context.DeadlineExceeded),
 			errors.Is(getErr, context.Canceled):
+			fmt.Println("shrexgetter.GetNamespaceData.request CTX DEADLINE/CANCEL nd took (ms): ", time.Since(reqStart).Milliseconds())
 			setStatus(peers.ResultCooldownPeer)
 		case errors.Is(getErr, shrex.ErrNotFound):
 			getErr = shwap.ErrNotFound
+			fmt.Println("shrexgetter.GetNamespaceData.request nd ERRNOTFOUND took (ms): ", time.Since(reqStart).Milliseconds())
 			setStatus(peers.ResultCooldownPeer)
 		case errors.Is(getErr, shrex.ErrInvalidResponse):
+			fmt.Println("shrexgetter.GetNamespaceData.request nd INVALID RESP took (ms): ", time.Since(reqStart).Milliseconds())
 			setStatus(peers.ResultBlacklistPeer)
 		default:
+			fmt.Println("shrexgetter.GetNamespaceData.request nd DEFAULTEDDDDDD!! took (ms): ", time.Since(reqStart).Milliseconds())
 			setStatus(peers.ResultCooldownPeer)
 		}
 

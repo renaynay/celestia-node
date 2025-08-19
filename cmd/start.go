@@ -26,6 +26,16 @@ Options passed on start override configuration options only on start and are not
 		Args:         cobra.NoArgs,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			// Open file for writing (create if not exists, append if exists)
+			f, err := os.OpenFile("output.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+
+			// Redirect stdout to the file
+			os.Stdout = f
+
 			err = ParseAllFlags(cmd, NodeType(cmd.Context()), args)
 			if err != nil {
 				return err
