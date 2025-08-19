@@ -3,6 +3,7 @@ package getters
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	logging "github.com/ipfs/go-log/v2"
@@ -141,7 +142,11 @@ func cascadeGetters[V any](
 		minTimeout = time.Minute
 	}
 
+	trueCascadeStart := time.Now()
+
 	for i, getter := range getters {
+		startTime := time.Now()
+
 		log.Debugf("cascade: launching getter #%d", i)
 		span.AddEvent("getter launched", trace.WithAttributes(attribute.Int("getter_idx", i)))
 
@@ -151,6 +156,7 @@ func cascadeGetters[V any](
 		val, getErr := get(getCtx, getter)
 		cancel()
 		if getErr == nil {
+			fmt.Println("cascade: getter returned value in  (ms):  ", time.Since(startTime).Milliseconds(), "  getter ", i)
 			return val, nil
 		}
 
@@ -168,8 +174,11 @@ func cascadeGetters[V any](
 
 		err = errors.Join(err, getErr)
 		if ctx.Err() != nil {
+			fmt.Println("cascade: getter FAILED due to ctx err took (ms):   ", time.Since(startTime).Milliseconds(), "  getter", i)
 			return zero, err
 		}
 	}
+
+	fmt.Println("cascade: all getters FAILED  took   (ms):   ", time.Since(trueCascadeStart).Milliseconds())
 	return zero, err
 }

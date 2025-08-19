@@ -57,7 +57,10 @@ func (c *Client) RequestND(
 		return nil, err
 	}
 
+	start := time.Now()
+
 	shares, err := c.doRequest(ctx, height, namespace, peer)
+	fmt.Println("client-nd: request took (ms):   ", time.Since(start).Milliseconds(), "   err?? ", err)
 	if err == nil {
 		return shares, nil
 	}
@@ -112,17 +115,20 @@ func (c *Client) doRequest(
 		log.Warnw("client-nd: closing write side of the stream", "err", err)
 	}
 
+	startRead := time.Now()
+
 	if err := c.readStatus(ctx, stream); err != nil {
 		c.metrics.ObserveRequests(ctx, 1, shrex.StatusReadRespErr)
 		return nil, err
 	}
 
 	nd := shwap.NamespaceData{}
-	_, err = nd.ReadFrom(stream)
+	totalRead, err := nd.ReadFrom(stream)
 	if err != nil {
 		c.metrics.ObserveRequests(ctx, 1, shrex.StatusReadRespErr)
 		return nil, err
 	}
+	fmt.Println("\n\n TOTAL READ BYTES FROM ND STREAM:  ", totalRead, "  in (ms):  ", time.Since(startRead).Milliseconds())
 	return nd, nil
 }
 
