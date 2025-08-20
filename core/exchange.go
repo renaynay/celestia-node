@@ -194,7 +194,10 @@ func (ce *Exchange) getExtendedHeaderByHeight(ctx context.Context, height int64)
 	}
 	storeTime := time.Since(start)
 
-	fmt.Println("\ncore/ex: GOT NEW BLOCK of ODS SIZE: ", eh.DAH.SquareSize(), "fetch time (ms): ", fetchTime.Milliseconds(), "  extend time (ms): ", extendTime.Milliseconds(),
-		"   construct time (ms):  ", constructTime.Milliseconds(), "  store time (ms): ", storeTime.Milliseconds(), "\n")
+	if eh.DAH.SquareSize() > 1 {
+		fmt.Println("\ncore/ex: GOT NEW BLOCK of ODS SIZE: ", eh.DAH.SquareSize(), "fetch time (ms): ", fetchTime.Milliseconds(), "  extend time (ms): ", extendTime.Milliseconds(),
+			"   construct time (ms):  ", constructTime.Milliseconds(), "  store time (ms): ", storeTime.Milliseconds(), "\n")
+	}
+
 	return eh, nil
 }
