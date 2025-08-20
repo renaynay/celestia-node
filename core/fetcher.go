@@ -64,14 +64,19 @@ func (f *BlockFetcher) GetBlockInfo(ctx context.Context, height int64) (*types.C
 // GetBlock queries Core for a `Block` at the given height.
 // if the height is nil, use the latest height
 func (f *BlockFetcher) GetBlock(ctx context.Context, height int64) (*SignedBlock, error) {
+	start := time.Now()
 	stream, err := f.client.BlockByHeight(ctx, &coregrpc.BlockByHeightRequest{Height: height})
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("fetcher.client.BlockByHeight send req took (ms):  ", time.Since(start).Milliseconds())
+
+	start = time.Now()
 	block, err := receiveBlockByHeight(stream)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("fetcher.receiveBlockByHeight TOTAL took (ms):  ", time.Since(start).Milliseconds())
 	return block, nil
 }
 
@@ -227,6 +232,7 @@ func receiveBlockByHeight(streamer coregrpc.BlockAPI_BlockByHeightClient) (
 ) {
 	parts := make([]*tmproto.Part, 0)
 
+	start := time.Now()
 	// receive the first part to get the block meta, commit, and validator set
 	firstPart, err := streamer.Recv()
 	if err != nil {
@@ -242,6 +248,9 @@ func receiveBlockByHeight(streamer coregrpc.BlockAPI_BlockByHeightClient) (
 	}
 	parts = append(parts, firstPart.BlockPart)
 
+	fmt.Println("fetcher.receiveBlockByHeight first part took (ms):  ", time.Since(start).Milliseconds())
+
+	start = time.Now()
 	// receive the rest of the block
 	isLast := firstPart.IsLast
 	for !isLast {
@@ -252,10 +261,14 @@ func receiveBlockByHeight(streamer coregrpc.BlockAPI_BlockByHeightClient) (
 		parts = append(parts, resp.BlockPart)
 		isLast = resp.IsLast
 	}
+	fmt.Println("fetcher.receiveBlockByHeight rest of parts took (ms):  ", time.Since(start).Milliseconds())
+
+	start = time.Now()
 	block, err := partsToBlock(parts)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("fetcher.receiveBlockByHeight partsToBlock took (ms):  ", time.Since(start).Milliseconds())
 	return &SignedBlock{
 		Header:       &block.Header,
 		Commit:       commit,
@@ -284,6 +297,7 @@ func partsToBlock(parts []*tmproto.Part) (*types.Block, error) {
 	partSet := types.NewPartSetFromHeader(types.PartSetHeader{
 		Total: uint32(len(parts)),
 	})
+	start := time.Now()
 	for _, part := range parts {
 		ok, err := partSet.AddPartWithoutProof(&types.Part{Index: part.Index, Bytes: part.Bytes})
 		if err != nil {
@@ -293,11 +307,15 @@ func partsToBlock(parts []*tmproto.Part) (*types.Block, error) {
 			return nil, err
 		}
 	}
+	fmt.Println("fetcher.partsToBlock AddPartWithoutProof took (ms):  ", time.Since(start).Milliseconds())
+	start = time.Now()
 	pbb := new(tmproto.Block)
 	bz, err := io.ReadAll(partSet.GetReader())
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("fetcher.partsToBlock io.ReadAll took (ms):  ", time.Since(start).Milliseconds())
+	start = time.Now()
 	err = proto.Unmarshal(bz, pbb)
 	if err != nil {
 		return nil, err
@@ -306,5 +324,6 @@ func partsToBlock(parts []*tmproto.Part) (*types.Block, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("fetcher.partsToBlock proto.Unmarshal took (ms):  ", time.Since(start).Milliseconds())
 	return block, nil
 }
