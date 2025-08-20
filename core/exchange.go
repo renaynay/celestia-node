@@ -164,26 +164,37 @@ func (ce *Exchange) Head(
 }
 
 func (ce *Exchange) getExtendedHeaderByHeight(ctx context.Context, height int64) (*header.ExtendedHeader, error) {
+	start := time.Now()
 	b, err := ce.fetcher.GetSignedBlock(ctx, height)
 	if err != nil {
 		return nil, fmt.Errorf("fetching signed block at height %d from core: %w", height, err)
 	}
+	fetchTime := time.Since(start)
 	log.Debugw("fetched signed block from core", "height", b.Header.Height)
 
+	start = time.Now()
 	eds, err := extendBlock(b.Data)
 	if err != nil {
 		return nil, fmt.Errorf("extending block data for height %d: %w", b.Header.Height, err)
 	}
+	extendTime := time.Since(start)
+
 	// create extended header
+	start = time.Now()
 	eh, err := ce.construct(b.Header, b.Commit, b.ValidatorSet, eds)
 	if err != nil {
 		panic(fmt.Errorf("constructing extended header for height %d: %w", b.Header.Height, err))
 	}
+	constructTime := time.Since(start)
 
+	start = time.Now()
 	err = storeEDS(ctx, eh, eds, ce.store, ce.availabilityWindow, ce.archival)
 	if err != nil {
 		return nil, err
 	}
+	storeTime := time.Since(start)
 
+	fmt.Println("\ncore/ex: GOT NEW BLOCK of ODS SIZE: ", eh.DAH.SquareSize(), "fetch time (ms): ", fetchTime.Milliseconds(), "  extend time (ms): ", extendTime.Milliseconds(),
+		"   construct time (ms):  ", constructTime.Milliseconds(), "  store time (ms): ", storeTime.Milliseconds(), "\n")
 	return eh, nil
 }
