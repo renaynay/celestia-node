@@ -299,6 +299,73 @@ func TestCoordinator(t *testing.T) {
 		st := coordinator.state.unsafeStats()
 		require.Equal(t, ch, newCheckpoint(st))
 	})
+
+	t.Run("header delete cancels in-flight operations and cleans state", func(t *testing.T) {
+		testParams := defaultTestParams()
+
+		testParams.dasParams.ConcurrencyLimit = 2
+		testParams.dasParams.SamplingRange = 10
+		testParams.sampleFrom = 1
+		testParams.networkHead = 30
+
+		ctx, cancel := context.WithTimeout(context.Background(), testParams.timeoutDelay)
+		defer cancel()
+
+		// Add some heights to failed map by failing them initially
+		failHeights := map[uint64]bool{5: true, 8: true, 15: true, 20: true}
+		var mu sync.Mutex
+		sampleFn := func(ctx context.Context, h *header.ExtendedHeader) error {
+			mu.Lock()
+			shouldFail := failHeights[h.Height()]
+			mu.Unlock()
+			if shouldFail {
+				return errors.New("temporary failure")
+			}
+			return nil
+		}
+
+		coordinator := newSamplingCoordinator(testParams.dasParams, getterStub{}, sampleFn, nil)
+		go coordinator.run(ctx, checkpoint{
+			SampleFrom:  testParams.sampleFrom,
+			NetworkHead: testParams.networkHead,
+		})
+
+		// Wait for some jobs to fail
+		time.Sleep(100 * time.Millisecond)
+
+		// Verify we have some failed heights
+		stats, err := coordinator.stats(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, stats.Failed, "should have failed heights before delete")
+
+		initialFailedCount := len(stats.Failed)
+		log.Infow("initial failed heights", "count", initialFailedCount, "failed", stats.Failed)
+
+		// Simulate header deletion at height 10 (should remove heights 5 and 8)
+		deleteHeight := uint64(10)
+		err = coordinator.onHeaderDelete(ctx, deleteHeight)
+		require.NoError(t, err)
+
+		// Wait a bit for the delete to be processed
+		time.Sleep(100 * time.Millisecond)
+
+		// Verify that heights <= 10 are removed from failed map
+		stats, err = coordinator.stats(ctx)
+		require.NoError(t, err)
+		log.Infow("failed heights after delete", "count", len(stats.Failed), "failed", stats.Failed)
+
+		for h := range stats.Failed {
+			assert.Greater(t, h, deleteHeight, "heights <= %d should be removed from failed map", deleteHeight)
+		}
+
+		// Verify that at least some heights were removed
+		assert.Less(t, len(stats.Failed), initialFailedCount, "some failed heights should have been removed")
+
+		cancel()
+		stopCtx, cancel := context.WithTimeout(context.Background(), testParams.timeoutDelay)
+		defer cancel()
+		assert.NoError(t, coordinator.wait(stopCtx))
+	})
 }
 
 func BenchmarkCoordinator(b *testing.B) {

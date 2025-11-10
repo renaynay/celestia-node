@@ -311,3 +311,24 @@ func (s *coordinatorState) waitCatchUp(ctx context.Context) error {
 func (r retryAttempt) canRetry() bool {
 	return r.after.Before(time.Now())
 }
+
+// cleanupDeletedHeights removes heights at or below the given height from failed and inRetry maps.
+// This is called when headers are deleted from the header store to prevent sampling operations
+// on headers that no longer exist.
+func (s *coordinatorState) cleanupDeletedHeights(height uint64) {
+	// Remove from failed map
+	for h := range s.failed {
+		if h <= height {
+			log.Debugw("removing failed height due to header delete", "height", h, "deleted_height", height)
+			delete(s.failed, h)
+		}
+	}
+
+	// Remove from inRetry map
+	for h := range s.inRetry {
+		if h <= height {
+			log.Debugw("removing inRetry height due to header delete", "height", h, "deleted_height", height)
+			delete(s.inRetry, h)
+		}
+	}
+}
