@@ -28,11 +28,10 @@ type samplingCoordinator struct {
 	updHeadCh chan *header.ExtendedHeader
 	// waitCh signals to block coordinator for external access to state
 	waitCh chan *sync.WaitGroup
-	// deleteCh signals that headers at or below a height are being deleted
-	deleteCh chan uint64
 
 	// cancelFuncs stores cancel functions for each in-progress job
-	cancelFuncs map[int]context.CancelFunc
+	cancelFuncs   map[int]context.CancelFunc
+	cancelFuncsMu sync.Mutex
 
 	workersWg sync.WaitGroup
 	metrics   *metrics
@@ -62,7 +61,6 @@ func newSamplingCoordinator(
 		resultCh:         make(chan result),
 		updHeadCh:        make(chan *header.ExtendedHeader),
 		waitCh:           make(chan *sync.WaitGroup),
-		deleteCh:         make(chan uint64, 16), // buffered to avoid blocking OnDelete callback
 		cancelFuncs:      make(map[int]context.CancelFunc),
 		done:             newDone("sampling coordinator"),
 	}
@@ -98,11 +96,11 @@ func (sc *samplingCoordinator) run(ctx context.Context, cp checkpoint) {
 		case res := <-sc.resultCh:
 			sc.state.handleResult(res)
 			// clean up cancel function for completed job
+			sc.cancelFuncsMu.Lock()
 			delete(sc.cancelFuncs, res.id)
+			sc.cancelFuncsMu.Unlock()
 		case wg := <-sc.waitCh:
 			wg.Wait()
-		case height := <-sc.deleteCh:
-			sc.handleHeaderDelete(height)
 		case <-ctx.Done():
 			sc.workersWg.Wait()
 			sc.indicateDone()
@@ -118,7 +116,9 @@ func (sc *samplingCoordinator) runWorker(ctx context.Context, j job) {
 
 	// create a cancellable context for this worker
 	workerCtx, cancel := context.WithCancel(ctx)
+	sc.cancelFuncsMu.Lock()
 	sc.cancelFuncs[j.id] = cancel
+	sc.cancelFuncsMu.Unlock()
 
 	// launch worker go-routine
 	sc.workersWg.Add(1)
@@ -136,14 +136,41 @@ func (sc *samplingCoordinator) listen(ctx context.Context, h *header.ExtendedHea
 	}
 }
 
-// onHeaderDelete notifies the coordinator about a header deletion.
+// onHeaderDelete handles header deletion by canceling relevant workers and cleaning up state.
+// This is called by the header store before deleting headers at or below the given height.
 func (sc *samplingCoordinator) onHeaderDelete(ctx context.Context, height uint64) error {
-	select {
-	case sc.deleteCh <- height:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
+	log.Debugw("handling header delete", "height", height)
+
+	sc.cancelFuncsMu.Lock()
+	defer sc.cancelFuncsMu.Unlock()
+
+	// Cancel all in-progress jobs that are sampling heights at or below the deleted height
+	// Note: We cancel jobs where ALL heights being sampled are at or below the deleted height.
+	// Jobs that span across the deleted height will continue but will handle missing headers gracefully.
+	for jobID, cancel := range sc.cancelFuncs {
+		getState, ok := sc.state.inProgress[jobID]
+		if !ok {
+			continue
+		}
+		state := getState()
+		// Check if this job is working ONLY on heights at or below the deleted height
+		if state.to <= height {
+			log.Debugw("cancelling job due to header delete",
+				"job_id", jobID,
+				"job_type", state.jobType,
+				"from", state.from,
+				"to", state.to,
+				"deleted_height", height)
+			cancel()
+			// Remove from inProgress immediately since the worker won't send a result
+			delete(sc.state.inProgress, jobID)
+			delete(sc.cancelFuncs, jobID)
+		}
 	}
+
+	// Clean up state maps
+	sc.state.cleanupDeletedHeights(height)
+	return nil
 }
 
 // stats pauses the coordinator to get stats in a concurrently safe manner
@@ -177,37 +204,4 @@ func (sc *samplingCoordinator) concurrencyLimitReached() bool {
 // recentJobsLimitReached indicates whether concurrency limit for recent jobs has been reached
 func (sc *samplingCoordinator) recentJobsLimitReached() bool {
 	return len(sc.state.inProgress) >= 2*sc.concurrencyLimit
-}
-
-// handleHeaderDelete handles the deletion of headers at or below the given height.
-// It cancels in-flight operations and cleans up state for heights at or below the given height.
-func (sc *samplingCoordinator) handleHeaderDelete(height uint64) {
-	log.Debugw("handling header delete", "height", height)
-
-	// Cancel all in-progress jobs that are sampling heights at or below the deleted height
-	// Note: We cancel jobs where ALL heights being sampled are at or below the deleted height.
-	// Jobs that span across the deleted height will continue but will handle missing headers gracefully.
-	for jobID, cancel := range sc.cancelFuncs {
-		getState, ok := sc.state.inProgress[jobID]
-		if !ok {
-			continue
-		}
-		state := getState()
-		// Check if this job is working ONLY on heights at or below the deleted height
-		if state.to <= height {
-			log.Debugw("cancelling job due to header delete",
-				"job_id", jobID,
-				"job_type", state.jobType,
-				"from", state.from,
-				"to", state.to,
-				"deleted_height", height)
-			cancel()
-			// Remove from inProgress immediately since the worker won't send a result
-			delete(sc.state.inProgress, jobID)
-			delete(sc.cancelFuncs, jobID)
-		}
-	}
-
-	// Clean up state maps
-	sc.state.cleanupDeletedHeights(height)
 }
