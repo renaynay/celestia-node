@@ -23,7 +23,7 @@ import (
 var runLatencyMonitorCmd = &cobra.Command{
 	Use:   "latency-monitor",
 	Short: "Runs blob module submission + retrieval latency monitor for celestia-node..",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		bridgeAddr, _ := cmd.Flags().GetString("bridge.addr")
 		bridgeToken, _ := cmd.Flags().GetString("bridge.token")
 		coreGRPCAddr, _ := cmd.Flags().GetString("core.grpc")
@@ -79,7 +79,15 @@ func init() {
 	_ = runLatencyMonitorCmd.MarkFlagRequired("metrics.endpoint")
 }
 
-func buildClient(ctx context.Context, bridgeAddr, bridgeToken, coreGRPCAddr, keyName, keyPath, network string) (*client.Client, string, error) {
+func buildClient(
+	ctx context.Context,
+	bridgeAddr,
+	bridgeToken,
+	coreGRPCAddr,
+	keyName,
+	keyPath,
+	network string,
+) (*client.Client, string, error) {
 	kr, err := client.KeyringWithNewKey(client.KeyringConfig{
 		KeyName:     keyName,
 		BackendName: keyring.BackendTest,

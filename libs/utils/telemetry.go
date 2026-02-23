@@ -27,7 +27,7 @@ type MetricProviderConfig struct {
 
 // NewMetricProvider creates a new OTLP metric provider with the given configuration
 func NewMetricProvider(ctx context.Context, cfg MetricProviderConfig) (*sdk.MeterProvider, error) {
-	opts := []otlpmetrichttp.Option{otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression)}
+	opts := []otlpmetrichttp.Option{otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression)} //nolint:prealloc
 	opts = append(opts, cfg.OTLPOptions...)
 
 	exp, err := otlpmetrichttp.New(ctx, opts...)
