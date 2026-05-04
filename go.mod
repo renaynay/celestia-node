@@ -42,7 +42,7 @@ require (
 	github.com/ipfs/go-log/v2 v2.9.1
 	github.com/ipfs/go-metrics-interface v0.3.0
 	github.com/ipfs/go-metrics-prometheus v0.1.0
-	github.com/klauspost/reedsolomon v1.13.3
+	github.com/klauspost/reedsolomon v1.14.0
 	github.com/libp2p/go-libp2p v0.48.0
 	github.com/libp2p/go-libp2p-kad-dht v0.39.0
 	github.com/libp2p/go-libp2p-pubsub v0.15.1-0.20260318184623-12372d99a0bc
