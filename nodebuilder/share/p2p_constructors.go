@@ -127,8 +127,13 @@ func archivalDiscoveryAndPeerManager(cfg *Config) fx.Option {
 				discOpts = append(discOpts, discOpt)
 			}
 
+			// archival peers are a small subset of the network and are not used
+			// for DAS, so fewer are needed than `full` peers
+			archivalParams := *cfg.Discovery
+			archivalParams.PeersLimit = min(archivalParams.PeersLimit, 5)
+
 			archivalDisc, err := discovery.NewDiscovery(
-				cfg.Discovery,
+				&archivalParams,
 				h,
 				disc,
 				archivalNodesTag,
